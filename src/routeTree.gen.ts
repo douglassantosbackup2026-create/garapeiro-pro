@@ -17,6 +17,7 @@ import { Route as OsIndexRouteImport } from './routes/os.index'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as VeiculosVehicleIdRouteImport } from './routes/veiculos.$vehicleId'
 import { Route as OsNovaRouteImport } from './routes/os.nova'
+import { Route as OsKanbanRouteImport } from './routes/os.kanban'
 import { Route as OsOsIdRouteImport } from './routes/os.$osId'
 import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientId'
 
@@ -60,6 +61,11 @@ const OsNovaRoute = OsNovaRouteImport.update({
   path: '/os/nova',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OsKanbanRoute = OsKanbanRouteImport.update({
+  id: '/os/kanban',
+  path: '/os/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OsOsIdRoute = OsOsIdRouteImport.update({
   id: '/os/$osId',
   path: '/os/$osId',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
+  '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
+  '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes': typeof ClientesIndexRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
+  '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/clientes/$clientId'
     | '/os/$osId'
+    | '/os/kanban'
     | '/os/nova'
     | '/veiculos/$vehicleId'
     | '/clientes/'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/clientes/$clientId'
     | '/os/$osId'
+    | '/os/kanban'
     | '/os/nova'
     | '/veiculos/$vehicleId'
     | '/clientes'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/clientes/$clientId'
     | '/os/$osId'
+    | '/os/kanban'
     | '/os/nova'
     | '/veiculos/$vehicleId'
     | '/clientes/'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
   OsOsIdRoute: typeof OsOsIdRoute
+  OsKanbanRoute: typeof OsKanbanRoute
   OsNovaRoute: typeof OsNovaRoute
   VeiculosVehicleIdRoute: typeof VeiculosVehicleIdRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OsNovaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/os/kanban': {
+      id: '/os/kanban'
+      path: '/os/kanban'
+      fullPath: '/os/kanban'
+      preLoaderRoute: typeof OsKanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/os/$osId': {
       id: '/os/$osId'
       path: '/os/$osId'
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
   OsOsIdRoute: OsOsIdRoute,
+  OsKanbanRoute: OsKanbanRoute,
   OsNovaRoute: OsNovaRoute,
   VeiculosVehicleIdRoute: VeiculosVehicleIdRoute,
   ClientesIndexRoute: ClientesIndexRoute,
@@ -250,3 +271,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
