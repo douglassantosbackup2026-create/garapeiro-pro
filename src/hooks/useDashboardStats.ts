@@ -17,9 +17,9 @@ export function useDashboardStats() {
           .gte("data_entrada", startOfDay.toISOString()),
         supabase
           .from("service_orders")
-          .select("total_geral")
+          .select("id, total_geral")
           .eq("workshop_id", DEFAULT_WORKSHOP_ID)
-          .not("status", "in", "(entregue,cancelado)"),
+          .neq("status", "cancelado"),
         supabase
           .from("vehicles")
           .select("id", { count: "exact", head: true })
@@ -38,10 +38,24 @@ export function useDashboardStats() {
           .limit(5),
       ]);
 
-      const total = (aReceber.data ?? []).reduce(
-        (s, r: { total_geral: number | string }) => s + Number(r.total_geral || 0),
-        0
-      );
+      const orderIds = (aReceber.data ?? []).map((r) => r.id);
+      const paidByOs = new Map<string, number>();
+      if (orderIds.length) {
+        const { data: pays } = await supabase
+          .from("payments")
+          .select("service_order_id, valor")
+          .in("service_order_id", orderIds);
+        for (const p of pays ?? []) {
+          paidByOs.set(
+            p.service_order_id,
+            (paidByOs.get(p.service_order_id) ?? 0) + Number(p.valor || 0)
+          );
+        }
+      }
+      const total = (aReceber.data ?? []).reduce((s, r) => {
+        const pago = paidByOs.get(r.id) ?? 0;
+        return s + Math.max(0, Number(r.total_geral || 0) - pago);
+      }, 0);
 
       return {
         osHoje: osHoje.count ?? 0,

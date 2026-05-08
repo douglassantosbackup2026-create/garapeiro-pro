@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as AlertasRouteImport } from './routes/alertas'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,9 +18,15 @@ import { Route as OsIndexRouteImport } from './routes/os.index'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as VeiculosVehicleIdRouteImport } from './routes/veiculos.$vehicleId'
 import { Route as OsNovaRouteImport } from './routes/os.nova'
+import { Route as OsKanbanRouteImport } from './routes/os.kanban'
 import { Route as OsOsIdRouteImport } from './routes/os.$osId'
 import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientId'
 
+const FinanceiroRoute = FinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
@@ -60,6 +67,11 @@ const OsNovaRoute = OsNovaRouteImport.update({
   path: '/os/nova',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OsKanbanRoute = OsKanbanRouteImport.update({
+  id: '/os/kanban',
+  path: '/os/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OsOsIdRoute = OsOsIdRouteImport.update({
   id: '/os/$osId',
   path: '/os/$osId',
@@ -75,8 +87,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
+  '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -87,8 +101,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
+  '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes': typeof ClientesIndexRoute
@@ -100,8 +116,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
+  '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes/': typeof ClientesIndexRoute
@@ -114,8 +132,10 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
+    | '/os/kanban'
     | '/os/nova'
     | '/veiculos/$vehicleId'
     | '/clientes/'
@@ -126,8 +146,10 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
+    | '/os/kanban'
     | '/os/nova'
     | '/veiculos/$vehicleId'
     | '/clientes'
@@ -138,8 +160,10 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
+    | '/os/kanban'
     | '/os/nova'
     | '/veiculos/$vehicleId'
     | '/clientes/'
@@ -151,8 +175,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertasRoute: typeof AlertasRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  FinanceiroRoute: typeof FinanceiroRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
   OsOsIdRoute: typeof OsOsIdRoute
+  OsKanbanRoute: typeof OsKanbanRoute
   OsNovaRoute: typeof OsNovaRoute
   VeiculosVehicleIdRoute: typeof VeiculosVehicleIdRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
@@ -162,6 +188,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/financeiro': {
+      id: '/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof FinanceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/configuracoes': {
       id: '/configuracoes'
       path: '/configuracoes'
@@ -218,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OsNovaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/os/kanban': {
+      id: '/os/kanban'
+      path: '/os/kanban'
+      fullPath: '/os/kanban'
+      preLoaderRoute: typeof OsKanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/os/$osId': {
       id: '/os/$osId'
       path: '/os/$osId'
@@ -239,8 +279,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertasRoute: AlertasRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  FinanceiroRoute: FinanceiroRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
   OsOsIdRoute: OsOsIdRoute,
+  OsKanbanRoute: OsKanbanRoute,
   OsNovaRoute: OsNovaRoute,
   VeiculosVehicleIdRoute: VeiculosVehicleIdRoute,
   ClientesIndexRoute: ClientesIndexRoute,
