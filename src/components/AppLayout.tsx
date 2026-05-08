@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
-import { useReturnAlerts } from "@/hooks/useReturnAlerts";
+import { useSmartAlerts } from "@/hooks/useSmartAlerts";
 
 const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/", label: "Início", icon: Home, exact: true },
@@ -33,7 +33,7 @@ function isActive(path: string, current: string, exact = false) {
 export function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: workshop } = useWorkshop();
-  const { data: alerts } = useReturnAlerts();
+  const { data: alerts } = useSmartAlerts();
   const alertCount = alerts?.length ?? 0;
 
   return (
