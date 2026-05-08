@@ -24,7 +24,6 @@ import { useWorkshop } from "@/hooks/useWorkshop";
 import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-import { EmptyState } from "@/components/EmptyState";
 import {
   formatBRL,
   formatLongDate,
