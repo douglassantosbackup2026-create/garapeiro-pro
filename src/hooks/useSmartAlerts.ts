@@ -50,6 +50,7 @@ export type SmartAlert =
       clientId: string;
       nome: string;
       telefone: string;
+      osId: string;
       osNumero: number;
       diasDesdeEntrega: number;
     };
@@ -83,9 +84,10 @@ export function useSmartAlerts() {
             .eq("workshop_id", DEFAULT_WORKSHOP_ID),
           supabase
             .from("service_orders")
-            .select("id, numero, atualizada_em, client_id, clients(nome, telefone)")
+            .select("id, numero, atualizada_em, client_id, nota_satisfacao, clients(nome, telefone)")
             .eq("workshop_id", DEFAULT_WORKSHOP_ID)
             .eq("status", "entregue")
+            .is("nota_satisfacao", null)
             .gte("atualizada_em", cutoffEntregaMax)
             .lte("atualizada_em", cutoffEntrega),
         ]);
@@ -192,6 +194,7 @@ export function useSmartAlerts() {
           clientId: o.client_id,
           nome: o.clients.nome,
           telefone: o.clients.telefone,
+          osId: o.id,
           osNumero: o.numero,
           diasDesdeEntrega: dias,
         });

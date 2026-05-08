@@ -23,6 +23,7 @@ import { Route as OsNovaRouteImport } from './routes/os.nova'
 import { Route as OsKanbanRouteImport } from './routes/os.kanban'
 import { Route as OsOsIdRouteImport } from './routes/os.$osId'
 import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientId'
+import { Route as OsOsIdEditarRouteImport } from './routes/os.$osId.editar'
 
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
@@ -94,6 +95,11 @@ const ClientesClientIdRoute = ClientesClientIdRouteImport.update({
   path: '/clientes/$clientId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OsOsIdEditarRoute = OsOsIdEditarRouteImport.update({
+  id: '/editar',
+  path: '/editar',
+  getParentRoute: () => OsOsIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,13 +109,14 @@ export interface FileRoutesByFullPath {
   '/financeiro': typeof FinanceiroRoute
   '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
-  '/os/$osId': typeof OsOsIdRoute
+  '/os/$osId': typeof OsOsIdRouteWithChildren
   '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes/': typeof ClientesIndexRoute
   '/os/': typeof OsIndexRoute
   '/veiculos/': typeof VeiculosIndexRoute
+  '/os/$osId/editar': typeof OsOsIdEditarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,13 +126,14 @@ export interface FileRoutesByTo {
   '/financeiro': typeof FinanceiroRoute
   '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
-  '/os/$osId': typeof OsOsIdRoute
+  '/os/$osId': typeof OsOsIdRouteWithChildren
   '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes': typeof ClientesIndexRoute
   '/os': typeof OsIndexRoute
   '/veiculos': typeof VeiculosIndexRoute
+  '/os/$osId/editar': typeof OsOsIdEditarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -136,13 +144,14 @@ export interface FileRoutesById {
   '/financeiro': typeof FinanceiroRoute
   '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
-  '/os/$osId': typeof OsOsIdRoute
+  '/os/$osId': typeof OsOsIdRouteWithChildren
   '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
   '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
   '/clientes/': typeof ClientesIndexRoute
   '/os/': typeof OsIndexRoute
   '/veiculos/': typeof VeiculosIndexRoute
+  '/os/$osId/editar': typeof OsOsIdEditarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/os/'
     | '/veiculos/'
+    | '/os/$osId/editar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/os'
     | '/veiculos'
+    | '/os/$osId/editar'
   id:
     | '__root__'
     | '/'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/os/'
     | '/veiculos/'
+    | '/os/$osId/editar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -203,7 +215,7 @@ export interface RootRouteChildren {
   FinanceiroRoute: typeof FinanceiroRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
-  OsOsIdRoute: typeof OsOsIdRoute
+  OsOsIdRoute: typeof OsOsIdRouteWithChildren
   OsKanbanRoute: typeof OsKanbanRoute
   OsNovaRoute: typeof OsNovaRoute
   VeiculosVehicleIdRoute: typeof VeiculosVehicleIdRoute
@@ -312,8 +324,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesClientIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/os/$osId/editar': {
+      id: '/os/$osId/editar'
+      path: '/editar'
+      fullPath: '/os/$osId/editar'
+      preLoaderRoute: typeof OsOsIdEditarRouteImport
+      parentRoute: typeof OsOsIdRoute
+    }
   }
 }
+
+interface OsOsIdRouteChildren {
+  OsOsIdEditarRoute: typeof OsOsIdEditarRoute
+}
+
+const OsOsIdRouteChildren: OsOsIdRouteChildren = {
+  OsOsIdEditarRoute: OsOsIdEditarRoute,
+}
+
+const OsOsIdRouteWithChildren =
+  OsOsIdRoute._addFileChildren(OsOsIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -323,7 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   FinanceiroRoute: FinanceiroRoute,
   RelatoriosRoute: RelatoriosRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
-  OsOsIdRoute: OsOsIdRoute,
+  OsOsIdRoute: OsOsIdRouteWithChildren,
   OsKanbanRoute: OsKanbanRoute,
   OsNovaRoute: OsNovaRoute,
   VeiculosVehicleIdRoute: VeiculosVehicleIdRoute,
