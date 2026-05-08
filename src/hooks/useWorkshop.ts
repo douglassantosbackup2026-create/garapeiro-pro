@@ -23,7 +23,7 @@ export function useUpdateWorkshop() {
     mutationFn: async (patch: Record<string, unknown>) => {
       const { error } = await supabase
         .from("workshops")
-        .update(patch)
+        .update(patch as never)
         .eq("id", DEFAULT_WORKSHOP_ID);
       if (error) throw error;
     },

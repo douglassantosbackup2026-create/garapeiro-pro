@@ -64,6 +64,7 @@ export function useCreateServiceOrder() {
         .from("service_orders")
         .insert({
           workshop_id: DEFAULT_WORKSHOP_ID,
+          numero: 0,
           vehicle_id: input.vehicle_id,
           client_id: input.client_id,
           km_entrada: input.km_entrada ?? null,
