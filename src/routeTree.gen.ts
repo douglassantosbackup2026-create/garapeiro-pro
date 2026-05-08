@@ -9,38 +9,173 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as AlertasRouteImport } from './routes/alertas'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VeiculosIndexRouteImport } from './routes/veiculos.index'
+import { Route as OsIndexRouteImport } from './routes/os.index'
+import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
+import { Route as VeiculosVehicleIdRouteImport } from './routes/veiculos.$vehicleId'
+import { Route as OsNovaRouteImport } from './routes/os.nova'
+import { Route as OsOsIdRouteImport } from './routes/os.$osId'
+import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientId'
 
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlertasRoute = AlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VeiculosIndexRoute = VeiculosIndexRouteImport.update({
+  id: '/veiculos/',
+  path: '/veiculos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OsIndexRoute = OsIndexRouteImport.update({
+  id: '/os/',
+  path: '/os/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesIndexRoute = ClientesIndexRouteImport.update({
+  id: '/clientes/',
+  path: '/clientes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VeiculosVehicleIdRoute = VeiculosVehicleIdRouteImport.update({
+  id: '/veiculos/$vehicleId',
+  path: '/veiculos/$vehicleId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OsNovaRoute = OsNovaRouteImport.update({
+  id: '/os/nova',
+  path: '/os/nova',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OsOsIdRoute = OsOsIdRouteImport.update({
+  id: '/os/$osId',
+  path: '/os/$osId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesClientIdRoute = ClientesClientIdRouteImport.update({
+  id: '/clientes/$clientId',
+  path: '/clientes/$clientId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/alertas': typeof AlertasRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/clientes/$clientId': typeof ClientesClientIdRoute
+  '/os/$osId': typeof OsOsIdRoute
+  '/os/nova': typeof OsNovaRoute
+  '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
+  '/clientes/': typeof ClientesIndexRoute
+  '/os/': typeof OsIndexRoute
+  '/veiculos/': typeof VeiculosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/alertas': typeof AlertasRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/clientes/$clientId': typeof ClientesClientIdRoute
+  '/os/$osId': typeof OsOsIdRoute
+  '/os/nova': typeof OsNovaRoute
+  '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
+  '/clientes': typeof ClientesIndexRoute
+  '/os': typeof OsIndexRoute
+  '/veiculos': typeof VeiculosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/alertas': typeof AlertasRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/clientes/$clientId': typeof ClientesClientIdRoute
+  '/os/$osId': typeof OsOsIdRoute
+  '/os/nova': typeof OsNovaRoute
+  '/veiculos/$vehicleId': typeof VeiculosVehicleIdRoute
+  '/clientes/': typeof ClientesIndexRoute
+  '/os/': typeof OsIndexRoute
+  '/veiculos/': typeof VeiculosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/alertas'
+    | '/configuracoes'
+    | '/clientes/$clientId'
+    | '/os/$osId'
+    | '/os/nova'
+    | '/veiculos/$vehicleId'
+    | '/clientes/'
+    | '/os/'
+    | '/veiculos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/alertas'
+    | '/configuracoes'
+    | '/clientes/$clientId'
+    | '/os/$osId'
+    | '/os/nova'
+    | '/veiculos/$vehicleId'
+    | '/clientes'
+    | '/os'
+    | '/veiculos'
+  id:
+    | '__root__'
+    | '/'
+    | '/alertas'
+    | '/configuracoes'
+    | '/clientes/$clientId'
+    | '/os/$osId'
+    | '/os/nova'
+    | '/veiculos/$vehicleId'
+    | '/clientes/'
+    | '/os/'
+    | '/veiculos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlertasRoute: typeof AlertasRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ClientesClientIdRoute: typeof ClientesClientIdRoute
+  OsOsIdRoute: typeof OsOsIdRoute
+  OsNovaRoute: typeof OsNovaRoute
+  VeiculosVehicleIdRoute: typeof VeiculosVehicleIdRoute
+  ClientesIndexRoute: typeof ClientesIndexRoute
+  OsIndexRoute: typeof OsIndexRoute
+  VeiculosIndexRoute: typeof VeiculosIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alertas': {
+      id: '/alertas'
+      path: '/alertas'
+      fullPath: '/alertas'
+      preLoaderRoute: typeof AlertasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +183,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/veiculos/': {
+      id: '/veiculos/'
+      path: '/veiculos'
+      fullPath: '/veiculos/'
+      preLoaderRoute: typeof VeiculosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/os/': {
+      id: '/os/'
+      path: '/os'
+      fullPath: '/os/'
+      preLoaderRoute: typeof OsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/': {
+      id: '/clientes/'
+      path: '/clientes'
+      fullPath: '/clientes/'
+      preLoaderRoute: typeof ClientesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/veiculos/$vehicleId': {
+      id: '/veiculos/$vehicleId'
+      path: '/veiculos/$vehicleId'
+      fullPath: '/veiculos/$vehicleId'
+      preLoaderRoute: typeof VeiculosVehicleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/os/nova': {
+      id: '/os/nova'
+      path: '/os/nova'
+      fullPath: '/os/nova'
+      preLoaderRoute: typeof OsNovaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/os/$osId': {
+      id: '/os/$osId'
+      path: '/os/$osId'
+      fullPath: '/os/$osId'
+      preLoaderRoute: typeof OsOsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/$clientId': {
+      id: '/clientes/$clientId'
+      path: '/clientes/$clientId'
+      fullPath: '/clientes/$clientId'
+      preLoaderRoute: typeof ClientesClientIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlertasRoute: AlertasRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
+  ClientesClientIdRoute: ClientesClientIdRoute,
+  OsOsIdRoute: OsOsIdRoute,
+  OsNovaRoute: OsNovaRoute,
+  VeiculosVehicleIdRoute: VeiculosVehicleIdRoute,
+  ClientesIndexRoute: ClientesIndexRoute,
+  OsIndexRoute: OsIndexRoute,
+  VeiculosIndexRoute: VeiculosIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,0 +1,89 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+
+export function useVehicles() {
+  return useQuery({
+    queryKey: ["vehicles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("*, clients(id, nome, telefone), service_orders(id, data_entrada)")
+        .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+        .order("placa");
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useVehicle(id: string | undefined) {
+  return useQuery({
+    queryKey: ["vehicle", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select(
+          "*, clients(*), service_orders(*, service_order_services(*), service_order_parts(*))"
+        )
+        .eq("id", id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useVehicleByPlate() {
+  return useMutation({
+    mutationFn: async (placa: string) => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("*, clients(id, nome, telefone)")
+        .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+        .ilike("placa", placa)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCreateVehicle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      client_id: string;
+      placa: string;
+      marca?: string | null;
+      modelo?: string | null;
+      ano?: number | null;
+      cor?: string | null;
+      km?: number | null;
+    }) => {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .insert({ ...input, workshop_id: DEFAULT_WORKSHOP_ID })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["vehicles"] }),
+  });
+}
+
+export function useUpdateVehicle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) => {
+      const { error } = await supabase.from("vehicles").update(patch as never).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["vehicles"] });
+      qc.invalidateQueries({ queryKey: ["vehicle", vars.id] });
+    },
+  });
+}
