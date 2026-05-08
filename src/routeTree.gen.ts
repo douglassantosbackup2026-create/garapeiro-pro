@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as AlertasRouteImport } from './routes/alertas'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,6 +22,11 @@ import { Route as OsKanbanRouteImport } from './routes/os.kanban'
 import { Route as OsOsIdRouteImport } from './routes/os.$osId'
 import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientId'
 
+const FinanceiroRoute = FinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
   '/os/kanban': typeof OsKanbanRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
   '/os/kanban': typeof OsKanbanRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
   '/os/kanban': typeof OsKanbanRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
     | '/os/kanban'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
     | '/os/kanban'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
     | '/os/kanban'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertasRoute: typeof AlertasRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  FinanceiroRoute: typeof FinanceiroRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
   OsOsIdRoute: typeof OsOsIdRoute
   OsKanbanRoute: typeof OsKanbanRoute
@@ -175,6 +188,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/financeiro': {
+      id: '/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof FinanceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/configuracoes': {
       id: '/configuracoes'
       path: '/configuracoes'
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertasRoute: AlertasRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  FinanceiroRoute: FinanceiroRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
   OsOsIdRoute: OsOsIdRoute,
   OsKanbanRoute: OsKanbanRoute,
