@@ -6,6 +6,8 @@ import {
   Users,
   Settings,
   Bell,
+  KanbanSquare,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
@@ -14,6 +16,8 @@ import { useReturnAlerts } from "@/hooks/useReturnAlerts";
 const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/", label: "Início", icon: Home, exact: true },
   { to: "/os", label: "Ordens", icon: Wrench },
+  { to: "/os/kanban", label: "Painel", icon: KanbanSquare },
+  { to: "/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/veiculos", label: "Veículos", icon: Car },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/configuracoes", label: "Ajustes", icon: Settings },
@@ -99,7 +103,7 @@ export function AppLayout() {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-secondary text-secondary-foreground border-t border-border h-16 grid grid-cols-5">
-        {NAV.map((item) => {
+        {NAV.filter((i) => ["/", "/os/kanban", "/financeiro", "/clientes", "/configuracoes"].includes(i.to)).map((item) => {
           const active = isActive(item.to, pathname, item.exact);
           const Icon = item.icon;
           return (
