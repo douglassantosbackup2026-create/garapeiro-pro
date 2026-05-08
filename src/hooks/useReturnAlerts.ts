@@ -8,14 +8,17 @@ const DISMISS_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 export function useReturnAlerts() {
   return useQuery({
     queryKey: ["return_alerts"],
+    staleTime: 5 * 60_000,
     queryFn: async () => {
+      const cutoffIso = new Date(Date.now() - NINETY_DAYS_MS).toISOString();
       const [{ data: clients }, { data: dismissed }] = await Promise.all([
         supabase
           .from("clients")
           .select(
-            "id, nome, telefone, service_orders(id, data_entrada, vehicles(placa, marca, modelo), service_order_services(descricao))"
+            "id, nome, telefone, service_orders!inner(id, data_entrada, vehicles(placa, marca, modelo), service_order_services(descricao))"
           )
-          .eq("workshop_id", DEFAULT_WORKSHOP_ID),
+          .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+          .lt("service_orders.data_entrada", cutoffIso),
         supabase
           .from("dismissed_alerts")
           .select("client_id, dispensado_em")
