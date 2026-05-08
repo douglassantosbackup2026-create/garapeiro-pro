@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
+import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as AlertasRouteImport } from './routes/alertas'
 import { Route as IndexRouteImport } from './routes/index'
@@ -25,6 +26,11 @@ import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientI
 const FinanceiroRoute = FinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EstoqueRoute = EstoqueRouteImport.update({
+  id: '/estoque',
+  path: '/estoque',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/alertas': typeof AlertasRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/estoque'
     | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/estoque'
     | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alertas'
     | '/configuracoes'
+    | '/estoque'
     | '/financeiro'
     | '/clientes/$clientId'
     | '/os/$osId'
@@ -175,6 +187,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertasRoute: typeof AlertasRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  EstoqueRoute: typeof EstoqueRoute
   FinanceiroRoute: typeof FinanceiroRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
   OsOsIdRoute: typeof OsOsIdRoute
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/financeiro'
       fullPath: '/financeiro'
       preLoaderRoute: typeof FinanceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/estoque': {
+      id: '/estoque'
+      path: '/estoque'
+      fullPath: '/estoque'
+      preLoaderRoute: typeof EstoqueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracoes': {
@@ -279,6 +299,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertasRoute: AlertasRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  EstoqueRoute: EstoqueRoute,
   FinanceiroRoute: FinanceiroRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
   OsOsIdRoute: OsOsIdRoute,
