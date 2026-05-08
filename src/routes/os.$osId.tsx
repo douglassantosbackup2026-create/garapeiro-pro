@@ -1,16 +1,33 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Edit, MessageCircle, RefreshCw, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Edit, MessageCircle, RefreshCw, CheckCircle2, DollarSign, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useServiceOrder, useUpdateOSStatus, type OSStatus } from "@/hooks/useServiceOrders";
 import { useWorkshop } from "@/hooks/useWorkshop";
+import {
+  usePaymentsByOS,
+  useAddPayment,
+  useDeletePayment,
+  paymentStatus,
+  type FormaPagamento,
+} from "@/hooks/usePayments";
 import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -28,6 +45,7 @@ import {
   STATUS_LABEL,
 } from "@/lib/whatsapp";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/os/$osId")({ component: OSDetail });
 
@@ -45,12 +63,24 @@ function OSDetail() {
   const navigate = useNavigate();
   const { data: os, isLoading } = useServiceOrder(osId);
   const { data: workshop } = useWorkshop();
+  const { data: payments } = usePaymentsByOS(osId);
+  const addPayment = useAddPayment();
+  const deletePayment = useDeletePayment();
   const update = useUpdateOSStatus();
   const [statusOpen, setStatusOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
+  const [payValor, setPayValor] = useState("");
+  const [payForma, setPayForma] = useState<FormaPagamento | "">("");
+  const [payObs, setPayObs] = useState("");
 
   if (isLoading || !os) {
     return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
   }
+
+  const total = Number(os.total_geral || 0);
+  const paid = (payments ?? []).reduce((s, p) => s + Number(p.valor || 0), 0);
+  const saldo = Math.max(0, total - paid);
+  const pgtoStatus = paymentStatus(total, paid);
 
   const veiculo = `${os.vehicles?.marca ?? ""} ${os.vehicles?.modelo ?? ""}`.trim();
 
@@ -107,6 +137,36 @@ function OSDetail() {
             window.open(url, "_blank");
           }
         },
+      }
+    );
+  };
+
+  const openPay = () => {
+    setPayValor(saldo > 0 ? saldo.toFixed(2) : "");
+    setPayForma((os.forma_pagamento as FormaPagamento | null) ?? "");
+    setPayObs("");
+    setPayOpen(true);
+  };
+
+  const submitPay = () => {
+    const valor = Number(payValor.replace(",", "."));
+    if (!valor || valor <= 0) {
+      toast.error("Informe um valor válido");
+      return;
+    }
+    addPayment.mutate(
+      {
+        service_order_id: os.id,
+        valor,
+        forma_pagamento: (payForma || null) as FormaPagamento | null,
+        observacao: payObs.trim() || null,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Pagamento registrado");
+          setPayOpen(false);
+        },
+        onError: () => toast.error("Erro ao registrar pagamento"),
       }
     );
   };
@@ -184,6 +244,75 @@ function OSDetail() {
         </div>
       </Card>
 
+      <Card className="p-4 mb-3">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-money" /> Pagamentos
+          </h3>
+          <PgtoTag status={pgtoStatus} />
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 text-center mb-3">
+          <div>
+            <div className="text-[11px] text-muted-foreground">Total</div>
+            <div className="font-bold">{formatBRL(total)}</div>
+          </div>
+          <div>
+            <div className="text-[11px] text-muted-foreground">Pago</div>
+            <div className="font-bold text-money">{formatBRL(paid)}</div>
+          </div>
+          <div>
+            <div className="text-[11px] text-muted-foreground">Saldo</div>
+            <div className={cn("font-bold", saldo > 0 ? "text-destructive" : "text-money")}>
+              {formatBRL(saldo)}
+            </div>
+          </div>
+        </div>
+
+        {(payments ?? []).length > 0 && (
+          <div className="space-y-1.5 mb-3">
+            {(payments ?? []).map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center justify-between text-sm border rounded-md px-2.5 py-1.5"
+              >
+                <div className="min-w-0">
+                  <div className="font-medium">{formatBRL(p.valor)}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatDateTime(p.recebido_em)}
+                    {p.forma_pagamento ? ` · ${p.forma_pagamento.replace("_", " ")}` : ""}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground"
+                  onClick={() => {
+                    if (confirm("Excluir este pagamento?")) {
+                      deletePayment.mutate({ id: p.id, service_order_id: os.id });
+                    }
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full gap-1"
+          onClick={openPay}
+          disabled={saldo <= 0}
+        >
+          <DollarSign className="h-4 w-4" />
+          {saldo <= 0 ? "OS quitada" : "Registrar pagamento"}
+        </Button>
+      </Card>
+
       <Card className="p-4 mb-3 text-sm space-y-1">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Entrada:</span>
@@ -241,6 +370,84 @@ function OSDetail() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={payOpen} onOpenChange={setPayOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registrar pagamento</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 mt-2">
+            <div>
+              <Label htmlFor="pay-valor">Valor (R$)</Label>
+              <Input
+                id="pay-valor"
+                inputMode="decimal"
+                value={payValor}
+                onChange={(e) => setPayValor(e.target.value)}
+                placeholder="0,00"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Saldo em aberto: {formatBRL(saldo)}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="pay-forma">Forma de pagamento</Label>
+              <Select
+                value={payForma || undefined}
+                onValueChange={(v) => setPayForma(v as FormaPagamento)}
+              >
+                <SelectTrigger id="pay-forma">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                  <SelectItem value="pix">PIX</SelectItem>
+                  <SelectItem value="cartao_credito">Cartão crédito</SelectItem>
+                  <SelectItem value="cartao_debito">Cartão débito</SelectItem>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="transferencia">Transferência</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="pay-obs">Observação (opcional)</Label>
+              <Input
+                id="pay-obs"
+                value={payObs}
+                onChange={(e) => setPayObs(e.target.value)}
+                placeholder="Ex: 1ª parcela"
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setPayOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={submitPay} disabled={addPayment.isPending}>
+              {addPayment.isPending ? "Registrando..." : "Registrar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function PgtoTag({ status }: { status: "pago" | "parcial" | "aberto" }) {
+  const map = {
+    pago: "bg-status-delivered text-status-delivered-foreground",
+    parcial: "bg-status-progress text-status-progress-foreground",
+    aberto: "bg-status-cancel text-status-cancel-foreground",
+  };
+  const label = { pago: "Pago", parcial: "Parcial", aberto: "Em aberto" };
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
+        map[status]
+      )}
+    >
+      {label[status]}
+    </span>
   );
 }
