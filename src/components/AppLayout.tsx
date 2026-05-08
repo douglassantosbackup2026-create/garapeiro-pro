@@ -8,6 +8,7 @@ import {
   Bell,
   KanbanSquare,
   DollarSign,
+  Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
@@ -18,6 +19,7 @@ const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] =
   { to: "/os", label: "Ordens", icon: Wrench },
   { to: "/os/kanban", label: "Painel", icon: KanbanSquare },
   { to: "/financeiro", label: "Financeiro", icon: DollarSign },
+  { to: "/estoque", label: "Estoque", icon: Package },
   { to: "/veiculos", label: "Veículos", icon: Car },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/configuracoes", label: "Ajustes", icon: Settings },

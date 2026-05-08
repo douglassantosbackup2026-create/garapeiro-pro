@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Edit, MessageCircle, RefreshCw, CheckCircle2, DollarSign, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit, MessageCircle, RefreshCw, CheckCircle2, DollarSign, Trash2, FileText } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,7 @@ import {
 } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { baixarOrcamentoPDF } from "@/lib/pdf";
 
 export const Route = createFileRoute("/os/$osId")({ component: OSDetail });
 
@@ -108,6 +109,47 @@ function OSDetail() {
   const enviarOrcamento = () => {
     if (!os.clients?.telefone) return;
     window.open(buildWhatsappUrl(os.clients.telefone, buildMessage()), "_blank");
+  };
+
+  const baixarPDF = () => {
+    if (!workshop) return;
+    baixarOrcamentoPDF(
+      {
+        numero: os.numero,
+        criada_em: os.criada_em,
+        previsao_entrega: os.previsao_entrega,
+        observacoes: os.observacoes,
+        forma_pagamento: os.forma_pagamento,
+        km_entrada: os.km_entrada,
+        cliente: {
+          nome: os.clients?.nome ?? "",
+          telefone: os.clients?.telefone ?? null,
+          email: os.clients?.email ?? null,
+        },
+        veiculo: {
+          placa: os.vehicles?.placa ?? "",
+          marca: os.vehicles?.marca ?? null,
+          modelo: os.vehicles?.modelo ?? null,
+          ano: os.vehicles?.ano ?? null,
+          cor: os.vehicles?.cor ?? null,
+        },
+        servicos: (os.service_order_services ?? []).map((s) => ({
+          descricao: s.descricao,
+          valor: Number(s.valor),
+        })),
+        pecas: (os.service_order_parts ?? []).map((p) => ({
+          nome: p.nome,
+          quantidade: p.quantidade,
+          valor_unitario: Number(p.valor_unitario),
+          valor_total: Number(p.valor_total),
+        })),
+        total_servicos: Number(os.total_servicos),
+        total_pecas: Number(os.total_pecas),
+        total_geral: Number(os.total_geral),
+      },
+      workshop
+    );
+    toast.success("PDF gerado");
   };
 
   const mudarStatus = (s: OSStatus) => {
@@ -337,10 +379,14 @@ function OSDetail() {
       </Card>
 
       {/* Action bar */}
-      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 md:left-60 bg-background border-t p-3 grid grid-cols-3 gap-2 z-20">
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 md:left-60 bg-background border-t p-3 grid grid-cols-4 gap-2 z-20">
         <Button variant="outline" onClick={enviarOrcamento} className="gap-1">
           <MessageCircle className="h-4 w-4" />
-          <span className="hidden sm:inline">Orçamento</span>
+          <span className="hidden sm:inline">WhatsApp</span>
+        </Button>
+        <Button variant="outline" onClick={baixarPDF} className="gap-1">
+          <FileText className="h-4 w-4" />
+          <span className="hidden sm:inline">PDF</span>
         </Button>
         <Button variant="outline" onClick={() => setStatusOpen(true)} className="gap-1">
           <RefreshCw className="h-4 w-4" />
