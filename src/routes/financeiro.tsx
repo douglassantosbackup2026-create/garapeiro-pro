@@ -29,7 +29,7 @@ function useFinanceiroOrders() {
       const { data, error } = await supabase
         .from("service_orders")
         .select(
-          "id, numero, status, total_geral, data_entrada, clients(nome, telefone), vehicles(placa)"
+          "id, numero, status, total_geral, data_entrada, vencimento_fiado, clients(nome, telefone), vehicles(placa)"
         )
         .eq("workshop_id", DEFAULT_WORKSHOP_ID)
         .neq("status", "cancelado")
@@ -139,6 +139,21 @@ function FinanceiroPage() {
                     Entrada: {formatDate(r.data_entrada)} · Total {formatBRL(r.total)} · Pago{" "}
                     {formatBRL(r.paid)}
                   </div>
+                  {r.vencimento_fiado && r.saldo > 0 && (
+                    <div
+                      className={cn(
+                        "text-xs mt-0.5 font-medium",
+                        new Date(r.vencimento_fiado) < new Date(new Date().toDateString())
+                          ? "text-destructive"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      Vence em {formatDate(r.vencimento_fiado)}
+                      {new Date(r.vencimento_fiado) < new Date(new Date().toDateString())
+                        ? " · atrasado"
+                        : ""}
+                    </div>
+                  )}
                 </Link>
                 <div className="text-right shrink-0">
                   <div className="text-xs text-muted-foreground">Saldo</div>
