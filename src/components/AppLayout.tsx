@@ -36,9 +36,17 @@ export function AppLayout() {
       <aside className="hidden md:flex w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
         <div className="p-5 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
-            <div className="bg-primary rounded-md p-1.5">
-              <Wrench className="h-5 w-5 text-primary-foreground" />
-            </div>
+            {workshop?.logo_url ? (
+              <img
+                src={workshop.logo_url}
+                alt={workshop.nome ?? "Logo"}
+                className="h-9 w-9 rounded-md object-cover bg-sidebar-accent"
+              />
+            ) : (
+              <div className="bg-primary rounded-md p-1.5">
+                <Wrench className="h-5 w-5 text-primary-foreground" />
+              </div>
+            )}
             <div>
               <div className="font-display font-bold text-lg leading-none">MecânicoPRO</div>
               <div className="text-xs text-sidebar-foreground/60 mt-0.5">

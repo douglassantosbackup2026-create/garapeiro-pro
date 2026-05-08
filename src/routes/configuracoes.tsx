@@ -1,18 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useWorkshop, useUpdateWorkshop } from "@/hooks/useWorkshop";
+import {
+  useWorkshop,
+  useUpdateWorkshop,
+  useUploadLogo,
+  useRemoveLogo,
+} from "@/hooks/useWorkshop";
 import { toast } from "sonner";
+import { Upload, Loader2, ImageIcon } from "lucide-react";
 
 export const Route = createFileRoute("/configuracoes")({ component: Configuracoes });
 
 function Configuracoes() {
   const { data: workshop } = useWorkshop();
   const update = useUpdateWorkshop();
+  const uploadLogo = useUploadLogo();
+  const removeLogo = useRemoveLogo();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     nome: "",
     telefone: "",
@@ -39,9 +48,91 @@ function Configuracoes() {
     toast.success("Salvo!");
   };
 
+  const onPickLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const allowed = ["image/png", "image/jpeg", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Use PNG, JPG ou WEBP");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Máximo 2 MB");
+      return;
+    }
+    try {
+      await uploadLogo.mutateAsync(file);
+      toast.success("Logo atualizado!");
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const onRemoveLogo = async () => {
+    try {
+      await removeLogo.mutateAsync(workshop?.logo_url);
+      toast.success("Logo removido");
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
   return (
     <div className="px-4 md:px-8 py-5 max-w-2xl mx-auto space-y-5">
       <h1 className="text-2xl font-bold">Configurações</h1>
+
+      <Card className="p-4 space-y-3">
+        <h2 className="font-bold">Logo da oficina</h2>
+        <div className="flex items-center gap-4">
+          <div className="h-24 w-24 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden shrink-0">
+            {workshop?.logo_url ? (
+              <img
+                src={workshop.logo_url}
+                alt="Logo da oficina"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="h-8 w-8 text-muted-foreground" />
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={onPickLogo}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploadLogo.isPending}
+              onClick={() => fileRef.current?.click()}
+            >
+              {uploadLogo.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              {workshop?.logo_url ? "Trocar logo" : "Enviar logo"}
+            </Button>
+            {workshop?.logo_url && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={removeLogo.isPending}
+                onClick={onRemoveLogo}
+              >
+                Remover
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground">PNG, JPG ou WEBP. Até 2 MB.</p>
+          </div>
+        </div>
+      </Card>
 
       <Card className="p-4 space-y-3">
         <h2 className="font-bold">Minha Oficina</h2>
