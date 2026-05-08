@@ -1,7 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { useClient } from "@/hooks/useClients";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { useClient, useUpdateClient } from "@/hooks/useClients";
 import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -13,6 +25,41 @@ function ClientDetail() {
   const { clientId } = Route.useParams();
   const navigate = useNavigate();
   const { data: c, isLoading } = useClient(clientId);
+  const updateClient = useUpdateClient();
+  const [open, setOpen] = useState(false);
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
+  const [aniversario, setAniversario] = useState("");
+
+  function openEdit() {
+    if (!c) return;
+    setNome(c.nome ?? "");
+    setTelefone(c.telefone ?? "");
+    setEmail(c.email ?? "");
+    setAniversario(c.data_aniversario ?? "");
+    setOpen(true);
+  }
+
+  async function salvar() {
+    if (!c) return;
+    try {
+      await updateClient.mutateAsync({
+        id: c.id,
+        patch: {
+          nome,
+          telefone,
+          email: email || null,
+          data_aniversario: aniversario || null,
+        },
+      });
+      toast.success("Cliente atualizado");
+      setOpen(false);
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
   if (isLoading || !c) return <div className="p-8 text-center">Carregando...</div>;
 
   return (
@@ -23,12 +70,22 @@ function ClientDetail() {
       >
         <ArrowLeft className="h-4 w-4" /> Voltar
       </button>
-      <h1 className="text-2xl font-bold mb-4">{c.nome}</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">{c.nome}</h1>
+        <Button size="sm" variant="outline" onClick={openEdit} className="gap-1">
+          <Pencil className="h-4 w-4" /> Editar
+        </Button>
+      </div>
       <Card className="p-4 mb-3 flex items-center justify-between">
         <div>
           <div className="text-xs text-muted-foreground">Contato</div>
           <div>{formatPhone(c.telefone)}</div>
           {c.email && <div className="text-sm text-muted-foreground">{c.email}</div>}
+          {c.data_aniversario && (
+            <div className="text-sm text-muted-foreground">
+              🎂 Aniversário: {formatDate(c.data_aniversario)}
+            </div>
+          )}
         </div>
         <WhatsAppButton phone={c.telefone} />
       </Card>
@@ -87,6 +144,47 @@ function ClientDetail() {
             ))}
         </div>
       )}
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nome</Label>
+              <Input value={nome} onChange={(e) => setNome(e.target.value)} />
+            </div>
+            <div>
+              <Label>Telefone</Label>
+              <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div>
+              <Label>Data de aniversário</Label>
+              <Input
+                type="date"
+                value={aniversario}
+                onChange={(e) => setAniversario(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Usado para enviar mensagens de parabéns automáticas.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={salvar} disabled={updateClient.isPending}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
