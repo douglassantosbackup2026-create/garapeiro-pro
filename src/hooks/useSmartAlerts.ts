@@ -50,6 +50,7 @@ export type SmartAlert =
       clientId: string;
       nome: string;
       telefone: string;
+      osId: string;
       osNumero: number;
       diasDesdeEntrega: number;
     };
@@ -193,6 +194,7 @@ export function useSmartAlerts() {
           clientId: o.client_id,
           nome: o.clients.nome,
           telefone: o.clients.telefone,
+          osId: o.id,
           osNumero: o.numero,
           diasDesdeEntrega: dias,
         });
