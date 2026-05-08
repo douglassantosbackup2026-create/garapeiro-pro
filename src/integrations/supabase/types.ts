@@ -255,6 +255,7 @@ export type Database = {
           forma_pagamento: Database["public"]["Enums"]["forma_pagamento"] | null
           id: string
           km_entrada: number | null
+          nota_satisfacao: number | null
           numero: number
           observacoes: string | null
           previsao_entrega: string | null
@@ -263,6 +264,7 @@ export type Database = {
           total_pecas: number
           total_servicos: number
           vehicle_id: string
+          vencimento_fiado: string | null
           workshop_id: string
         }
         Insert: {
@@ -275,6 +277,7 @@ export type Database = {
             | null
           id?: string
           km_entrada?: number | null
+          nota_satisfacao?: number | null
           numero: number
           observacoes?: string | null
           previsao_entrega?: string | null
@@ -283,6 +286,7 @@ export type Database = {
           total_pecas?: number
           total_servicos?: number
           vehicle_id: string
+          vencimento_fiado?: string | null
           workshop_id: string
         }
         Update: {
@@ -295,6 +299,7 @@ export type Database = {
             | null
           id?: string
           km_entrada?: number | null
+          nota_satisfacao?: number | null
           numero?: number
           observacoes?: string | null
           previsao_entrega?: string | null
@@ -303,6 +308,7 @@ export type Database = {
           total_pecas?: number
           total_servicos?: number
           vehicle_id?: string
+          vencimento_fiado?: string | null
           workshop_id?: string
         }
         Relationships: [
