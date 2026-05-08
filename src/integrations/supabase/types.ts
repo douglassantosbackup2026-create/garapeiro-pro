@@ -85,6 +85,51 @@ export type Database = {
           },
         ]
       }
+      parts_inventory: {
+        Row: {
+          atualizada_em: string
+          codigo: string | null
+          criada_em: string
+          custo_unitario: number
+          estoque_minimo: number
+          id: string
+          nome: string
+          observacao: string | null
+          preco_venda: number
+          quantidade: number
+          unidade: string
+          workshop_id: string
+        }
+        Insert: {
+          atualizada_em?: string
+          codigo?: string | null
+          criada_em?: string
+          custo_unitario?: number
+          estoque_minimo?: number
+          id?: string
+          nome: string
+          observacao?: string | null
+          preco_venda?: number
+          quantidade?: number
+          unidade?: string
+          workshop_id: string
+        }
+        Update: {
+          atualizada_em?: string
+          codigo?: string | null
+          criada_em?: string
+          custo_unitario?: number
+          estoque_minimo?: number
+          id?: string
+          nome?: string
+          observacao?: string | null
+          preco_venda?: number
+          quantidade?: number
+          unidade?: string
+          workshop_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           criada_em: string
@@ -124,7 +169,9 @@ export type Database = {
       }
       service_order_parts: {
         Row: {
+          custo_unitario: number
           id: string
+          inventory_id: string | null
           nome: string
           ordem: number
           quantidade: number
@@ -133,7 +180,9 @@ export type Database = {
           valor_unitario: number
         }
         Insert: {
+          custo_unitario?: number
           id?: string
+          inventory_id?: string | null
           nome: string
           ordem?: number
           quantidade?: number
@@ -142,7 +191,9 @@ export type Database = {
           valor_unitario?: number
         }
         Update: {
+          custo_unitario?: number
           id?: string
+          inventory_id?: string | null
           nome?: string
           ordem?: number
           quantidade?: number
