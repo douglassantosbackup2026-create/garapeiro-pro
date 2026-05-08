@@ -83,9 +83,10 @@ export function useSmartAlerts() {
             .eq("workshop_id", DEFAULT_WORKSHOP_ID),
           supabase
             .from("service_orders")
-            .select("id, numero, atualizada_em, client_id, clients(nome, telefone)")
+            .select("id, numero, atualizada_em, client_id, nota_satisfacao, clients(nome, telefone)")
             .eq("workshop_id", DEFAULT_WORKSHOP_ID)
             .eq("status", "entregue")
+            .is("nota_satisfacao", null)
             .gte("atualizada_em", cutoffEntregaMax)
             .lte("atualizada_em", cutoffEntrega),
         ]);
