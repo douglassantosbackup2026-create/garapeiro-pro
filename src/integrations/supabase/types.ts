@@ -85,6 +85,43 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          criada_em: string
+          forma_pagamento: Database["public"]["Enums"]["forma_pagamento"] | null
+          id: string
+          observacao: string | null
+          recebido_em: string
+          service_order_id: string
+          valor: number
+          workshop_id: string
+        }
+        Insert: {
+          criada_em?: string
+          forma_pagamento?:
+            | Database["public"]["Enums"]["forma_pagamento"]
+            | null
+          id?: string
+          observacao?: string | null
+          recebido_em?: string
+          service_order_id: string
+          valor?: number
+          workshop_id: string
+        }
+        Update: {
+          criada_em?: string
+          forma_pagamento?:
+            | Database["public"]["Enums"]["forma_pagamento"]
+            | null
+          id?: string
+          observacao?: string | null
+          recebido_em?: string
+          service_order_id?: string
+          valor?: number
+          workshop_id?: string
+        }
+        Relationships: []
+      }
       service_order_parts: {
         Row: {
           id: string
