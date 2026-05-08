@@ -1,14 +1,25 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, BellOff, Cake, Gauge, Calendar, Heart, Phone } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, BellOff, Cake, Gauge, Calendar, Heart, Phone, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useSmartAlerts, type SmartAlert } from "@/hooks/useSmartAlerts";
 import { useDismissAlert } from "@/hooks/useReturnAlerts";
+import { useUpdateSatisfaction } from "@/hooks/useServiceOrders";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { EmptyState } from "@/components/EmptyState";
 import { renderRetorno } from "@/lib/whatsapp";
 import { formatOSNumber } from "@/lib/format";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/alertas")({ component: Alertas });
 
@@ -62,6 +73,9 @@ function Alertas() {
   const { data: alerts } = useSmartAlerts();
   const { data: workshop } = useWorkshop();
   const dismiss = useDismissAlert();
+  const updateSat = useUpdateSatisfaction();
+  const [satOs, setSatOs] = useState<{ id: string; numero: number; nome: string } | null>(null);
+  const [satNota, setSatNota] = useState<number>(5);
 
   const list = alerts ?? [];
 
@@ -126,6 +140,18 @@ function Alertas() {
                     label="WhatsApp"
                     className="text-primary-foreground bg-primary hover:bg-primary/90"
                   />
+                  {a.tipo === "satisfacao" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSatOs({ id: a.osId, numero: a.osNumero, nome: a.nome });
+                        setSatNota(5);
+                      }}
+                    >
+                      <Star className="h-4 w-4 mr-1" /> Registrar nota
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
@@ -139,6 +165,53 @@ function Alertas() {
           })}
         </div>
       )}
+
+      <Dialog open={!!satOs} onOpenChange={(o) => !o && setSatOs(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Nota de satisfação · {satOs ? formatOSNumber(satOs.numero) : ""}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {satOs?.nome} respondeu com qual nota?
+          </p>
+          <div className="flex justify-center gap-2 my-4">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setSatNota(n)}
+                className="p-1"
+                aria-label={`${n} estrelas`}
+              >
+                <Star
+                  className={cn(
+                    "h-9 w-9 transition-colors",
+                    n <= satNota ? "fill-primary text-primary" : "text-muted-foreground/40"
+                  )}
+                />
+              </button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSatOs(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!satOs) return;
+                await updateSat.mutateAsync({ id: satOs.id, nota: satNota });
+                toast.success("Nota registrada");
+                setSatOs(null);
+              }}
+              disabled={updateSat.isPending}
+            >
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
