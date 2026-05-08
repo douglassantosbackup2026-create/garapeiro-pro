@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
-import { useSmartAlerts } from "@/hooks/useSmartAlerts";
+import { useSmartAlerts, type SmartAlert } from "@/hooks/useSmartAlerts";
 import { useDismissAlert } from "@/hooks/useReturnAlerts";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { PlacaBadge } from "@/components/PlacaBadge";
