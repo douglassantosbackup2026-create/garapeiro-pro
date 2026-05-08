@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Edit, MessageCircle, RefreshCw, CheckCircle2, DollarSign, Trash2, FileText } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Edit, MessageCircle, RefreshCw, CheckCircle2, DollarSign, Trash2, FileText, Star, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,6 +82,15 @@ function OSDetail() {
   const paid = (payments ?? []).reduce((s, p) => s + Number(p.valor || 0), 0);
   const saldo = Math.max(0, total - paid);
   const pgtoStatus = paymentStatus(total, paid);
+  const totalCusto = (os.service_order_parts ?? []).reduce(
+    (s, p) => s + Number(p.custo_unitario || 0) * Number(p.quantidade || 0),
+    0
+  );
+  const margem = total - totalCusto;
+  const margemPct = total > 0 ? (margem / total) * 100 : 0;
+  const vencimento = os.vencimento_fiado;
+  const atrasado =
+    saldo > 0 && vencimento && new Date(vencimento) < new Date(new Date().toDateString());
 
   const veiculo = `${os.vehicles?.marca ?? ""} ${os.vehicles?.modelo ?? ""}`.trim();
 
@@ -232,9 +241,14 @@ function OSDetail() {
             Criada em {formatDateTime(os.criada_em)}
           </p>
         </div>
-        <Button variant="ghost" size="icon">
+        <Link
+          to="/os/$osId/editar"
+          params={{ osId: os.id }}
+          className="inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-muted"
+          aria-label="Editar OS"
+        >
           <Edit className="h-4 w-4" />
-        </Button>
+        </Link>
       </header>
 
       <Card className="p-4 mb-3">
@@ -284,6 +298,16 @@ function OSDetail() {
             {formatBRL(os.total_geral)}
           </span>
         </div>
+        {totalCusto > 0 && (
+          <div className="mt-2 pt-2 border-t flex items-center justify-between text-xs">
+            <span className="text-muted-foreground inline-flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" /> Margem (total − custo das peças)
+            </span>
+            <span className="font-semibold text-money">
+              {formatBRL(margem)} ({margemPct.toFixed(0)}%)
+            </span>
+          </div>
+        )}
       </Card>
 
       <Card className="p-4 mb-3">
@@ -364,12 +388,39 @@ function OSDetail() {
           <span className="text-muted-foreground">Previsão:</span>
           <span>{os.previsao_entrega ? formatDate(os.previsao_entrega) : "—"}</span>
         </div>
+        {vencimento && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Vencimento (fiado):</span>
+            <span className={cn(atrasado && "text-destructive font-semibold")}>
+              {formatDate(vencimento)} {atrasado ? "· atrasado" : ""}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-muted-foreground">Pagamento:</span>
           <span className="capitalize">
             {os.forma_pagamento?.replace("_", " ") ?? "—"}
           </span>
         </div>
+        {os.nota_satisfacao != null && (
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Satisfação:</span>
+            <span className="inline-flex items-center gap-0.5 font-semibold">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    "h-3.5 w-3.5",
+                    i < (os.nota_satisfacao ?? 0)
+                      ? "fill-primary text-primary"
+                      : "text-muted-foreground/40"
+                  )}
+                />
+              ))}
+              <span className="ml-1">{os.nota_satisfacao}/5</span>
+            </span>
+          </div>
+        )}
         {os.observacoes && (
           <div className="pt-2 border-t mt-2">
             <div className="text-xs text-muted-foreground mb-1">Observações</div>
