@@ -80,13 +80,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Gestão simples para mecânicos: ordens de serviço, clientes, veículos e WhatsApp em um só lugar.",
       },
-      { property: "og:title", content: "MecânicoPRO" },
+      { property: "og:title", content: "MecânicoPRO — Gestão para oficinas mecânicas" },
       {
         property: "og:description",
         content: "O sistema de gestão feito para o mecânico brasileiro.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "MecânicoPRO — Gestão para oficinas mecânicas" },
+      { name: "description", content: "MecânicoPRO is a management SaaS for Brazilian auto repair shops." },
+      { property: "og:description", content: "MecânicoPRO is a management SaaS for Brazilian auto repair shops." },
+      { name: "twitter:description", content: "MecânicoPRO is a management SaaS for Brazilian auto repair shops." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/915006ef-57ea-4bea-afe2-8f7e6052d996/id-preview-45702cc9--d83852d3-be63-4a10-a582-778b5f6b599e.lovable.app-1778278835472.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/915006ef-57ea-4bea-afe2-8f7e6052d996/id-preview-45702cc9--d83852d3-be63-4a10-a582-778b5f6b599e.lovable.app-1778278835472.png" },
     ],
     links: [
       {
