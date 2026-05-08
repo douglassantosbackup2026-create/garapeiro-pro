@@ -72,12 +72,12 @@ function NovaOS() {
   const [vencimentoFiado, setVencimentoFiado] = useState("");
   const [enviarWhats, setEnviarWhats] = useState(true);
 
-  const totalServ = servicos.reduce((s, x) => s + Number(x.valor || 0), 0);
-  const totalPecas = pecas.reduce(
-    (s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0),
-    0
-  );
-  const total = totalServ + totalPecas;
+  const total =
+    servicos.reduce((s, x) => s + Number(x.valor || 0), 0) +
+    pecas.reduce(
+      (s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0),
+      0
+    );
 
   const filteredClients = useMemo(() => {
     if (!searchCliente) return [];
