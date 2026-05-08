@@ -11,13 +11,13 @@ import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { useReturnAlerts } from "@/hooks/useReturnAlerts";
 
-const NAV = [
+const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/", label: "Início", icon: Home, exact: true },
   { to: "/os", label: "Ordens", icon: Wrench },
   { to: "/veiculos", label: "Veículos", icon: Car },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/configuracoes", label: "Ajustes", icon: Settings },
-] as const;
+];
 
 function isActive(path: string, current: string, exact = false) {
   if (exact) return current === path;
@@ -54,7 +54,7 @@ export function AppLayout() {
             return (
               <Link
                 key={item.to}
-                to={item.to}
+                to={item.to as string}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
                   active
@@ -97,7 +97,7 @@ export function AppLayout() {
           return (
             <Link
               key={item.to}
-              to={item.to}
+              to={item.to as string}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors",
                 active ? "text-primary" : "text-secondary-foreground/60"
