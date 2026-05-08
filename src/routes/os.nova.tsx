@@ -20,7 +20,7 @@ import {
 } from "@/hooks/useServiceOrders";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { isValidPlate, lookupPlateMock, normalizePlate } from "@/lib/plate";
-import { formatBRL, formatOSNumber } from "@/lib/format";
+import { formatOSNumber } from "@/lib/format";
 import { buildWhatsappUrl, renderOrcamento } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
