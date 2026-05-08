@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { PlateInput } from "@/components/PlateInput";
+import { OSItemsForm } from "@/components/OSItemsForm";
 import { useClients, useCreateClient } from "@/hooks/useClients";
 import { useCreateVehicle, useVehicleByPlate } from "@/hooks/useVehicles";
-import { useCreateServiceOrder } from "@/hooks/useServiceOrders";
+import {
+  useCreateServiceOrder,
+  type OSPecaInput,
+  type OSServicoInput,
+} from "@/hooks/useServiceOrders";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { isValidPlate, lookupPlateMock, normalizePlate } from "@/lib/plate";
 import { formatBRL, formatOSNumber } from "@/lib/format";
@@ -21,19 +26,6 @@ import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/os/nova")({ component: NovaOS });
-
-const SUGESTOES = [
-  "Troca de óleo",
-  "Alinhamento",
-  "Balanceamento",
-  "Troca de freio",
-  "Revisão geral",
-  "Suspensão",
-  "Diagnóstico elétrico",
-  "Funilaria",
-  "Pintura",
-  "Troca de correia",
-];
 
 const PAGAMENTOS: { value: Database["public"]["Enums"]["forma_pagamento"]; label: string }[] = [
   { value: "pix", label: "Pix" },
@@ -69,16 +61,15 @@ function NovaOS() {
   const [searching, setSearching] = useState(false);
 
   // P2
-  const [servicos, setServicos] = useState<{ descricao: string; valor: number }[]>([]);
-  const [pecas, setPecas] = useState<
-    { nome: string; quantidade: number; valor_unitario: number }[]
-  >([]);
+  const [servicos, setServicos] = useState<OSServicoInput[]>([]);
+  const [pecas, setPecas] = useState<OSPecaInput[]>([]);
 
   // P3
   const [previsao, setPrevisao] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [pagamento, setPagamento] =
     useState<Database["public"]["Enums"]["forma_pagamento"] | null>(null);
+  const [vencimentoFiado, setVencimentoFiado] = useState("");
   const [enviarWhats, setEnviarWhats] = useState(true);
 
   const totalServ = servicos.reduce((s, x) => s + Number(x.valor || 0), 0);
@@ -167,6 +158,7 @@ function NovaOS() {
         previsao_entrega: previsao || null,
         forma_pagamento: pagamento,
         observacoes: observacoes || null,
+        vencimento_fiado: vencimentoFiado || null,
         servicos,
         pecas,
       });
@@ -352,137 +344,12 @@ function NovaOS() {
 
       {step === 2 && (
         <div className="space-y-5">
-          <div>
-            <Label>Serviços</Label>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {SUGESTOES.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setServicos([...servicos, { descricao: s, valor: 0 }])}
-                  className="text-xs px-2.5 py-1 rounded-full border bg-background hover:bg-muted"
-                >
-                  + {s}
-                </button>
-              ))}
-            </div>
-            <div className="space-y-2 mt-3">
-              {servicos.map((s, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <Input
-                    value={s.descricao}
-                    onChange={(e) => {
-                      const c = [...servicos];
-                      c[i].descricao = e.target.value;
-                      setServicos(c);
-                    }}
-                    placeholder="Descrição"
-                  />
-                  <Input
-                    type="number"
-                    value={s.valor || ""}
-                    onChange={(e) => {
-                      const c = [...servicos];
-                      c[i].valor = Number(e.target.value);
-                      setServicos(c);
-                    }}
-                    placeholder="R$"
-                    className="w-24"
-                  />
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setServicos(servicos.filter((_, j) => j !== i))}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setServicos([...servicos, { descricao: "", valor: 0 }])}
-              >
-                <Plus className="h-4 w-4 mr-1" /> Adicionar Serviço
-              </Button>
-            </div>
-          </div>
-
-          <div>
-            <Label>Peças</Label>
-            <div className="space-y-2 mt-2">
-              {pecas.map((p, i) => (
-                <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                  <Input
-                    className="col-span-5"
-                    value={p.nome}
-                    onChange={(e) => {
-                      const c = [...pecas];
-                      c[i].nome = e.target.value;
-                      setPecas(c);
-                    }}
-                    placeholder="Nome da peça"
-                  />
-                  <Input
-                    className="col-span-2"
-                    type="number"
-                    value={p.quantidade || ""}
-                    onChange={(e) => {
-                      const c = [...pecas];
-                      c[i].quantidade = Number(e.target.value);
-                      setPecas(c);
-                    }}
-                    placeholder="Qtd"
-                  />
-                  <Input
-                    className="col-span-4"
-                    type="number"
-                    value={p.valor_unitario || ""}
-                    onChange={(e) => {
-                      const c = [...pecas];
-                      c[i].valor_unitario = Number(e.target.value);
-                      setPecas(c);
-                    }}
-                    placeholder="Valor unit."
-                  />
-                  <Button
-                    className="col-span-1"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setPecas(pecas.filter((_, j) => j !== i))}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  setPecas([...pecas, { nome: "", quantidade: 1, valor_unitario: 0 }])
-                }
-              >
-                <Plus className="h-4 w-4 mr-1" /> Adicionar Peça
-              </Button>
-            </div>
-          </div>
-
-          <Card className="p-4 bg-muted/50">
-            <div className="flex justify-between text-sm">
-              <span>Mão de obra</span>
-              <span className="font-medium">{formatBRL(totalServ)}</span>
-            </div>
-            <div className="flex justify-between text-sm mt-1">
-              <span>Peças</span>
-              <span className="font-medium">{formatBRL(totalPecas)}</span>
-            </div>
-            <div className="flex justify-between mt-3 pt-3 border-t">
-              <span className="font-bold">Total</span>
-              <span className="font-display font-bold text-2xl text-money">
-                {formatBRL(total)}
-              </span>
-            </div>
-          </Card>
-
+          <OSItemsForm
+            servicos={servicos}
+            setServicos={setServicos}
+            pecas={pecas}
+            setPecas={setPecas}
+          />
           <Button className="w-full" size="lg" onClick={() => setStep(3)}>
             Próximo <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
@@ -525,6 +392,17 @@ function NovaOS() {
                 </button>
               ))}
             </div>
+          </div>
+          <div>
+            <Label>Vencimento (fiado / a prazo)</Label>
+            <Input
+              type="date"
+              value={vencimentoFiado}
+              onChange={(e) => setVencimentoFiado(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Opcional. Usado para cobrança no Financeiro.
+            </p>
           </div>
           <Card className="p-3 flex items-center justify-between">
             <div>
