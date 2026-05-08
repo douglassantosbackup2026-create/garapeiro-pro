@@ -1,86 +1,142 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, BellOff } from "lucide-react";
+import { ArrowLeft, BellOff, Cake, Gauge, Calendar, Heart, Phone } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useReturnAlerts, useDismissAlert } from "@/hooks/useReturnAlerts";
+import { useSmartAlerts, type SmartAlert } from "@/hooks/useSmartAlerts";
+import { useDismissAlert } from "@/hooks/useReturnAlerts";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-import { PlacaBadge } from "@/components/PlacaBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { renderRetorno } from "@/lib/whatsapp";
+import { formatOSNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/alertas")({ component: Alertas });
 
+function buildMessage(a: SmartAlert, workshopNome: string): string {
+  switch (a.tipo) {
+    case "retorno":
+      return `Olá ${a.nome}! 👋 Faz ${a.diasSemVisita} dias que não vemos você por aqui. ${
+        a.veiculo ? `Seu ${a.veiculo} ${a.placa ? `(${a.placa}) ` : ""}` : "Seu carro "
+      }pode estar precisando de revisão. Quer agendar? 🔧`;
+    case "revisao_km":
+      return `Olá ${a.nome}! 👋 Aqui é da ${workshopNome}. Seu ${a.veiculo} (${a.placa}) está com ${a.kmAtual.toLocaleString("pt-BR")} km e a próxima revisão está marcada para ${a.kmProxima.toLocaleString("pt-BR")} km. Quer agendar? 🔧`;
+    case "revisao_tempo":
+      return `Olá ${a.nome}! 👋 Já se passaram ${a.mesesDesde} meses desde a última revisão do seu ${a.veiculo} (${a.placa}). Que tal agendar uma nova? 🛠️`;
+    case "aniversario":
+      return `Olá ${a.nome}! 🎉🎂 A equipe da ${workshopNome} deseja um feliz aniversário! Como presente, oferecemos uma condição especial na próxima revisão. Fale com a gente!`;
+    case "satisfacao":
+      return `Olá ${a.nome}! 👋 Aqui é da ${workshopNome}. Como foi sua experiência com o serviço da OS ${formatOSNumber(a.osNumero)}? Sua opinião nos ajuda muito! ⭐`;
+  }
+}
+
+const META: Record<
+  SmartAlert["tipo"],
+  { label: string; icon: typeof Cake; color: string }
+> = {
+  retorno: { label: "Retorno", icon: Phone, color: "bg-destructive/10 text-destructive" },
+  revisao_km: { label: "Revisão (km)", icon: Gauge, color: "bg-status-progress/30 text-status-progress-foreground" },
+  revisao_tempo: { label: "Revisão (tempo)", icon: Calendar, color: "bg-status-progress/30 text-status-progress-foreground" },
+  aniversario: { label: "Aniversário", icon: Cake, color: "bg-primary/10 text-primary" },
+  satisfacao: { label: "Pós-entrega", icon: Heart, color: "bg-money/10 text-money" },
+};
+
+function descricao(a: SmartAlert): string {
+  switch (a.tipo) {
+    case "retorno":
+      return `${a.diasSemVisita} dias sem visita${a.veiculo ? ` · ${a.veiculo}` : ""}`;
+    case "revisao_km":
+      return `${a.veiculo} (${a.placa}) — ${a.kmAtual.toLocaleString("pt-BR")} km de ${a.kmProxima.toLocaleString("pt-BR")} km`;
+    case "revisao_tempo":
+      return `${a.veiculo} (${a.placa}) — ${a.mesesDesde} meses desde a última revisão`;
+    case "aniversario":
+      return a.diasParaAniversario === 0
+        ? "Aniversário hoje! 🎂"
+        : `Aniversário em ${a.diasParaAniversario} dia(s)`;
+    case "satisfacao":
+      return `OS ${formatOSNumber(a.osNumero)} entregue há ${a.diasDesdeEntrega} dia(s)`;
+  }
+}
+
 function Alertas() {
   const navigate = useNavigate();
-  const { data: alerts } = useReturnAlerts();
+  const { data: alerts } = useSmartAlerts();
   const { data: workshop } = useWorkshop();
   const dismiss = useDismissAlert();
 
+  const list = alerts ?? [];
+
   return (
-    <div className="px-4 md:px-8 py-5 max-w-2xl mx-auto">
+    <div className="px-4 md:px-8 py-5 max-w-2xl mx-auto pb-20">
       <button
         onClick={() => navigate({ to: "/" })}
         className="flex items-center gap-1 text-sm text-muted-foreground mb-3"
       >
         <ArrowLeft className="h-4 w-4" /> Voltar
       </button>
-      <h1 className="text-2xl font-bold">Clientes para contatar</h1>
+      <h1 className="text-2xl font-bold">Lembretes inteligentes</h1>
       <p className="text-sm text-muted-foreground mb-5">
-        Esses clientes não visitaram sua oficina há mais de 90 dias. Entre em contato para
-        não perder o cliente.
+        Retornos, revisões, aniversários e pesquisas pós-entrega.
       </p>
-      {(alerts ?? []).length === 0 ? (
+
+      {list.length === 0 ? (
         <EmptyState
           icon={BellOff}
-          title="Nenhum alerta"
-          description="Todos os clientes estão em dia. 🎉"
+          title="Tudo em dia"
+          description="Nenhum lembrete pendente no momento. 🎉"
         />
       ) : (
         <div className="space-y-2">
-          {alerts!.map((a) => (
-            <Card key={a.clientId} className="p-3">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <div className="font-bold">{a.nome}</div>
-                  <div className="text-xs text-destructive font-semibold">
-                    {a.diasSemVisita} dias sem visita
+          {list.map((a) => {
+            const meta = META[a.tipo];
+            const Icon = meta.icon;
+            const msg = buildMessage(a, workshop?.nome ?? "nossa oficina");
+            const fallbackMsg =
+              a.tipo === "retorno"
+                ? renderRetorno(
+                    a.nome,
+                    a.veiculo ?? "seu carro",
+                    a.placa ?? "",
+                    workshop ?? { nome: "nossa oficina" }
+                  )
+                : msg;
+            return (
+              <Card key={a.key} className="p-3">
+                <div className="flex items-start gap-3 mb-2">
+                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${meta.color}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold truncate">{a.nome}</span>
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                        {meta.label}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {descricao(a)}
+                    </div>
                   </div>
                 </div>
-                {a.ultimoVeiculo && <PlacaBadge placa={a.ultimoVeiculo.placa} size="sm" />}
-              </div>
-              {a.ultimoVeiculo && (
-                <div className="text-xs text-muted-foreground mb-1">
-                  {a.ultimoVeiculo.marca} {a.ultimoVeiculo.modelo}
+                <div className="flex gap-2">
+                  <WhatsAppButton
+                    phone={a.telefone}
+                    message={fallbackMsg}
+                    variant="default"
+                    size="sm"
+                    label="WhatsApp"
+                    className="text-primary-foreground bg-primary hover:bg-primary/90"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => dismiss.mutate(a.clientId)}
+                  >
+                    Dispensar
+                  </Button>
                 </div>
-              )}
-              {a.ultimoServico && (
-                <div className="text-xs text-muted-foreground mb-2">
-                  Último serviço: {a.ultimoServico}
-                </div>
-              )}
-              <div className="flex gap-2">
-                <WhatsAppButton
-                  phone={a.telefone}
-                  message={renderRetorno(
-                    a.nome,
-                    a.ultimoVeiculo
-                      ? `${a.ultimoVeiculo.marca ?? ""} ${a.ultimoVeiculo.modelo ?? ""}`
-                      : "seu carro",
-                    a.ultimoVeiculo?.placa ?? "",
-                    workshop ?? { nome: "nossa oficina" }
-                  )}
-                  variant="default"
-                  size="sm"
-                  label="Avisar pelo WhatsApp"
-                  className="text-primary-foreground bg-primary hover:bg-primary/90"
-                />
-                <Button size="sm" variant="outline" onClick={() => dismiss.mutate(a.clientId)}>
-                  Marcar como contatado
-                </Button>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

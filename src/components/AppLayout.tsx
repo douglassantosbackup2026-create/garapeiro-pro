@@ -9,16 +9,18 @@ import {
   KanbanSquare,
   DollarSign,
   Package,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
-import { useReturnAlerts } from "@/hooks/useReturnAlerts";
+import { useSmartAlerts } from "@/hooks/useSmartAlerts";
 
 const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/", label: "Início", icon: Home, exact: true },
   { to: "/os", label: "Ordens", icon: Wrench },
   { to: "/os/kanban", label: "Painel", icon: KanbanSquare },
   { to: "/financeiro", label: "Financeiro", icon: DollarSign },
+  { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/estoque", label: "Estoque", icon: Package },
   { to: "/veiculos", label: "Veículos", icon: Car },
   { to: "/clientes", label: "Clientes", icon: Users },
@@ -33,7 +35,7 @@ function isActive(path: string, current: string, exact = false) {
 export function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: workshop } = useWorkshop();
-  const { data: alerts } = useReturnAlerts();
+  const { data: alerts } = useSmartAlerts();
   const alertCount = alerts?.length ?? 0;
 
   return (

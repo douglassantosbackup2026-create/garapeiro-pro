@@ -19,7 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
-import { useReturnAlerts, useDismissAlert } from "@/hooks/useReturnAlerts";
+import { useSmartAlerts, type SmartAlert } from "@/hooks/useSmartAlerts";
+import { useDismissAlert } from "@/hooks/useReturnAlerts";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -30,16 +31,30 @@ import {
   formatOSNumber,
   getGreeting,
 } from "@/lib/format";
-import { renderRetorno } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
+function alertSummary(a: SmartAlert): string {
+  switch (a.tipo) {
+    case "retorno":
+      return `${a.diasSemVisita} dias sem visita${a.veiculo ? ` · ${a.veiculo}` : ""}`;
+    case "revisao_km":
+      return `Revisão (${a.kmAtual.toLocaleString("pt-BR")} km) · ${a.placa}`;
+    case "revisao_tempo":
+      return `Revisão · ${a.mesesDesde} meses · ${a.placa}`;
+    case "aniversario":
+      return a.diasParaAniversario === 0 ? "Aniversário hoje 🎂" : `Aniversário em ${a.diasParaAniversario}d`;
+    case "satisfacao":
+      return `Pesquisa pós-entrega · OS ${formatOSNumber(a.osNumero)}`;
+  }
+}
+
 function Dashboard() {
   const navigate = useNavigate();
   const { data: stats } = useDashboardStats();
-  const { data: alerts } = useReturnAlerts();
+  const { data: alerts } = useSmartAlerts();
   const { data: workshop } = useWorkshop();
   const dismiss = useDismissAlert();
   const [fabOpen, setFabOpen] = useState(false);
@@ -153,7 +168,7 @@ function Dashboard() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            Alertas de Retorno
+            Lembretes
           </h2>
           <Link to="/alertas" className="text-sm text-primary font-medium">
             Ver todos →
@@ -161,33 +176,23 @@ function Dashboard() {
         </div>
         {alertCount === 0 ? (
           <Card className="p-6 text-center text-sm text-muted-foreground">
-            Nenhum cliente para contatar agora. 👍
+            Nenhum lembrete pendente. 👍
           </Card>
         ) : (
           <div className="space-y-2">
             {alerts!.slice(0, 3).map((a) => (
-              <Card key={a.clientId} className="p-3">
+              <Card key={a.key} className="p-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <div className="font-medium truncate">{a.nome}</div>
                     <div className="text-xs text-muted-foreground">
-                      {a.diasSemVisita} dias sem visita
-                      {a.ultimoVeiculo
-                        ? ` · ${a.ultimoVeiculo.marca} ${a.ultimoVeiculo.modelo}`
-                        : ""}
+                      {alertSummary(a)}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <WhatsAppButton
                       phone={a.telefone}
-                      message={renderRetorno(
-                        a.nome,
-                        a.ultimoVeiculo
-                          ? `${a.ultimoVeiculo.marca ?? ""} ${a.ultimoVeiculo.modelo ?? ""}`
-                          : "seu carro",
-                        a.ultimoVeiculo?.placa ?? "",
-                        workshop ?? { nome: "nossa oficina" }
-                      )}
+                      message={`Olá ${a.nome}! 👋 Aqui é da ${workshop?.nome ?? "oficina"}.`}
                     />
                     <Button
                       size="sm"

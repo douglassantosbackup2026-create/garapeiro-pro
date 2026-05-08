@@ -17,6 +17,7 @@ export type Database = {
       clients: {
         Row: {
           criada_em: string
+          data_aniversario: string | null
           email: string | null
           id: string
           nome: string
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           criada_em?: string
+          data_aniversario?: string | null
           email?: string | null
           id?: string
           nome: string
@@ -33,6 +35,7 @@ export type Database = {
         }
         Update: {
           criada_em?: string
+          data_aniversario?: string | null
           email?: string | null
           id?: string
           nome?: string
@@ -332,8 +335,11 @@ export type Database = {
           client_id: string
           cor: string | null
           criada_em: string
+          data_ultima_revisao: string | null
           id: string
+          intervalo_revisao_meses: number
           km: number | null
+          km_proxima_revisao: number | null
           marca: string | null
           modelo: string | null
           placa: string
@@ -344,8 +350,11 @@ export type Database = {
           client_id: string
           cor?: string | null
           criada_em?: string
+          data_ultima_revisao?: string | null
           id?: string
+          intervalo_revisao_meses?: number
           km?: number | null
+          km_proxima_revisao?: number | null
           marca?: string | null
           modelo?: string | null
           placa: string
@@ -356,8 +365,11 @@ export type Database = {
           client_id?: string
           cor?: string | null
           criada_em?: string
+          data_ultima_revisao?: string | null
           id?: string
+          intervalo_revisao_meses?: number
           km?: number | null
+          km_proxima_revisao?: number | null
           marca?: string | null
           modelo?: string | null
           placa?: string

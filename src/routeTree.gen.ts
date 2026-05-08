@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -23,6 +24,11 @@ import { Route as OsKanbanRouteImport } from './routes/os.kanban'
 import { Route as OsOsIdRouteImport } from './routes/os.$osId'
 import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientId'
 
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanceiroRoute = FinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
+  '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
   '/os/kanban': typeof OsKanbanRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
+  '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
   '/os/kanban': typeof OsKanbanRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
+  '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRoute
   '/os/kanban': typeof OsKanbanRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/financeiro'
+    | '/relatorios'
     | '/clientes/$clientId'
     | '/os/$osId'
     | '/os/kanban'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/financeiro'
+    | '/relatorios'
     | '/clientes/$clientId'
     | '/os/$osId'
     | '/os/kanban'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/financeiro'
+    | '/relatorios'
     | '/clientes/$clientId'
     | '/os/$osId'
     | '/os/kanban'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   EstoqueRoute: typeof EstoqueRoute
   FinanceiroRoute: typeof FinanceiroRoute
+  RelatoriosRoute: typeof RelatoriosRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
   OsOsIdRoute: typeof OsOsIdRoute
   OsKanbanRoute: typeof OsKanbanRoute
@@ -201,6 +214,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/financeiro': {
       id: '/financeiro'
       path: '/financeiro'
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   EstoqueRoute: EstoqueRoute,
   FinanceiroRoute: FinanceiroRoute,
+  RelatoriosRoute: RelatoriosRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
   OsOsIdRoute: OsOsIdRoute,
   OsKanbanRoute: OsKanbanRoute,
