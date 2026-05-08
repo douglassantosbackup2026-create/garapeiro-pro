@@ -36,6 +36,21 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
+function alertSummary(a: SmartAlert): string {
+  switch (a.tipo) {
+    case "retorno":
+      return `${a.diasSemVisita} dias sem visita${a.veiculo ? ` · ${a.veiculo}` : ""}`;
+    case "revisao_km":
+      return `Revisão (${a.kmAtual.toLocaleString("pt-BR")} km) · ${a.placa}`;
+    case "revisao_tempo":
+      return `Revisão · ${a.mesesDesde} meses · ${a.placa}`;
+    case "aniversario":
+      return a.diasParaAniversario === 0 ? "Aniversário hoje 🎂" : `Aniversário em ${a.diasParaAniversario}d`;
+    case "satisfacao":
+      return `Pesquisa pós-entrega · OS ${formatOSNumber(a.osNumero)}`;
+  }
+}
+
 function Dashboard() {
   const navigate = useNavigate();
   const { data: stats } = useDashboardStats();
