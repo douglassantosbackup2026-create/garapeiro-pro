@@ -1,15 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getCurrentWorkshopId } from "@/lib/workshop";
+import { getCurrentWorkshopId, peekCurrentWorkshopId } from "@/lib/workshop";
 
 export function useWorkshop() {
+  const wsId = peekCurrentWorkshopId();
   return useQuery({
-    queryKey: ["workshop"],
+    queryKey: ["workshop", wsId],
+    enabled: !!wsId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("workshops")
         .select("*")
-        .eq("id", getCurrentWorkshopId())
+        .eq("id", wsId!)
         .single();
       if (error) throw error;
       return data;
