@@ -1,19 +1,21 @@
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+type Props = {
+  icon: LucideIcon;
+  title: string;
+  description?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+};
+
 export function EmptyState({
   icon: Icon,
   title,
   description,
   actionLabel,
   onAction,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description?: string;
-  actionLabel?: string;
-  onAction?: () => void;
-}) {
+}: Props) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-12 px-6">
       <div className="rounded-full bg-muted p-4 mb-4">

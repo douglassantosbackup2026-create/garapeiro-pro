@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as EstoqueRouteImport } from './routes/estoque'
@@ -24,12 +27,28 @@ import { Route as VeiculosVehicleIdRouteImport } from './routes/veiculos.$vehicl
 import { Route as OsNovaRouteImport } from './routes/os.nova'
 import { Route as OsKanbanRouteImport } from './routes/os.kanban'
 import { Route as OsOsIdRouteImport } from './routes/os.$osId'
+import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientId'
 import { Route as OsOsIdEditarRouteImport } from './routes/os.$osId.editar'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -102,6 +121,11 @@ const OsOsIdRoute = OsOsIdRouteImport.update({
   path: '/os/$osId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConviteTokenRoute = ConviteTokenRouteImport.update({
+  id: '/convite/$token',
+  path: '/convite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientesClientIdRoute = ClientesClientIdRouteImport.update({
   id: '/clientes/$clientId',
   path: '/clientes/$clientId',
@@ -121,8 +145,12 @@ export interface FileRoutesByFullPath {
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
   '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
@@ -140,8 +168,12 @@ export interface FileRoutesByTo {
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
   '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
@@ -160,8 +192,12 @@ export interface FileRoutesById {
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
   '/os/kanban': typeof OsKanbanRoute
   '/os/nova': typeof OsNovaRoute
@@ -181,8 +217,12 @@ export interface FileRouteTypes {
     | '/estoque'
     | '/financeiro'
     | '/login'
+    | '/onboarding'
+    | '/recuperar-senha'
     | '/relatorios'
+    | '/reset-password'
     | '/clientes/$clientId'
+    | '/convite/$token'
     | '/os/$osId'
     | '/os/kanban'
     | '/os/nova'
@@ -200,8 +240,12 @@ export interface FileRouteTypes {
     | '/estoque'
     | '/financeiro'
     | '/login'
+    | '/onboarding'
+    | '/recuperar-senha'
     | '/relatorios'
+    | '/reset-password'
     | '/clientes/$clientId'
+    | '/convite/$token'
     | '/os/$osId'
     | '/os/kanban'
     | '/os/nova'
@@ -219,8 +263,12 @@ export interface FileRouteTypes {
     | '/estoque'
     | '/financeiro'
     | '/login'
+    | '/onboarding'
+    | '/recuperar-senha'
     | '/relatorios'
+    | '/reset-password'
     | '/clientes/$clientId'
+    | '/convite/$token'
     | '/os/$osId'
     | '/os/kanban'
     | '/os/nova'
@@ -239,8 +287,12 @@ export interface RootRouteChildren {
   EstoqueRoute: typeof EstoqueRoute
   FinanceiroRoute: typeof FinanceiroRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
+  RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   RelatoriosRoute: typeof RelatoriosRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
+  ConviteTokenRoute: typeof ConviteTokenRoute
   OsOsIdRoute: typeof OsOsIdRouteWithChildren
   OsKanbanRoute: typeof OsKanbanRoute
   OsNovaRoute: typeof OsNovaRoute
@@ -252,11 +304,32 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/relatorios': {
       id: '/relatorios'
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -357,6 +430,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OsOsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/convite/$token': {
+      id: '/convite/$token'
+      path: '/convite/$token'
+      fullPath: '/convite/$token'
+      preLoaderRoute: typeof ConviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes/$clientId': {
       id: '/clientes/$clientId'
       path: '/clientes/$clientId'
@@ -393,8 +473,12 @@ const rootRouteChildren: RootRouteChildren = {
   EstoqueRoute: EstoqueRoute,
   FinanceiroRoute: FinanceiroRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
+  RecuperarSenhaRoute: RecuperarSenhaRoute,
   RelatoriosRoute: RelatoriosRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
+  ConviteTokenRoute: ConviteTokenRoute,
   OsOsIdRoute: OsOsIdRouteWithChildren,
   OsKanbanRoute: OsKanbanRoute,
   OsNovaRoute: OsNovaRoute,

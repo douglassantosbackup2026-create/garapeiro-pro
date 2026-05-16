@@ -7,28 +7,62 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { LoginSchema } from "@/lib/schemas";
+
+type LoginSearch = { redirect?: string };
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
   head: () => ({ meta: [{ title: "Entrar — MecânicoPRO" }] }),
 });
 
+async function fetchWorkshopId(userId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("workshop_id")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.workshop_id ?? null;
+}
+
 function LoginPage() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha incorretos" : error.message);
+    const validation = LoginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      toast.error(validation.error.issues[0].message);
       return;
     }
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+      toast.error(
+        error.message === "Invalid login credentials" ? "E-mail ou senha incorretos" : error.message,
+      );
+      return;
+    }
+    const userId = data.user?.id;
+    const workshopId = userId ? await fetchWorkshopId(userId) : null;
+    setLoading(false);
     toast.success("Bem-vindo de volta!");
+    if (redirect) {
+      navigate({ to: redirect });
+      return;
+    }
+    if (!workshopId) {
+      navigate({ to: "/onboarding" });
+      return;
+    }
     navigate({ to: "/" });
   }
 
@@ -42,9 +76,7 @@ function LoginPage() {
           <div className="font-display font-bold text-lg">MecânicoPRO</div>
         </div>
         <h1 className="text-xl font-bold mb-1">Entrar</h1>
-        <p className="text-sm text-muted-foreground mb-5">
-          Acesse sua oficina
-        </p>
+        <p className="text-sm text-muted-foreground mb-5">Acesse sua oficina</p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <Label>E-mail</Label>

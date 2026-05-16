@@ -60,7 +60,12 @@ export function AppLayout() {
   return <AuthedShell pathname={pathname} signOut={signOut} />;
 }
 
-function AuthedShell({ pathname, signOut }: { pathname: string; signOut: () => Promise<void> }) {
+type AuthedShellProps = {
+  pathname: string;
+  signOut: () => Promise<void>;
+};
+
+function AuthedShell({ pathname, signOut }: AuthedShellProps) {
   const { data: workshop } = useWorkshop();
   const { data: alerts } = useSmartAlerts();
   const alertCount = alerts?.length ?? 0;

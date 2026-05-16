@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId } from "@/lib/workshop";
+import type { Database } from "@/integrations/supabase/types";
+
+type ClientUpdate = Database["public"]["Tables"]["clients"]["Update"];
 
 export function useClients() {
   return useQuery({
@@ -52,8 +55,8 @@ export function useCreateClient() {
 export function useUpdateClient() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) => {
-      const { error } = await supabase.from("clients").update(patch as never).eq("id", id);
+    mutationFn: async ({ id, patch }: { id: string; patch: ClientUpdate }) => {
+      const { error } = await supabase.from("clients").update(patch).eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {

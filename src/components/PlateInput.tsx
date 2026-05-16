@@ -1,17 +1,19 @@
 import { Input } from "@/components/ui/input";
 import { formatPlate, normalizePlate } from "@/lib/plate";
 
+type Props = {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+};
+
 export function PlateInput({
   value,
   onChange,
   placeholder = "AAA-0000",
   className,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  className?: string;
-}) {
+}: Props) {
   return (
     <Input
       value={formatPlate(value)}

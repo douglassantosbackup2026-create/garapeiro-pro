@@ -259,19 +259,15 @@ function Dashboard() {
   );
 }
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  tone,
-  isMoney,
-}: {
+type StatCardProps = {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: number | string;
   tone: string;
   isMoney?: boolean;
-}) {
+};
+
+function StatCard({ icon: Icon, label, value, tone, isMoney }: StatCardProps) {
   return (
     <Card className="p-4">
       <div className={`inline-flex items-center justify-center h-9 w-9 rounded-lg ${tone} mb-2`}>

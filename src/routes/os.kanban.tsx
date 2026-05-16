@@ -22,11 +22,21 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/os/kanban")({ component: KanbanPage });
 
-const COLUMNS: { status: OSStatus; label: string; tone: string }[] = [
+type ColumnTone =
+  | "border-status-waiting"
+  | "border-status-progress"
+  | "border-status-part"
+  | "border-status-done"
+  | "border-status-delivered"
+  | "border-status-cancel";
+
+const COLUMNS: { status: OSStatus; label: string; tone: ColumnTone }[] = [
   { status: "aguardando_aprovacao", label: "Aguardando", tone: "border-status-waiting" },
   { status: "em_andamento", label: "Em execução", tone: "border-status-progress" },
+  { status: "aguardando_peca", label: "Aguard. peça", tone: "border-status-part" },
   { status: "concluido", label: "Pronto", tone: "border-status-done" },
   { status: "entregue", label: "Entregue", tone: "border-status-delivered" },
+  { status: "cancelado", label: "Cancelado", tone: "border-status-cancel" },
 ];
 
 type OSItem = {
@@ -51,7 +61,7 @@ function KanbanPage() {
   );
 
   const grouped = useMemo(() => {
-    const g: Record<string, OSItem[]> = {};
+    const g: Record<OSStatus, OSItem[]> = {} as Record<OSStatus, OSItem[]>;
     for (const c of COLUMNS) g[c.status] = [];
     for (const o of (orders ?? []) as OSItem[]) {
       if (g[o.status]) g[o.status].push(o);
@@ -108,7 +118,7 @@ function KanbanPage() {
       </p>
 
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="flex gap-3 overflow-x-auto pb-2 min-h-[420px]">
           {COLUMNS.map((col) => (
             <Column
               key={col.status}
@@ -128,19 +138,25 @@ function KanbanPage() {
   );
 }
 
-function Column({
-  status,
-  label,
-  tone,
-  items,
-  onOpen,
-}: {
+type ColumnProps = {
   status: OSStatus;
   label: string;
-  tone: string;
+  tone: ColumnTone;
   items: OSItem[];
   onOpen: (id: string) => void;
-}) {
+};
+
+type DraggableCardProps = {
+  os: OSItem;
+  onOpen: () => void;
+};
+
+type KanbanCardProps = {
+  os: OSItem;
+  dragging?: boolean;
+};
+
+function Column({ status, label, tone, items, onOpen }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const total = items.reduce((s, o) => s + Number(o.total_geral || 0), 0);
 
@@ -148,7 +164,7 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "rounded-lg border-2 bg-card/40 p-2 min-h-[200px] transition-colors",
+        "rounded-lg border-2 bg-card/40 p-2 min-h-[200px] min-w-[240px] shrink-0 transition-colors",
         tone,
         isOver && "bg-accent/30"
       )}
@@ -175,7 +191,7 @@ function Column({
   );
 }
 
-function DraggableCard({ os, onOpen }: { os: OSItem; onOpen: () => void }) {
+function DraggableCard({ os, onOpen }: DraggableCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: os.id });
   return (
     <div
@@ -193,7 +209,7 @@ function DraggableCard({ os, onOpen }: { os: OSItem; onOpen: () => void }) {
   );
 }
 
-function KanbanCard({ os, dragging }: { os: OSItem; dragging?: boolean }) {
+function KanbanCard({ os, dragging }: KanbanCardProps) {
   const dias = daysBetween(os.data_entrada);
   return (
     <div

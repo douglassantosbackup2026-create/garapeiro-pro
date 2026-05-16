@@ -1,4 +1,5 @@
 import { formatBRL, formatDate, formatOSNumber } from "./format";
+import type { OSStatus } from "@/hooks/useServiceOrders";
 
 export function buildWhatsappUrl(phone: string, text: string): string {
   const digits = (phone || "").replace(/\D/g, "");
@@ -87,7 +88,7 @@ export function renderRetorno(
     .replaceAll("{oficina}", workshop.nome);
 }
 
-export const STATUS_LABEL: Record<string, string> = {
+export const STATUS_LABEL: Record<OSStatus, string> = {
   aguardando_aprovacao: "Aguardando aprovação",
   em_andamento: "Em andamento",
   aguardando_peca: "Aguardando peça",

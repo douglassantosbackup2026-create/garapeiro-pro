@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId, peekCurrentWorkshopId } from "@/lib/workshop";
+import type { Database } from "@/integrations/supabase/types";
+
+type WorkshopUpdate = Database["public"]["Tables"]["workshops"]["Update"];
 
 export function useWorkshop() {
   const wsId = peekCurrentWorkshopId();
@@ -22,10 +25,10 @@ export function useWorkshop() {
 export function useUpdateWorkshop() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (patch: Record<string, unknown>) => {
+    mutationFn: async (patch: WorkshopUpdate) => {
       const { error } = await supabase
         .from("workshops")
-        .update(patch as never)
+        .update(patch)
         .eq("id", getCurrentWorkshopId());
       if (error) throw error;
     },
@@ -66,7 +69,7 @@ export function useUploadLogo() {
 
       const { error: updErr } = await supabase
         .from("workshops")
-        .update({ logo_url: publicUrl } as never)
+        .update({ logo_url: publicUrl } satisfies WorkshopUpdate)
         .eq("id", getCurrentWorkshopId());
       if (updErr) throw updErr;
 
@@ -86,7 +89,7 @@ export function useRemoveLogo() {
       const path = extractLogoPath(currentUrl);
       const { error } = await supabase
         .from("workshops")
-        .update({ logo_url: null } as never)
+        .update({ logo_url: null } satisfies WorkshopUpdate)
         .eq("id", getCurrentWorkshopId());
       if (error) throw error;
       if (path) await supabase.storage.from(LOGO_BUCKET).remove([path]);

@@ -1,4 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { Database } from "@/integrations/supabase/types";
+import { WorkshopSchema } from "@/lib/schemas";
+
+type WorkshopUpdate = Database["public"]["Tables"]["workshops"]["Update"];
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +17,7 @@ import {
 } from "@/hooks/useWorkshop";
 import { toast } from "sonner";
 import { Upload, Loader2, ImageIcon } from "lucide-react";
+import { TeamSection } from "@/components/TeamSection";
 
 export const Route = createFileRoute("/configuracoes")({ component: Configuracoes });
 
@@ -43,7 +48,7 @@ function Configuracoes() {
       });
   }, [workshop]);
 
-  const save = async (patch: Record<string, unknown>) => {
+  const save = async (patch: WorkshopUpdate) => {
     await update.mutateAsync(patch);
     toast.success("Salvo!");
   };
@@ -155,13 +160,18 @@ function Configuracoes() {
           />
         </div>
         <Button
-          onClick={() =>
-            save({
+          onClick={() => {
+            const result = WorkshopSchema.safeParse({
               nome: form.nome,
               telefone: form.telefone,
               endereco: form.endereco,
-            })
-          }
+            });
+            if (!result.success) {
+              toast.error(result.error.issues[0].message);
+              return;
+            }
+            save({ nome: result.data.nome, telefone: result.data.telefone, endereco: result.data.endereco });
+          }}
         >
           Salvar
         </Button>
@@ -210,13 +220,20 @@ function Configuracoes() {
         </Button>
       </Card>
 
+      <TeamSection />
+
       <Card className="p-4 space-y-2">
         <h2 className="font-bold">Assinatura</h2>
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center rounded-full bg-secondary text-secondary-foreground px-2.5 py-0.5 text-xs font-semibold capitalize">
             Plano: {workshop?.plano ?? "gratuito"}
           </span>
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            onClick={() => toast.info("Planos pagos em breve!")}
+          >
             Fazer upgrade
           </Button>
         </div>

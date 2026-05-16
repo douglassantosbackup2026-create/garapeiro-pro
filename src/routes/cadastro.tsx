@@ -7,27 +7,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { CadastroSchema } from "@/lib/schemas";
+
+type CadastroSearch = { redirect?: string };
 
 export const Route = createFileRoute("/cadastro")({
   component: SignupPage,
+  validateSearch: (search: Record<string, unknown>): CadastroSearch => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
   head: () => ({ meta: [{ title: "Criar conta — MecânicoPRO" }] }),
 });
 
 function SignupPage() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [awaitingEmail, setAwaitingEmail] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("A senha precisa ter pelo menos 6 caracteres");
+    const validation = CadastroSchema.safeParse({ nome, email, password });
+    if (!validation.success) {
+      toast.error(validation.error.issues[0].message);
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -40,8 +49,34 @@ function SignupPage() {
       toast.error(error.message);
       return;
     }
+    if (!data.session) {
+      setAwaitingEmail(true);
+      toast.success("Verifique seu e-mail para confirmar a conta.");
+      return;
+    }
     toast.success("Conta criada! Vamos configurar sua oficina.");
+    if (redirect) {
+      navigate({ to: redirect });
+      return;
+    }
     navigate({ to: "/onboarding" });
+  }
+
+  if (awaitingEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
+        <Card className="w-full max-w-sm p-6 text-center">
+          <h1 className="text-xl font-bold mb-2">Confirme seu e-mail</h1>
+          <p className="text-sm text-muted-foreground mb-5">
+            Enviamos um link de confirmação para <strong>{email}</strong>. Após confirmar, faça
+            login para continuar.
+          </p>
+          <Button asChild className="w-full">
+            <Link to="/login">Ir para login</Link>
+          </Button>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -54,9 +89,7 @@ function SignupPage() {
           <div className="font-display font-bold text-lg">MecânicoPRO</div>
         </div>
         <h1 className="text-xl font-bold mb-1">Criar conta</h1>
-        <p className="text-sm text-muted-foreground mb-5">
-          Comece grátis em 1 minuto
-        </p>
+        <p className="text-sm text-muted-foreground mb-5">Comece grátis em 1 minuto</p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <Label>Seu nome</Label>
@@ -77,7 +110,7 @@ function SignupPage() {
             <Input
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"

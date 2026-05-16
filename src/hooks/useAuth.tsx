@@ -4,13 +4,12 @@ import { useRouter } from "@tanstack/react-router";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { setCurrentWorkshopId } from "@/lib/workshop";
+import type { Database } from "@/integrations/supabase/types";
 
-export type Profile = {
-  id: string;
-  workshop_id: string | null;
-  nome: string | null;
-  avatar_url: string | null;
-};
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
+
+export type Profile = Pick<ProfileRow, "id" | "workshop_id" | "nome" | "avatar_url">;
 
 type AuthState = {
   loading: boolean;
@@ -34,19 +33,19 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
     return null;
   }
   if (!data) {
-    // create profile on the fly
+    const payload: ProfileInsert = { id: userId };
     const { data: created, error: insErr } = await supabase
       .from("profiles")
-      .insert({ id: userId } as never)
+      .insert(payload)
       .select("id, workshop_id, nome, avatar_url")
       .single();
     if (insErr) {
       console.error("[auth] create profile error", insErr);
       return null;
     }
-    return created as Profile;
+    return created;
   }
-  return data as Profile;
+  return data;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

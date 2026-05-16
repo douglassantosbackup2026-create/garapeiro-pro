@@ -3,6 +3,15 @@ import { Button } from "@/components/ui/button";
 import { buildWhatsappUrl } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
+type Props = {
+  phone: string;
+  message?: string;
+  variant?: "ghost" | "outline" | "default" | "secondary";
+  size?: "icon" | "default" | "sm" | "lg";
+  label?: string;
+  className?: string;
+};
+
 export function WhatsAppButton({
   phone,
   message,
@@ -10,14 +19,7 @@ export function WhatsAppButton({
   size = "icon",
   label,
   className,
-}: {
-  phone: string;
-  message?: string;
-  variant?: "ghost" | "outline" | "default" | "secondary";
-  size?: "icon" | "default" | "sm" | "lg";
-  label?: string;
-  className?: string;
-}) {
+}: Props) {
   const onClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();

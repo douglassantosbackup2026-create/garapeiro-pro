@@ -1,3 +1,8 @@
+# Environment secrets
+.env
+.env.local
+.env.*.local
+
 # Logs
 logs
 *.log
@@ -11,14 +16,10 @@ node_modules
 dist
 dist-ssr
 .output
+.nitro
 .vinxi
 .tanstack/**
-.nitro
 *.local
-
-# Wrangler / Cloudflare
-.wrangler/
-.dev.vars
 
 # Editor directories and files
 .vscode/*

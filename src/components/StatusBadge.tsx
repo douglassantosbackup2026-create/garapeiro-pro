@@ -1,7 +1,13 @@
 import { cn } from "@/lib/utils";
 import { STATUS_LABEL } from "@/lib/whatsapp";
+import type { OSStatus } from "@/hooks/useServiceOrders";
 
-const MAP: Record<string, string> = {
+type Props = {
+  status: OSStatus;
+  className?: string;
+};
+
+const MAP: Record<OSStatus, string> = {
   aguardando_aprovacao: "bg-status-waiting text-status-waiting-foreground",
   em_andamento: "bg-status-progress text-status-progress-foreground",
   aguardando_peca: "bg-status-part text-status-part-foreground",
@@ -10,7 +16,7 @@ const MAP: Record<string, string> = {
   cancelado: "bg-status-cancel text-status-cancel-foreground",
 };
 
-export function StatusBadge({ status, className }: { status: string; className?: string }) {
+export function StatusBadge({ status, className }: Props) {
   return (
     <span
       className={cn(
