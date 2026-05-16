@@ -170,6 +170,41 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          atualizada_em: string
+          avatar_url: string | null
+          criada_em: string
+          id: string
+          nome: string | null
+          workshop_id: string | null
+        }
+        Insert: {
+          atualizada_em?: string
+          avatar_url?: string | null
+          criada_em?: string
+          id: string
+          nome?: string | null
+          workshop_id?: string | null
+        }
+        Update: {
+          atualizada_em?: string
+          avatar_url?: string | null
+          criada_em?: string
+          id?: string
+          nome?: string | null
+          workshop_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_order_parts: {
         Row: {
           custo_unitario: number
@@ -335,6 +370,38 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          criada_em: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+          workshop_id: string
+        }
+        Insert: {
+          criada_em?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+          workshop_id: string
+        }
+        Update: {
+          criada_em?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicles: {
         Row: {
           ano: number | null
@@ -398,8 +465,53 @@ export type Database = {
           },
         ]
       }
+      workshop_invites: {
+        Row: {
+          criada_em: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          token: string
+          used_at: string | null
+          workshop_id: string
+        }
+        Insert: {
+          criada_em?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token?: string
+          used_at?: string | null
+          workshop_id: string
+        }
+        Update: {
+          criada_em?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token?: string
+          used_at?: string | null
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_invites_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workshops: {
         Row: {
+          created_by: string | null
           criada_em: string
           endereco: string | null
           id: string
@@ -413,6 +525,7 @@ export type Database = {
           telefone: string | null
         }
         Insert: {
+          created_by?: string | null
           criada_em?: string
           endereco?: string | null
           id?: string
@@ -426,6 +539,7 @@ export type Database = {
           telefone?: string | null
         }
         Update: {
+          created_by?: string | null
           criada_em?: string
           endereco?: string | null
           id?: string
@@ -445,9 +559,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_workshop_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+          _workshop_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "dono" | "mecanico"
       forma_pagamento:
         | "pix"
         | "dinheiro"
@@ -589,6 +712,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["dono", "mecanico"],
       forma_pagamento: ["pix", "dinheiro", "cartao", "parcelado", "a_combinar"],
       os_status: [
         "aguardando_aprovacao",
