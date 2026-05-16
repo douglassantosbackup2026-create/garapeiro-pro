@@ -104,7 +104,10 @@ export const CATEGORY_GROUPS = [
 export type MainCategory = (typeof CATEGORY_GROUPS)[number]["key"];
 export type SubCategory = (typeof CATEGORY_GROUPS)[number]["subcategories"][number]["value"];
 
-export const ALL_SUBCATEGORIES = CATEGORY_GROUPS.flatMap((g) => g.subcategories);
+type SubItem = { value: string; label: string };
+export const ALL_SUBCATEGORIES: SubItem[] = CATEGORY_GROUPS.flatMap(
+  (g) => g.subcategories as readonly SubItem[],
+);
 
 export function getSubcategoryLabel(value: string): string {
   return ALL_SUBCATEGORIES.find((s) => s.value === value)?.label ?? value;
