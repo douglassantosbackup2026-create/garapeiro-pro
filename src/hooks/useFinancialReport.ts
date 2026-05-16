@@ -8,6 +8,8 @@ export type Top = { nome: string; valor: number; qtd: number };
 export function useFinancialReport() {
   return useQuery({
     queryKey: ["financial_report"],
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const now = new Date();
       const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);

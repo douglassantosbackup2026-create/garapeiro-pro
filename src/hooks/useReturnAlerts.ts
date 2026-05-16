@@ -9,6 +9,7 @@ export function useReturnAlerts() {
   return useQuery({
     queryKey: ["return_alerts"],
     staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const cutoffIso = new Date(Date.now() - NINETY_DAYS_MS).toISOString();
       const [{ data: clients }, { data: dismissed }] = await Promise.all([
@@ -75,6 +76,9 @@ export function useDismissAlert() {
         .insert({ workshop_id: getCurrentWorkshopId(), client_id: clientId });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["return_alerts"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["return_alerts"] });
+      qc.invalidateQueries({ queryKey: ["smart_alerts"] });
+    },
   });
 }

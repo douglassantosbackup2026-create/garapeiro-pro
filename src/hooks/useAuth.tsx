@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import type { Session, User } from "@supabase/supabase-js";
@@ -21,6 +21,12 @@ type AuthState = {
 };
 
 const Ctx = createContext<AuthState | null>(null);
+
+const AUTH_QUERY_KEYS = [
+  "workshop", "clients", "vehicles", "service_orders", "parts",
+  "smart_alerts", "return_alerts", "payments", "appointments",
+  "dashboard_stats", "financial_report", "services_catalog",
+];
 
 async function fetchProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
@@ -55,14 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const qc = useQueryClient();
 
-  const loadProfile = async (uid: string) => {
+  const loadProfile = useCallback(async (uid: string) => {
     const p = await fetchProfile(uid);
     setProfile(p);
     setCurrentWorkshopId(p?.workshop_id ?? null);
-  };
+  }, []);
 
   useEffect(() => {
-    // Initial session
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
       if (data.session?.user) {
@@ -74,42 +79,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
       if (sess?.user) {
-        // defer to avoid deadlock
         setTimeout(() => loadProfile(sess.user.id), 0);
       } else {
         setProfile(null);
         setCurrentWorkshopId(null);
       }
-      qc.invalidateQueries();
+      AUTH_QUERY_KEYS.forEach(key => qc.invalidateQueries({ queryKey: [key] }));
       router.invalidate();
     });
 
     return () => sub.subscription.unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadProfile, qc, router]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (session?.user) await loadProfile(session.user.id);
-    qc.invalidateQueries();
-  };
+    qc.invalidateQueries({ queryKey: ["workshop"] });
+  }, [session, loadProfile, qc]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setCurrentWorkshopId(null);
     qc.clear();
-  };
+  }, [qc]);
+
+  const value = useMemo(() => ({
+    loading,
+    session,
+    user: session?.user ?? null,
+    profile,
+    refreshProfile,
+    signOut,
+  }), [loading, session, profile, refreshProfile, signOut]);
 
   return (
-    <Ctx.Provider
-      value={{
-        loading,
-        session,
-        user: session?.user ?? null,
-        profile,
-        refreshProfile,
-        signOut,
-      }}
-    >
+    <Ctx.Provider value={value}>
       {children}
     </Ctx.Provider>
   );

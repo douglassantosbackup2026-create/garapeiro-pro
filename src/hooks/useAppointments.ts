@@ -36,6 +36,8 @@ export type AppointmentInput = {
 export function useAppointments(dateFrom?: string, dateTo?: string) {
   return useQuery({
     queryKey: ["appointments", dateFrom, dateTo],
+    staleTime: 2 * 60_000,
+    gcTime: 10 * 60_000,
     queryFn: async () => {
       let q = supabase
         .from("appointments")

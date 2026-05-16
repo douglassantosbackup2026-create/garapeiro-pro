@@ -20,6 +20,8 @@ export type Part = {
 export function useParts() {
   return useQuery({
     queryKey: ["parts_inventory"],
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("parts_inventory")

@@ -18,6 +18,8 @@ export function usePaymentsByOS(osId: string | undefined) {
   return useQuery({
     queryKey: ["payments", osId],
     enabled: !!osId,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
@@ -33,6 +35,8 @@ export function usePaymentsByOS(osId: string | undefined) {
 export function useAllPayments() {
   return useQuery({
     queryKey: ["payments_all"],
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")

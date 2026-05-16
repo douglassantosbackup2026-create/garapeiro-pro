@@ -5,6 +5,8 @@ import { getCurrentWorkshopId } from "@/lib/workshop";
 export function useDashboardStats() {
   return useQuery({
     queryKey: ["dashboard"],
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);

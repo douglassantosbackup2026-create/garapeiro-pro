@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { Search, Users, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,14 +17,61 @@ function colorFor(name: string) {
   return COLORS[h % COLORS.length];
 }
 
+type ClientRow = NonNullable<ReturnType<typeof useClients>["data"]>[number];
+
+const ClientCard = memo(function ClientCard({ c }: { c: ClientRow }) {
+  const lastOS = useMemo(() => {
+    let last: ClientRow["service_orders"][number] | null = null;
+    let maxTime = -Infinity;
+    for (const o of c.service_orders ?? []) {
+      const t = new Date(o.data_entrada).getTime();
+      if (t > maxTime) { maxTime = t; last = o; }
+    }
+    return last;
+  }, [c.service_orders]);
+
+  const dias = useMemo(() => (lastOS ? daysBetween(lastOS.data_entrada) : null), [lastOS]);
+
+  return (
+    <Link to="/clientes/$clientId" params={{ clientId: c.id }} className="block">
+      <Card className="p-3 flex items-center gap-3 hover:border-primary">
+        <div
+          className={`h-10 w-10 shrink-0 rounded-full text-white flex items-center justify-center font-bold ${colorFor(c.nome)}`}
+        >
+          {c.nome.charAt(0).toUpperCase()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-medium truncate">{c.nome}</span>
+            {dias !== null && dias > 90 && (
+              <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 rounded-full font-bold">
+                +90 dias
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {formatPhone(c.telefone)} · {c.vehicles?.length ?? 0} veículo(s)
+            {lastOS ? ` · última: ${formatDate(lastOS.data_entrada)}` : ""}
+          </div>
+        </div>
+        <WhatsAppButton phone={c.telefone} />
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </Card>
+    </Link>
+  );
+});
+
 function Clientes() {
   const { data: clients } = useClients();
   const [q, setQ] = useState("");
-  const filtered = (clients ?? []).filter((c) => {
-    if (!q) return true;
+
+  const filtered = useMemo(() => {
+    if (!q) return clients ?? [];
     const s = q.toLowerCase();
-    return c.nome.toLowerCase().includes(s) || c.telefone.includes(s);
-  });
+    return (clients ?? []).filter(
+      (c) => c.nome.toLowerCase().includes(s) || c.telefone.includes(s)
+    );
+  }, [clients, q]);
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-5xl mx-auto">
@@ -42,44 +89,7 @@ function Clientes() {
         <EmptyState icon={Users} title="Nenhum cliente" description="Cadastre seu primeiro cliente." />
       ) : (
         <div className="space-y-2">
-          {filtered.map((c) => {
-            const lastOS = (c.service_orders ?? [])
-              .slice()
-              .sort((a, b) => new Date(b.data_entrada).getTime() - new Date(a.data_entrada).getTime())[0];
-            const dias = lastOS ? daysBetween(lastOS.data_entrada) : null;
-            return (
-              <Link
-                key={c.id}
-                to="/clientes/$clientId"
-                params={{ clientId: c.id }}
-                className="block"
-              >
-                <Card className="p-3 flex items-center gap-3 hover:border-primary">
-                  <div
-                    className={`h-10 w-10 shrink-0 rounded-full text-white flex items-center justify-center font-bold ${colorFor(c.nome)}`}
-                  >
-                    {c.nome.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium truncate">{c.nome}</span>
-                      {dias !== null && dias > 90 && (
-                        <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 rounded-full font-bold">
-                          +90 dias
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatPhone(c.telefone)} · {c.vehicles?.length ?? 0} veículo(s)
-                      {lastOS ? ` · última: ${formatDate(lastOS.data_entrada)}` : ""}
-                    </div>
-                  </div>
-                  <WhatsAppButton phone={c.telefone} />
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </Card>
-              </Link>
-            );
-          })}
+          {filtered.map((c) => <ClientCard key={c.id} c={c} />)}
         </div>
       )}
     </div>

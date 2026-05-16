@@ -10,6 +10,8 @@ export function useWorkshop() {
   return useQuery({
     queryKey: ["workshop", wsId],
     enabled: !!wsId,
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("workshops")

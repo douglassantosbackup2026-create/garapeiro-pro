@@ -8,6 +8,8 @@ type VehicleUpdate = Database["public"]["Tables"]["vehicles"]["Update"];
 export function useVehicles() {
   return useQuery({
     queryKey: ["vehicles"],
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vehicles")
@@ -24,6 +26,8 @@ export function useVehicle(id: string | undefined) {
   return useQuery({
     queryKey: ["vehicle", id],
     enabled: !!id,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vehicles")

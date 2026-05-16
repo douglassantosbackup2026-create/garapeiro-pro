@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Plus, Search, Edit2, Trash2, Package, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -18,6 +18,75 @@ import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/estoque")({ component: EstoquePage });
+
+const PartCard = memo(function PartCard({
+  part,
+  onEdit,
+  onDelete,
+}: {
+  part: Part;
+  onEdit: (p: Part) => void;
+  onDelete: (p: Part) => void;
+}) {
+  const baixo = useMemo(
+    () => Number(part.estoque_minimo) > 0 && Number(part.quantidade) <= Number(part.estoque_minimo),
+    [part.estoque_minimo, part.quantidade]
+  );
+  const margem = useMemo(
+    () =>
+      Number(part.preco_venda) > 0
+        ? ((Number(part.preco_venda) - Number(part.custo_unitario)) / Number(part.preco_venda)) * 100
+        : 0,
+    [part.preco_venda, part.custo_unitario]
+  );
+  return (
+    <Card className="p-3 flex items-center gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-bold truncate">{part.nome}</span>
+          {part.codigo && (
+            <span className="text-xs text-muted-foreground font-mono">#{part.codigo}</span>
+          )}
+          {baixo && (
+            <span className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive px-1.5 py-0.5 rounded">
+              baixo
+            </span>
+          )}
+        </div>
+        <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-3">
+          <span>
+            Custo: <span className="font-medium">{formatBRL(part.custo_unitario)}</span>
+          </span>
+          <span>
+            Venda: <span className="font-medium">{formatBRL(part.preco_venda)}</span>
+          </span>
+          {Number(part.preco_venda) > 0 && (
+            <span className="text-money font-medium">margem {margem.toFixed(0)}%</span>
+          )}
+        </div>
+      </div>
+      <div className="text-right">
+        <div className={cn("font-display text-xl font-bold", baixo ? "text-destructive" : "")}>
+          {Number(part.quantidade)}
+        </div>
+        <div className="text-[10px] text-muted-foreground uppercase">{part.unidade}</div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <Button size="icon" variant="ghost" onClick={() => onEdit(part)}>
+          <Edit2 className="h-4 w-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-destructive"
+          onClick={() => onDelete(part)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </Card>
+  );
+});
 
 const EMPTY = {
   nome: "",
@@ -49,13 +118,17 @@ function EstoquePage() {
     );
   }, [parts, busca]);
 
-  const lowStock = (parts ?? []).filter(
-    (p) => Number(p.estoque_minimo) > 0 && Number(p.quantidade) <= Number(p.estoque_minimo)
+  const lowStock = useMemo(
+    () =>
+      (parts ?? []).filter(
+        (p) => Number(p.estoque_minimo) > 0 && Number(p.quantidade) <= Number(p.estoque_minimo)
+      ),
+    [parts]
   );
 
-  const totalValor = (parts ?? []).reduce(
-    (s, p) => s + Number(p.quantidade) * Number(p.custo_unitario),
-    0
+  const totalValor = useMemo(
+    () => (parts ?? []).reduce((s, p) => s + Number(p.quantidade) * Number(p.custo_unitario), 0),
+    [parts]
   );
 
   function openNew() {
@@ -64,7 +137,7 @@ function EstoquePage() {
     setOpen(true);
   }
 
-  function openEdit(p: Part) {
+  const openEdit = useCallback((p: Part) => {
     setEditId(p.id);
     setForm({
       nome: p.nome,
@@ -77,7 +150,7 @@ function EstoquePage() {
       observacao: p.observacao ?? "",
     });
     setOpen(true);
-  }
+  }, []);
 
   function salvar() {
     if (!form.nome.trim()) {
@@ -106,10 +179,10 @@ function EstoquePage() {
     );
   }
 
-  function excluir(p: Part) {
+  const excluir = useCallback((p: Part) => {
     if (!confirm(`Excluir "${p.nome}" do estoque?`)) return;
     del.mutate(p.id, { onSuccess: () => toast.success("Peça removida") });
-  }
+  }, [del]);
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-5xl mx-auto pb-24">
@@ -158,74 +231,9 @@ function EstoquePage() {
         </Card>
       ) : (
         <div className="grid gap-2">
-          {list.map((p) => {
-            const baixo =
-              Number(p.estoque_minimo) > 0 && Number(p.quantidade) <= Number(p.estoque_minimo);
-            const margem =
-              Number(p.preco_venda) > 0
-                ? ((Number(p.preco_venda) - Number(p.custo_unitario)) /
-                    Number(p.preco_venda)) *
-                  100
-                : 0;
-            return (
-              <Card key={p.id} className="p-3 flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold truncate">{p.nome}</span>
-                    {p.codigo && (
-                      <span className="text-xs text-muted-foreground font-mono">
-                        #{p.codigo}
-                      </span>
-                    )}
-                    {baixo && (
-                      <span className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive px-1.5 py-0.5 rounded">
-                        baixo
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-3">
-                    <span>
-                      Custo: <span className="font-medium">{formatBRL(p.custo_unitario)}</span>
-                    </span>
-                    <span>
-                      Venda: <span className="font-medium">{formatBRL(p.preco_venda)}</span>
-                    </span>
-                    {Number(p.preco_venda) > 0 && (
-                      <span className="text-money font-medium">
-                        margem {margem.toFixed(0)}%
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div
-                    className={cn(
-                      "font-display text-xl font-bold",
-                      baixo ? "text-destructive" : ""
-                    )}
-                  >
-                    {Number(p.quantidade)}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground uppercase">
-                    {p.unidade}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => openEdit(p)}>
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="text-destructive"
-                    onClick={() => excluir(p)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
+          {list.map((p) => (
+            <PartCard key={p.id} part={p} onEdit={openEdit} onDelete={excluir} />
+          ))}
         </div>
       )}
 

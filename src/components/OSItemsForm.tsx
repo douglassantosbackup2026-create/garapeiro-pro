@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,17 +31,20 @@ type Props = {
 
 export function OSItemsForm({ servicos, setServicos, pecas, setPecas }: Props) {
   const { data: inventory } = useParts();
-  const totalServ = servicos.reduce((s, x) => s + Number(x.valor || 0), 0);
-  const totalPecasV = pecas.reduce(
-    (s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0),
-    0
-  );
-  const totalCusto = pecas.reduce(
-    (s, x) => s + Number(x.quantidade || 0) * Number(x.custo_unitario || 0),
-    0
-  );
-  const total = totalServ + totalPecasV;
-  const margem = total - totalCusto;
+
+  const { totalServ, totalPecasV, totalCusto, total, margem } = useMemo(() => {
+    const totalServ = servicos.reduce((s, x) => s + Number(x.valor || 0), 0);
+    const totalPecasV = pecas.reduce(
+      (s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0),
+      0
+    );
+    const totalCusto = pecas.reduce(
+      (s, x) => s + Number(x.quantidade || 0) * Number(x.custo_unitario || 0),
+      0
+    );
+    const total = totalServ + totalPecasV;
+    return { totalServ, totalPecasV, totalCusto, total, margem: total - totalCusto };
+  }, [servicos, pecas]);
 
   return (
     <div className="space-y-5">

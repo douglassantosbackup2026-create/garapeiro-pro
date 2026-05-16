@@ -87,6 +87,9 @@ function AuthedShell({ pathname, signOut }: AuthedShellProps) {
                 src={workshop.logo_url}
                 alt={workshop.nome ?? "Logo"}
                 className="h-9 w-9 rounded-md object-cover bg-sidebar-accent"
+                loading="lazy"
+                width={36}
+                height={36}
               />
             ) : (
               <div className="bg-primary rounded-md p-1.5">

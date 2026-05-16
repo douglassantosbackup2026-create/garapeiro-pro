@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useMemo, useState } from "react";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { Plus, Search, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +29,9 @@ function OSList() {
   const [filter, setFilter] = useState<string>("todas");
   const [catFilter, setCatFilter] = useState<string>("todas");
   const [q, setQ] = useState("");
+  const listRef = useRef<HTMLDivElement>(null);
 
-  const filtered = (orders ?? []).filter((o) => {
+  const filtered = useMemo(() => (orders ?? []).filter((o) => {
     if (filter !== "todas" && o.status !== filter) return false;
     if (catFilter !== "todas") {
       const group = CATEGORY_GROUPS.find((g) => g.key === catFilter);
@@ -46,6 +48,13 @@ function OSList() {
       if (!placa.includes(s) && !cliente.includes(s) && !num.includes(s)) return false;
     }
     return true;
+  }), [orders, filter, catFilter, q]);
+
+  const virtualizer = useWindowVirtualizer({
+    count: filtered.length,
+    estimateSize: () => 104,
+    overscan: 5,
+    scrollMargin: listRef.current?.offsetTop ?? 0,
   });
 
   return (
@@ -121,40 +130,62 @@ function OSList() {
           description="Crie sua primeira ordem de serviço agora!"
         />
       ) : (
-        <div className="space-y-2">
-          {filtered.map((o) => (
-            <Link key={o.id} to="/os/$osId" params={{ osId: o.id }} className="block">
-              <Card className="p-3 hover:border-primary transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-mono text-sm font-bold text-muted-foreground">
-                        {formatOSNumber(o.numero)}
-                      </span>
-                      <PlacaBadge placa={o.vehicles?.placa ?? ""} size="sm" />
-                      <StatusBadge status={o.status} />
-                      {(o as { categoria?: string | null }).categoria && (
-                        <span className="text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-2 py-0.5">
-                          {getGroupLabel((o as { categoria?: string | null }).categoria!)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm font-medium truncate">{o.clients?.nome}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {o.service_order_services?.[0]?.descricao ?? "—"}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      Entrada: {formatDate(o.data_entrada)}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-money font-bold">{formatBRL(o.total_geral)}</div>
-                    <WhatsAppButton phone={o.clients?.telefone ?? ""} className="mt-1" />
-                  </div>
+        <div ref={listRef}>
+          <div
+            style={{
+              height: virtualizer.getTotalSize(),
+              position: "relative",
+            }}
+          >
+            {virtualizer.getVirtualItems().map((vItem) => {
+              const o = filtered[vItem.index];
+              return (
+                <div
+                  key={vItem.key}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${vItem.start - virtualizer.options.scrollMargin}px)`,
+                    paddingBottom: "0.5rem",
+                  }}
+                >
+                  <Link to="/os/$osId" params={{ osId: o.id }} className="block">
+                    <Card className="p-3 hover:border-primary transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="font-mono text-sm font-bold text-muted-foreground">
+                              {formatOSNumber(o.numero)}
+                            </span>
+                            <PlacaBadge placa={o.vehicles?.placa ?? ""} size="sm" />
+                            <StatusBadge status={o.status} />
+                            {(o as { categoria?: string | null }).categoria && (
+                              <span className="text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                                {getGroupLabel((o as { categoria?: string | null }).categoria!)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm font-medium truncate">{o.clients?.nome}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {o.service_order_services?.[0]?.descricao ?? "—"}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            Entrada: {formatDate(o.data_entrada)}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-money font-bold">{formatBRL(o.total_geral)}</div>
+                          <WhatsAppButton phone={o.clients?.telefone ?? ""} className="mt-1" />
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
                 </div>
-              </Card>
-            </Link>
-          ))}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

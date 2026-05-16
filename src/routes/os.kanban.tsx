@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -74,9 +74,14 @@ function KanbanPage() {
     [activeId, orders]
   );
 
-  const onDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id));
+  const handleOpen = useCallback(
+    (id: string) => navigate({ to: "/os/$osId", params: { osId: id } }),
+    [navigate]
+  );
 
-  const onDragEnd = (e: DragEndEvent) => {
+  const onDragStart = useCallback((e: DragStartEvent) => setActiveId(String(e.active.id)), []);
+
+  const onDragEnd = useCallback((e: DragEndEvent) => {
     setActiveId(null);
     if (!e.over) return;
     const newStatus = e.over.id as OSStatus;
@@ -93,7 +98,7 @@ function KanbanPage() {
         onError: () => toast.error("Não consegui mover a OS"),
       }
     );
-  };
+  }, [orders, update]);
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-[1400px] mx-auto">
@@ -126,7 +131,7 @@ function KanbanPage() {
               label={col.label}
               tone={col.tone}
               items={grouped[col.status] ?? []}
-              onOpen={(id) => navigate({ to: "/os/$osId", params: { osId: id } })}
+              onOpen={handleOpen}
             />
           ))}
         </div>
@@ -156,7 +161,7 @@ type KanbanCardProps = {
   dragging?: boolean;
 };
 
-function Column({ status, label, tone, items, onOpen }: ColumnProps) {
+const Column = memo(function Column({ status, label, tone, items, onOpen }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const total = items.reduce((s, o) => s + Number(o.total_geral || 0), 0);
 
@@ -189,9 +194,9 @@ function Column({ status, label, tone, items, onOpen }: ColumnProps) {
       </div>
     </div>
   );
-}
+});
 
-function DraggableCard({ os, onOpen }: DraggableCardProps) {
+const DraggableCard = memo(function DraggableCard({ os, onOpen }: DraggableCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: os.id });
   return (
     <div
@@ -207,9 +212,9 @@ function DraggableCard({ os, onOpen }: DraggableCardProps) {
       <KanbanCard os={os} />
     </div>
   );
-}
+});
 
-function KanbanCard({ os, dragging }: KanbanCardProps) {
+const KanbanCard = memo(function KanbanCard({ os, dragging }: KanbanCardProps) {
   const dias = daysBetween(os.data_entrada);
   return (
     <div
@@ -238,4 +243,4 @@ function KanbanCard({ os, dragging }: KanbanCardProps) {
       </div>
     </div>
   );
-}
+});

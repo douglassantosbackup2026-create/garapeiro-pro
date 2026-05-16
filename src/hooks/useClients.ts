@@ -8,6 +8,8 @@ type ClientUpdate = Database["public"]["Tables"]["clients"]["Update"];
 export function useClients() {
   return useQuery({
     queryKey: ["clients"],
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
@@ -24,6 +26,8 @@ export function useClient(id: string | undefined) {
   return useQuery({
     queryKey: ["client", id],
     enabled: !!id,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")

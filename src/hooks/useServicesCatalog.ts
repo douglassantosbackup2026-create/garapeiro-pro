@@ -26,6 +26,8 @@ type CatalogInput = {
 export function useServicesCatalog() {
   return useQuery({
     queryKey: ["services_catalog"],
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("services_catalog")

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Check, ChevronsUpDown, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,19 +39,34 @@ export function PartCombobox({ value, inventoryId, onPick, onTypeChange }: Props
     [parts, inventoryId]
   );
 
-  const handleSelect = (p: Part) => {
-    onPick({
-      nome: p.nome,
-      inventory_id: p.id,
-      preco_venda: Number(p.preco_venda),
-      custo_unitario: Number(p.custo_unitario),
-      estoque: Number(p.quantidade),
-    });
-    setOpen(false);
-    setQuery("");
-  };
+  const filteredParts = useMemo(() => {
+    if (!query) return (parts ?? []).slice(0, 30);
+    const q = query.toLowerCase();
+    return (parts ?? [])
+      .filter(
+        (p) =>
+          p.nome.toLowerCase().includes(q) ||
+          (p.codigo ?? "").toLowerCase().includes(q)
+      )
+      .slice(0, 30);
+  }, [parts, query]);
 
-  const useFreeText = () => {
+  const handleSelect = useCallback(
+    (p: Part) => {
+      onPick({
+        nome: p.nome,
+        inventory_id: p.id,
+        preco_venda: Number(p.preco_venda),
+        custo_unitario: Number(p.custo_unitario),
+        estoque: Number(p.quantidade),
+      });
+      setOpen(false);
+      setQuery("");
+    },
+    [onPick]
+  );
+
+  const handleFreeText = useCallback(() => {
     onPick({
       nome: query.trim() || value,
       inventory_id: null,
@@ -61,7 +76,7 @@ export function PartCombobox({ value, inventoryId, onPick, onTypeChange }: Props
     });
     setOpen(false);
     setQuery("");
-  };
+  }, [onPick, query, value]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -102,23 +117,13 @@ export function PartCombobox({ value, inventoryId, onPick, onTypeChange }: Props
               <button
                 type="button"
                 className="text-sm text-primary hover:underline"
-                onClick={useFreeText}
+                onClick={handleFreeText}
               >
                 + Usar “{query || value}” como peça avulsa
               </button>
             </CommandEmpty>
             <CommandGroup>
-              {(parts ?? [])
-                .filter((p) => {
-                  if (!query) return true;
-                  const q = query.toLowerCase();
-                  return (
-                    p.nome.toLowerCase().includes(q) ||
-                    (p.codigo ?? "").toLowerCase().includes(q)
-                  );
-                })
-                .slice(0, 30)
-                .map((p) => {
+              {filteredParts.map((p) => {
                   const isSel = p.id === inventoryId;
                   const baixo =
                     Number(p.estoque_minimo) > 0 &&
@@ -150,7 +155,7 @@ export function PartCombobox({ value, inventoryId, onPick, onTypeChange }: Props
                   );
                 })}
               {query && (
-                <CommandItem value="__free" onSelect={useFreeText} className="text-primary">
+                <CommandItem value="__free" onSelect={handleFreeText} className="text-primary">
                   + Usar “{query}” como peça avulsa
                 </CommandItem>
               )}

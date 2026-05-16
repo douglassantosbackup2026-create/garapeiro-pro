@@ -18,6 +18,8 @@ export type OSServicoInput = { descricao: string; valor: number };
 export function useServiceOrders() {
   return useQuery({
     queryKey: ["service_orders"],
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_orders")
@@ -36,6 +38,8 @@ export function useServiceOrder(id: string | undefined) {
   return useQuery({
     queryKey: ["service_order", id],
     enabled: !!id,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_orders")
