@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 
 export type DiaFat = { dia: string; valor: number };
 export type Top = { nome: string; valor: number; qtd: number };
@@ -19,12 +19,12 @@ export function useFinancialReport() {
           supabase
             .from("payments")
             .select("valor, recebido_em, service_orders(id, client_id, clients(nome))")
-            .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+            .eq("workshop_id", getCurrentWorkshopId())
             .gte("recebido_em", inicioMes.toISOString()),
           supabase
             .from("payments")
             .select("valor")
-            .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+            .eq("workshop_id", getCurrentWorkshopId())
             .gte("recebido_em", inicioMesPrev.toISOString())
             .lte("recebido_em", fimMesPrev.toISOString()),
           supabase
@@ -32,13 +32,13 @@ export function useFinancialReport() {
             .select(
               "id, total_geral, data_entrada, client_id, clients(nome), service_order_services(descricao, valor)"
             )
-            .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+            .eq("workshop_id", getCurrentWorkshopId())
             .gte("data_entrada", inicioMes.toISOString())
             .neq("status", "cancelado"),
           supabase
             .from("service_orders")
             .select("id, total_geral")
-            .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+            .eq("workshop_id", getCurrentWorkshopId())
             .neq("status", "cancelado"),
         ]);
 

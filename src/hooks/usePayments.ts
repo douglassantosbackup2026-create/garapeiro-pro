@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 import type { Database } from "@/integrations/supabase/types";
 
 export type FormaPagamento = Database["public"]["Enums"]["forma_pagamento"];
@@ -37,7 +37,7 @@ export function useAllPayments() {
       const { data, error } = await supabase
         .from("payments")
         .select("service_order_id, valor")
-        .eq("workshop_id", DEFAULT_WORKSHOP_ID);
+        .eq("workshop_id", getCurrentWorkshopId());
       if (error) throw error;
       const map = new Map<string, number>();
       for (const p of data ?? []) {
@@ -59,7 +59,7 @@ export function useAddPayment() {
       observacao?: string | null;
     }) => {
       const { error } = await supabase.from("payments").insert({
-        workshop_id: DEFAULT_WORKSHOP_ID,
+        workshop_id: getCurrentWorkshopId(),
         service_order_id: input.service_order_id,
         valor: input.valor,
         forma_pagamento: input.forma_pagamento ?? null,

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 import type { Database } from "@/integrations/supabase/types";
 
 export type OSStatus = Database["public"]["Enums"]["os_status"];
@@ -24,7 +24,7 @@ export function useServiceOrders() {
         .select(
           "*, clients(id, nome, telefone), vehicles(id, placa, marca, modelo), service_order_services(*), service_order_parts(*)"
         )
-        .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+        .eq("workshop_id", getCurrentWorkshopId())
         .order("criada_em", { ascending: false });
       if (error) throw error;
       return data;
@@ -74,7 +74,7 @@ export function useCreateServiceOrder() {
       const { data: os, error } = await supabase
         .from("service_orders")
         .insert({
-          workshop_id: DEFAULT_WORKSHOP_ID,
+          workshop_id: getCurrentWorkshopId(),
           numero: 0,
           vehicle_id: input.vehicle_id,
           client_id: input.client_id,

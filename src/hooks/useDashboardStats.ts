@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 
 export function useDashboardStats() {
   return useQuery({
@@ -13,27 +13,27 @@ export function useDashboardStats() {
         supabase
           .from("service_orders")
           .select("id", { count: "exact", head: true })
-          .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+          .eq("workshop_id", getCurrentWorkshopId())
           .gte("data_entrada", startOfDay.toISOString()),
         supabase
           .from("service_orders")
           .select("id, total_geral")
-          .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+          .eq("workshop_id", getCurrentWorkshopId())
           .neq("status", "cancelado"),
         supabase
           .from("vehicles")
           .select("id", { count: "exact", head: true })
-          .eq("workshop_id", DEFAULT_WORKSHOP_ID),
+          .eq("workshop_id", getCurrentWorkshopId()),
         supabase
           .from("clients")
           .select("id", { count: "exact", head: true })
-          .eq("workshop_id", DEFAULT_WORKSHOP_ID),
+          .eq("workshop_id", getCurrentWorkshopId()),
         supabase
           .from("service_orders")
           .select(
             "id, numero, status, total_geral, data_entrada, clients(nome), vehicles(placa), service_order_services(descricao)"
           )
-          .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+          .eq("workshop_id", getCurrentWorkshopId())
           .order("criada_em", { ascending: false })
           .limit(5),
       ]);

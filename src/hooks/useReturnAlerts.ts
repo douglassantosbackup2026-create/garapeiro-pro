@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 const DISMISS_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -17,12 +17,12 @@ export function useReturnAlerts() {
           .select(
             "id, nome, telefone, service_orders!inner(id, data_entrada, vehicles(placa, marca, modelo), service_order_services(descricao))"
           )
-          .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+          .eq("workshop_id", getCurrentWorkshopId())
           .lt("service_orders.data_entrada", cutoffIso),
         supabase
           .from("dismissed_alerts")
           .select("client_id, dispensado_em")
-          .eq("workshop_id", DEFAULT_WORKSHOP_ID),
+          .eq("workshop_id", getCurrentWorkshopId()),
       ]);
 
       const now = Date.now();
@@ -72,7 +72,7 @@ export function useDismissAlert() {
     mutationFn: async (clientId: string) => {
       const { error } = await supabase
         .from("dismissed_alerts")
-        .insert({ workshop_id: DEFAULT_WORKSHOP_ID, client_id: clientId });
+        .insert({ workshop_id: getCurrentWorkshopId(), client_id: clientId });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["return_alerts"] }),
