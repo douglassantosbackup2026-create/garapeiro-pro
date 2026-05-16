@@ -18,10 +18,12 @@ import {
   type OSPecaInput,
   type OSServicoInput,
 } from "@/hooks/useServiceOrders";
+import { useServicesCatalog } from "@/hooks/useServicesCatalog";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { isValidPlate, lookupPlateMock, normalizePlate } from "@/lib/plate";
-import { formatOSNumber } from "@/lib/format";
+import { formatBRL, formatOSNumber } from "@/lib/format";
 import { buildWhatsappUrl, renderOrcamento } from "@/lib/whatsapp";
+import { CATEGORY_GROUPS } from "@/lib/service-categories";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -44,6 +46,7 @@ function NovaOS() {
   const createVehicle = useCreateVehicle();
   const createOS = useCreateServiceOrder();
 
+  const { data: catalog } = useServicesCatalog();
   const [step, setStep] = useState(1);
 
   // P1
@@ -61,6 +64,8 @@ function NovaOS() {
   const [searching, setSearching] = useState(false);
 
   // P2
+  const [categoria, setCategoria] = useState<string>("");
+  const [catalogSearch, setCatalogSearch] = useState("");
   const [servicos, setServicos] = useState<OSServicoInput[]>([]);
   const [pecas, setPecas] = useState<OSPecaInput[]>([]);
 
@@ -86,6 +91,14 @@ function NovaOS() {
       .filter((c) => c.nome.toLowerCase().includes(s) || c.telefone.includes(s))
       .slice(0, 5);
   }, [searchCliente, clients]);
+
+  const catalogSuggestions = useMemo(() => {
+    if (!catalogSearch.trim()) return [];
+    const s = catalogSearch.toLowerCase();
+    return (catalog ?? [])
+      .filter((c) => c.ativo && (c.nome.toLowerCase().includes(s) || (c.descricao ?? "").toLowerCase().includes(s)))
+      .slice(0, 6);
+  }, [catalogSearch, catalog]);
 
   async function buscarPlaca() {
     if (!isValidPlate(placa)) {
@@ -159,6 +172,7 @@ function NovaOS() {
         forma_pagamento: pagamento,
         observacoes: observacoes || null,
         vencimento_fiado: vencimentoFiado || null,
+        categoria: categoria || null,
         servicos,
         pecas,
       });
@@ -243,6 +257,23 @@ function NovaOS() {
           <div>
             <Label>Quilometragem</Label>
             <Input value={km} onChange={(e) => setKm(e.target.value)} type="number" />
+          </div>
+          <div>
+            <Label>Categoria do serviço</Label>
+            <select
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+              className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm mt-1"
+            >
+              <option value="">Selecionar (opcional)</option>
+              {CATEGORY_GROUPS.map((g) => (
+                <optgroup key={g.key} label={g.label}>
+                  {g.subcategories.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
           </div>
 
           <div className="border-t pt-4">
@@ -344,6 +375,46 @@ function NovaOS() {
 
       {step === 2 && (
         <div className="space-y-5">
+          {/* Catalog search */}
+          <div>
+            <Label>Buscar no catálogo</Label>
+            <div className="relative mt-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={catalogSearch}
+                onChange={(e) => setCatalogSearch(e.target.value)}
+                placeholder="Buscar serviço no catálogo..."
+                className="pl-9"
+              />
+            </div>
+            {catalogSuggestions.length > 0 && (
+              <div className="mt-1 border rounded-md divide-y text-sm">
+                {catalogSuggestions.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setServicos((prev) => [
+                        ...prev,
+                        { descricao: item.nome, valor: item.preco_padrao ?? 0 },
+                      ]);
+                      if (item.categoria && !categoria) setCategoria(item.categoria);
+                      setCatalogSearch("");
+                      toast.success(`"${item.nome}" adicionado`);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-muted flex items-center justify-between gap-2"
+                  >
+                    <span>{item.nome}</span>
+                    {item.preco_padrao != null && (
+                      <span className="text-xs text-money font-medium shrink-0">
+                        {formatBRL(item.preco_padrao)}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <OSItemsForm
             servicos={servicos}
             setServicos={setServicos}

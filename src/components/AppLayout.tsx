@@ -11,6 +11,8 @@ import {
   Package,
   BarChart3,
   LogOut,
+  CalendarDays,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
@@ -22,9 +24,11 @@ const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] =
   { to: "/", label: "Início", icon: Home, exact: true },
   { to: "/os", label: "Ordens", icon: Wrench },
   { to: "/os/kanban", label: "Painel", icon: KanbanSquare },
+  { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/estoque", label: "Estoque", icon: Package },
+  { to: "/servicos", label: "Catálogo", icon: BookOpen },
   { to: "/veiculos", label: "Veículos", icon: Car },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/configuracoes", label: "Ajustes", icon: Settings },
@@ -145,7 +149,7 @@ function AuthedShell({ pathname, signOut }: AuthedShellProps) {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-secondary text-secondary-foreground border-t border-border h-16 grid grid-cols-5">
-        {NAV.filter((i) => ["/", "/os/kanban", "/financeiro", "/clientes", "/configuracoes"].includes(i.to)).map((item) => {
+        {NAV.filter((i) => ["/", "/agenda", "/os", "/financeiro", "/configuracoes"].includes(i.to)).map((item) => {
           const active = isActive(item.to, pathname, item.exact);
           const Icon = item.icon;
           return (

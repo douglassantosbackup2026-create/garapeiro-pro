@@ -58,6 +58,7 @@ type CreateOSInput = {
   forma_pagamento?: Database["public"]["Enums"]["forma_pagamento"] | null;
   observacoes?: string | null;
   vencimento_fiado?: string | null;
+  categoria?: string | null;
   servicos: OSServicoInput[];
   pecas: OSPecaInput[];
 };
@@ -83,6 +84,7 @@ export function useCreateServiceOrder() {
           forma_pagamento: input.forma_pagamento ?? null,
           observacoes: input.observacoes ?? null,
           vencimento_fiado: input.vencimento_fiado ?? null,
+          categoria: input.categoria ?? null,
           total_servicos,
           total_pecas,
           total_geral: total_servicos + total_pecas,

@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -12,8 +13,113 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          categoria: string | null
+          client_id: string | null
+          criada_em: string
+          data_hora: string
+          duracao_min: number
+          id: string
+          nome_cliente: string
+          observacoes: string | null
+          os_id: string | null
+          servico_previsto: string | null
+          status: string
+          telefone: string | null
+          vehicle_id: string | null
+          workshop_id: string
+        }
+        Insert: {
+          categoria?: string | null
+          client_id?: string | null
+          criada_em?: string
+          data_hora: string
+          duracao_min?: number
+          id?: string
+          nome_cliente: string
+          observacoes?: string | null
+          os_id?: string | null
+          servico_previsto?: string | null
+          status?: string
+          telefone?: string | null
+          vehicle_id?: string | null
+          workshop_id: string
+        }
+        Update: {
+          categoria?: string | null
+          client_id?: string | null
+          criada_em?: string
+          data_hora?: string
+          duracao_min?: number
+          id?: string
+          nome_cliente?: string
+          observacoes?: string | null
+          os_id?: string | null
+          servico_previsto?: string | null
+          status?: string
+          telefone?: string | null
+          vehicle_id?: string | null
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           criada_em: string
@@ -168,7 +274,22 @@ export type Database = {
           valor?: number
           workshop_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_payments_service_order"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_payments_workshop"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -284,6 +405,7 @@ export type Database = {
       service_orders: {
         Row: {
           atualizada_em: string
+          categoria: string | null
           client_id: string
           criada_em: string
           data_entrada: string
@@ -304,6 +426,7 @@ export type Database = {
         }
         Insert: {
           atualizada_em?: string
+          categoria?: string | null
           client_id: string
           criada_em?: string
           data_entrada?: string
@@ -326,6 +449,7 @@ export type Database = {
         }
         Update: {
           atualizada_em?: string
+          categoria?: string | null
           client_id?: string
           criada_em?: string
           data_entrada?: string
@@ -363,6 +487,50 @@ export type Database = {
           },
           {
             foreignKeyName: "service_orders_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services_catalog: {
+        Row: {
+          ativo: boolean
+          categoria: string
+          criada_em: string
+          descricao: string | null
+          duracao_estimada_min: number | null
+          id: string
+          nome: string
+          preco_padrao: number | null
+          workshop_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string
+          criada_em?: string
+          descricao?: string | null
+          duracao_estimada_min?: number | null
+          id?: string
+          nome: string
+          preco_padrao?: number | null
+          workshop_id: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string
+          criada_em?: string
+          descricao?: string | null
+          duracao_estimada_min?: number | null
+          id?: string
+          nome?: string
+          preco_padrao?: number | null
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_catalog_workshop_id_fkey"
             columns: ["workshop_id"]
             isOneToOne: false
             referencedRelation: "workshops"
@@ -710,6 +878,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["dono", "mecanico"],
@@ -726,3 +897,4 @@ export const Constants = {
     },
   },
 } as const
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />

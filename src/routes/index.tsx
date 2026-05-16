@@ -9,6 +9,8 @@ import {
   Plus,
   ChevronRight,
   AlertTriangle,
+  CalendarDays,
+  Clock,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useSmartAlerts, type SmartAlert } from "@/hooks/useSmartAlerts";
 import { useDismissAlert } from "@/hooks/useReturnAlerts";
 import { useWorkshop } from "@/hooks/useWorkshop";
+import { useAppointments } from "@/hooks/useAppointments";
 import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -51,6 +54,10 @@ function alertSummary(a: SmartAlert): string {
   }
 }
 
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 function Dashboard() {
   const navigate = useNavigate();
   const { data: stats } = useDashboardStats();
@@ -59,6 +66,15 @@ function Dashboard() {
   const dismiss = useDismissAlert();
   const [fabOpen, setFabOpen] = useState(false);
   const alertCount = alerts?.length ?? 0;
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  const { data: todayAppointments } = useAppointments(
+    todayStart.toISOString(),
+    todayEnd.toISOString()
+  );
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-5xl mx-auto">
@@ -115,6 +131,48 @@ function Dashboard() {
           tone="bg-status-part/30 text-status-part-foreground"
         />
       </div>
+
+      {/* Hoje na agenda */}
+      <section className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-primary" />
+            Hoje na agenda
+          </h2>
+          <Link to="/agenda" className="text-sm text-primary font-medium">
+            Ver agenda →
+          </Link>
+        </div>
+        {(todayAppointments ?? []).filter((a) => a.status !== "cancelado").length === 0 ? (
+          <Card className="p-4 text-center text-sm text-muted-foreground">
+            Nenhum agendamento para hoje.{" "}
+            <Link to="/agenda" className="text-primary font-medium">Agendar →</Link>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {todayAppointments!
+              .filter((a) => a.status !== "cancelado")
+              .map((a) => (
+                <Card key={a.id} className="p-3 flex items-center gap-3">
+                  <div className="shrink-0 text-center w-12">
+                    <div className="text-sm font-bold text-primary">{formatTime(a.data_hora)}</div>
+                    <div className="text-[10px] text-muted-foreground">{a.duracao_min}min</div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{a.nome_cliente}</div>
+                    {a.servico_previsto && (
+                      <div className="text-xs text-muted-foreground truncate">{a.servico_previsto}</div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {a.telefone && <WhatsAppButton phone={a.telefone} />}
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </Card>
+              ))}
+          </div>
+        )}
+      </section>
 
       {/* OS recentes */}
       <section className="mb-6">
@@ -240,6 +298,17 @@ function Dashboard() {
               }}
             >
               <Wrench className="h-5 w-5" /> Nova Ordem de Serviço
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="justify-start gap-3"
+              onClick={() => {
+                setFabOpen(false);
+                navigate({ to: "/agenda" });
+              }}
+            >
+              <CalendarDays className="h-5 w-5" /> Novo Agendamento
             </Button>
             <Button
               size="lg"

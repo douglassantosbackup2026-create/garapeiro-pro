@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
@@ -19,6 +20,7 @@ import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AlertasRouteImport } from './routes/alertas'
+import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VeiculosIndexRouteImport } from './routes/veiculos.index'
 import { Route as OsIndexRouteImport } from './routes/os.index'
@@ -31,6 +33,11 @@ import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as ClientesClientIdRouteImport } from './routes/clientes.$clientId'
 import { Route as OsOsIdEditarRouteImport } from './routes/os.$osId.editar'
 
+const ServicosRoute = ServicosRouteImport.update({
+  id: '/servicos',
+  path: '/servicos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -79,6 +86,11 @@ const CadastroRoute = CadastroRouteImport.update({
 const AlertasRoute = AlertasRouteImport.update({
   id: '/alertas',
   path: '/alertas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendaRoute = AgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -139,6 +151,7 @@ const OsOsIdEditarRoute = OsOsIdEditarRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/alertas': typeof AlertasRoute
   '/cadastro': typeof CadastroRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -149,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/servicos': typeof ServicosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
@@ -162,6 +176,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/alertas': typeof AlertasRoute
   '/cadastro': typeof CadastroRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -172,6 +187,7 @@ export interface FileRoutesByTo {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/servicos': typeof ServicosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
@@ -186,6 +202,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/alertas': typeof AlertasRoute
   '/cadastro': typeof CadastroRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -196,6 +213,7 @@ export interface FileRoutesById {
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/servicos': typeof ServicosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
@@ -211,6 +229,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agenda'
     | '/alertas'
     | '/cadastro'
     | '/configuracoes'
@@ -221,6 +240,7 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/relatorios'
     | '/reset-password'
+    | '/servicos'
     | '/clientes/$clientId'
     | '/convite/$token'
     | '/os/$osId'
@@ -234,6 +254,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agenda'
     | '/alertas'
     | '/cadastro'
     | '/configuracoes'
@@ -244,6 +265,7 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/relatorios'
     | '/reset-password'
+    | '/servicos'
     | '/clientes/$clientId'
     | '/convite/$token'
     | '/os/$osId'
@@ -257,6 +279,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/agenda'
     | '/alertas'
     | '/cadastro'
     | '/configuracoes'
@@ -267,6 +290,7 @@ export interface FileRouteTypes {
     | '/recuperar-senha'
     | '/relatorios'
     | '/reset-password'
+    | '/servicos'
     | '/clientes/$clientId'
     | '/convite/$token'
     | '/os/$osId'
@@ -281,6 +305,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgendaRoute: typeof AgendaRoute
   AlertasRoute: typeof AlertasRoute
   CadastroRoute: typeof CadastroRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -291,6 +316,7 @@ export interface RootRouteChildren {
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ServicosRoute: typeof ServicosRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
   OsOsIdRoute: typeof OsOsIdRouteWithChildren
@@ -304,6 +330,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/servicos': {
+      id: '/servicos'
+      path: '/servicos'
+      fullPath: '/servicos'
+      preLoaderRoute: typeof ServicosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -372,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/alertas'
       fullPath: '/alertas'
       preLoaderRoute: typeof AlertasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agenda': {
+      id: '/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AgendaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -467,6 +507,7 @@ const OsOsIdRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgendaRoute: AgendaRoute,
   AlertasRoute: AlertasRoute,
   CadastroRoute: CadastroRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
@@ -477,6 +518,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ServicosRoute: ServicosRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
   ConviteTokenRoute: ConviteTokenRoute,
   OsOsIdRoute: OsOsIdRouteWithChildren,
