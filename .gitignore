@@ -31,3 +31,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code internal files
+.claude/
+
+# Supabase temp files
+supabase/.temp/
