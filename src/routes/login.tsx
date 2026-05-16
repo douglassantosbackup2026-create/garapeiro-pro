@@ -46,6 +46,10 @@ function LoginPage() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
+      if (error.message === "Email not confirmed") {
+        toast.error("Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.");
+        return;
+      }
       toast.error(
         error.message === "Invalid login credentials" ? "E-mail ou senha incorretos" : error.message,
       );

@@ -16,6 +16,8 @@ type AuthState = {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
+  /** Atualiza sessão/perfil logo após signUp (evita redirect para login no onboarding). */
+  adoptSession: (session: Session) => Promise<void>;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -91,8 +93,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, [loadProfile, qc, router]);
 
+  const adoptSession = useCallback(
+    async (sess: Session) => {
+      setSession(sess);
+      if (sess.user) await loadProfile(sess.user.id);
+    },
+    [loadProfile],
+  );
+
   const refreshProfile = useCallback(async () => {
-    if (session?.user) await loadProfile(session.user.id);
+    const { data: { session: current } } = await supabase.auth.getSession();
+    const uid = current?.user?.id ?? session?.user?.id;
+    if (uid) await loadProfile(uid);
     qc.invalidateQueries({ queryKey: ["workshop"] });
   }, [session, loadProfile, qc]);
 
@@ -102,14 +114,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     qc.clear();
   }, [qc]);
 
-  const value = useMemo(() => ({
-    loading,
-    session,
-    user: session?.user ?? null,
-    profile,
-    refreshProfile,
-    signOut,
-  }), [loading, session, profile, refreshProfile, signOut]);
+  const value = useMemo(
+    () => ({
+      loading,
+      session,
+      user: session?.user ?? null,
+      profile,
+      adoptSession,
+      refreshProfile,
+      signOut,
+    }),
+    [loading, session, profile, adoptSession, refreshProfile, signOut],
+  );
 
   return (
     <Ctx.Provider value={value}>

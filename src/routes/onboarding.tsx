@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Wrench } from "lucide-react";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { createWorkshop } from "@/lib/workshop.functions";
+import { setCurrentWorkshopId } from "@/lib/workshop";
 import { WorkshopSchema } from "@/lib/schemas";
 
 export const Route = createFileRoute("/onboarding")({
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/onboarding")({
 
 function OnboardingPage() {
   const navigate = useNavigate();
-  const { user, profile, loading, refreshProfile } = useAuth();
+  const { user, session, profile, loading, refreshProfile } = useAuth();
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
@@ -44,7 +45,7 @@ function OnboardingPage() {
     try {
       const profileNome =
         (user?.user_metadata?.nome as string | undefined) ?? profile?.nome ?? null;
-      await createWorkshop({
+      const { workshopId } = await createWorkshop({
         data: {
           nome: validation.data.nome,
           telefone: validation.data.telefone || null,
@@ -52,6 +53,7 @@ function OnboardingPage() {
           profileNome,
         },
       });
+      setCurrentWorkshopId(workshopId);
       await refreshProfile();
       toast.success("Oficina criada! Bem-vindo ao MecânicoPRO.");
       navigate({ to: "/" });
@@ -68,6 +70,10 @@ function OnboardingPage() {
         Carregando...
       </div>
     );
+  }
+
+  if (!session) {
+    return <Navigate to="/login" search={{ redirect: "/onboarding" }} />;
   }
 
   return (

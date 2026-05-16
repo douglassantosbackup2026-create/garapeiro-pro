@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { CadastroSchema } from "@/lib/schemas";
 
 type CadastroSearch = { redirect?: string };
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/cadastro")({
 
 function SignupPage() {
   const navigate = useNavigate();
+  const { adoptSession } = useAuth();
   const { redirect } = Route.useSearch();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -36,11 +38,12 @@ function SignupPage() {
       return;
     }
     setLoading(true);
+    const origin = window.location.origin;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${origin}/onboarding`,
         data: { nome },
       },
     });
@@ -54,6 +57,7 @@ function SignupPage() {
       toast.success("Verifique seu e-mail para confirmar a conta.");
       return;
     }
+    await adoptSession(data.session);
     toast.success("Conta criada! Vamos configurar sua oficina.");
     if (redirect) {
       navigate({ to: redirect });
@@ -72,7 +76,9 @@ function SignupPage() {
             login para continuar.
           </p>
           <Button asChild className="w-full">
-            <Link to="/login">Ir para login</Link>
+            <Link to="/login" search={{ redirect: "/onboarding" }}>
+              Ir para login
+            </Link>
           </Button>
         </Card>
       </div>
