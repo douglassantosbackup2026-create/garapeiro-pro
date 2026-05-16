@@ -57,6 +57,8 @@ export function AppLayout() {
 
   if (isPublic) return <Outlet />;
 
+  if (pathname === "/" && !session) return <Outlet />;
+
   if (!session) return <Navigate to="/login" />;
   if (!profile?.workshop_id && !isOnboarding) return <Navigate to="/onboarding" />;
   if (isOnboarding) return <Outlet />;

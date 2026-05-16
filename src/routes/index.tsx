@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { LandingPage } from "@/components/LandingPage";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Bell,
   Wrench,
@@ -36,8 +38,21 @@ import {
 } from "@/lib/format";
 
 export const Route = createFileRoute("/")({
-  component: Dashboard,
+  component: Index,
 });
+
+function Index() {
+  const { session, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+        Carregando...
+      </div>
+    );
+  }
+  if (!session) return <LandingPage />;
+  return <Dashboard />;
+}
 
 function alertSummary(a: SmartAlert): string {
   switch (a.tipo) {
