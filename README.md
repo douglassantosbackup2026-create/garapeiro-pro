@@ -23,7 +23,7 @@ cp .env.example .env
 
 Preencha com as credenciais do painel Supabase (Settings → API).
 
-3. Aplique as migrações no Supabase:
+3. Aplique as migrações no Supabase (inclui a função `get_smart_alerts` para alertas no servidor):
 
 ```bash
 npx supabase db push
@@ -56,6 +56,7 @@ Acesse [http://localhost:5173](http://localhost:5173).
 | `npm run build` | Build de produção (SPA estático em `dist/`) |
 | `npm run preview` | Preview do build |
 | `npm run lint` | ESLint |
+| `npm run test` | Testes unitários (Vitest) |
 
 ## Deploy (SPA estático)
 

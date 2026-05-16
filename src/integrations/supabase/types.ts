@@ -702,6 +702,7 @@ export type Database = {
     }
     Functions: {
       current_workshop_id: { Args: never; Returns: string }
+      get_smart_alerts: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
