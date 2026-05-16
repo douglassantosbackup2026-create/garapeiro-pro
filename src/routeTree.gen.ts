@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -28,6 +29,11 @@ import { Route as OsOsIdEditarRouteImport } from './routes/os.$osId.editar'
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinanceiroRoute = FinanceiroRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
+  '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
+  '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/financeiro': typeof FinanceiroRoute
+  '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
   '/clientes/$clientId': typeof ClientesClientIdRoute
   '/os/$osId': typeof OsOsIdRouteWithChildren
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/financeiro'
+    | '/login'
     | '/relatorios'
     | '/clientes/$clientId'
     | '/os/$osId'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/financeiro'
+    | '/login'
     | '/relatorios'
     | '/clientes/$clientId'
     | '/os/$osId'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/financeiro'
+    | '/login'
     | '/relatorios'
     | '/clientes/$clientId'
     | '/os/$osId'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   EstoqueRoute: typeof EstoqueRoute
   FinanceiroRoute: typeof FinanceiroRoute
+  LoginRoute: typeof LoginRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ClientesClientIdRoute: typeof ClientesClientIdRoute
   OsOsIdRoute: typeof OsOsIdRouteWithChildren
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/financeiro': {
@@ -351,6 +371,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   EstoqueRoute: EstoqueRoute,
   FinanceiroRoute: FinanceiroRoute,
+  LoginRoute: LoginRoute,
   RelatoriosRoute: RelatoriosRoute,
   ClientesClientIdRoute: ClientesClientIdRoute,
   OsOsIdRoute: OsOsIdRouteWithChildren,
@@ -364,3 +385,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
