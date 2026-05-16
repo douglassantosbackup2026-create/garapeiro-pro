@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 
 export type Part = {
   id: string;
@@ -24,7 +24,7 @@ export function useParts() {
       const { data, error } = await supabase
         .from("parts_inventory")
         .select("*")
-        .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+        .eq("workshop_id", getCurrentWorkshopId())
         .order("nome");
       if (error) throw error;
       return data as Part[];
@@ -48,7 +48,7 @@ export function useUpsertPart() {
   return useMutation({
     mutationFn: async (input: PartInput & { id?: string }) => {
       const payload = {
-        workshop_id: DEFAULT_WORKSHOP_ID,
+        workshop_id: getCurrentWorkshopId(),
         nome: input.nome,
         codigo: input.codigo ?? null,
         quantidade: input.quantidade,

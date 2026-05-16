@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 
 export function useVehicles() {
   return useQuery({
@@ -9,7 +9,7 @@ export function useVehicles() {
       const { data, error } = await supabase
         .from("vehicles")
         .select("*, clients(id, nome, telefone), service_orders(id, data_entrada)")
-        .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+        .eq("workshop_id", getCurrentWorkshopId())
         .order("placa");
       if (error) throw error;
       return data;
@@ -41,7 +41,7 @@ export function useVehicleByPlate() {
       const { data, error } = await supabase
         .from("vehicles")
         .select("*, clients(id, nome, telefone)")
-        .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+        .eq("workshop_id", getCurrentWorkshopId())
         .ilike("placa", placa)
         .maybeSingle();
       if (error) throw error;
@@ -64,7 +64,7 @@ export function useCreateVehicle() {
     }) => {
       const { data, error } = await supabase
         .from("vehicles")
-        .insert({ ...input, workshop_id: DEFAULT_WORKSHOP_ID })
+        .insert({ ...input, workshop_id: getCurrentWorkshopId() })
         .select()
         .single();
       if (error) throw error;

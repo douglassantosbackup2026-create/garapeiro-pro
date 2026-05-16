@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 
 export function useClients() {
   return useQuery({
@@ -9,7 +9,7 @@ export function useClients() {
       const { data, error } = await supabase
         .from("clients")
         .select("*, vehicles(id, placa, modelo, marca), service_orders(id, data_entrada, status)")
-        .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+        .eq("workshop_id", getCurrentWorkshopId())
         .order("nome");
       if (error) throw error;
       return data;
@@ -39,7 +39,7 @@ export function useCreateClient() {
     mutationFn: async (input: { nome: string; telefone: string; email?: string | null }) => {
       const { data, error } = await supabase
         .from("clients")
-        .insert({ ...input, workshop_id: DEFAULT_WORKSHOP_ID })
+        .insert({ ...input, workshop_id: getCurrentWorkshopId() })
         .select()
         .single();
       if (error) throw error;

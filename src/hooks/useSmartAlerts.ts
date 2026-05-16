@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -71,21 +71,21 @@ export function useSmartAlerts() {
             .select(
               "id, nome, telefone, data_aniversario, service_orders(id, data_entrada, vehicles(placa, marca, modelo))"
             )
-            .eq("workshop_id", DEFAULT_WORKSHOP_ID),
+            .eq("workshop_id", getCurrentWorkshopId()),
           supabase
             .from("vehicles")
             .select(
               "id, placa, marca, modelo, km, km_proxima_revisao, data_ultima_revisao, intervalo_revisao_meses, client_id, clients(nome, telefone)"
             )
-            .eq("workshop_id", DEFAULT_WORKSHOP_ID),
+            .eq("workshop_id", getCurrentWorkshopId()),
           supabase
             .from("dismissed_alerts")
             .select("client_id, dispensado_em")
-            .eq("workshop_id", DEFAULT_WORKSHOP_ID),
+            .eq("workshop_id", getCurrentWorkshopId()),
           supabase
             .from("service_orders")
             .select("id, numero, atualizada_em, client_id, nota_satisfacao, clients(nome, telefone)")
-            .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+            .eq("workshop_id", getCurrentWorkshopId())
             .eq("status", "entregue")
             .is("nota_satisfacao", null)
             .gte("atualizada_em", cutoffEntregaMax)

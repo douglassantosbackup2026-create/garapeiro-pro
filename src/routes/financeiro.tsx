@@ -5,7 +5,7 @@ import { DollarSign, MessageCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSHOP_ID } from "@/lib/workshop";
+import { getCurrentWorkshopId } from "@/lib/workshop";
 import { useAllPayments, paymentStatus } from "@/hooks/usePayments";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { PlacaBadge } from "@/components/PlacaBadge";
@@ -31,7 +31,7 @@ function useFinanceiroOrders() {
         .select(
           "id, numero, status, total_geral, data_entrada, vencimento_fiado, clients(nome, telefone), vehicles(placa)"
         )
-        .eq("workshop_id", DEFAULT_WORKSHOP_ID)
+        .eq("workshop_id", getCurrentWorkshopId())
         .neq("status", "cancelado")
         .order("data_entrada", { ascending: false });
       if (error) throw error;
