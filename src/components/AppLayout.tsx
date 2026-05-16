@@ -10,10 +10,13 @@ import {
   DollarSign,
   Package,
   BarChart3,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { useSmartAlerts } from "@/hooks/useSmartAlerts";
+import { useAuth } from "@/hooks/useAuth";
+import { Navigate } from "@tanstack/react-router";
 
 const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/", label: "Início", icon: Home, exact: true },
@@ -34,6 +37,30 @@ function isActive(path: string, current: string, exact = false) {
 
 export function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { loading, session, profile, signOut } = useAuth();
+
+  const PUBLIC = ["/login", "/cadastro", "/recuperar-senha", "/reset-password"];
+  const isPublic = PUBLIC.includes(pathname) || pathname.startsWith("/convite/");
+  const isOnboarding = pathname === "/onboarding";
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+        Carregando...
+      </div>
+    );
+  }
+
+  if (isPublic) return <Outlet />;
+
+  if (!session) return <Navigate to="/login" />;
+  if (!profile?.workshop_id && !isOnboarding) return <Navigate to="/onboarding" />;
+  if (isOnboarding) return <Outlet />;
+
+  return <AuthedShell pathname={pathname} signOut={signOut} />;
+}
+
+function AuthedShell({ pathname, signOut }: { pathname: string; signOut: () => Promise<void> }) {
   const { data: workshop } = useWorkshop();
   const { data: alerts } = useSmartAlerts();
   const alertCount = alerts?.length ?? 0;
@@ -98,6 +125,12 @@ export function AppLayout() {
             </span>
           )}
         </Link>
+        <button
+          onClick={() => signOut()}
+          className="m-2 mt-0 flex items-center gap-2 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        >
+          <LogOut className="h-4 w-4" /> Sair
+        </button>
       </aside>
 
       {/* Main content */}
