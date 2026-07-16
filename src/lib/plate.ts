@@ -2,7 +2,10 @@ const OLD_RE = /^[A-Z]{3}[0-9]{4}$/;
 const MERCOSUL_RE = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
 
 export function normalizePlate(value: string): string {
-  return value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 7);
 }
 
 export function formatPlate(value: string): string {

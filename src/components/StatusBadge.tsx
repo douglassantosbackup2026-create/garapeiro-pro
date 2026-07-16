@@ -22,7 +22,7 @@ export function StatusBadge({ status, className }: Props) {
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap",
         MAP[status] ?? "bg-muted text-muted-foreground",
-        className
+        className,
       )}
     >
       {STATUS_LABEL[status] ?? status}

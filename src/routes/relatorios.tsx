@@ -8,8 +8,18 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/relatorios")({ component: RelatoriosPage });
 
 const MESES = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 function RelatoriosPage() {
@@ -36,21 +46,15 @@ function RelatoriosPage() {
             <DollarSign className="h-5 w-5" />
           </div>
           <div className="text-xs text-muted-foreground font-medium">Faturamento</div>
-          <div className="font-display font-bold text-xl mt-0.5">
-            {formatBRL(data.faturamento)}
-          </div>
+          <div className="font-display font-bold text-xl mt-0.5">{formatBRL(data.faturamento)}</div>
           {data.faturamentoPrev > 0 && (
             <div
               className={cn(
                 "text-[11px] mt-1 flex items-center gap-1 font-semibold",
-                positiva ? "text-money" : "text-destructive"
+                positiva ? "text-money" : "text-destructive",
               )}
             >
-              {positiva ? (
-                <TrendingUp className="h-3 w-3" />
-              ) : (
-                <TrendingDown className="h-3 w-3" />
-              )}
+              {positiva ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {data.variacao.toFixed(1)}% vs mês anterior
             </div>
           )}
@@ -61,9 +65,7 @@ function RelatoriosPage() {
             <Receipt className="h-5 w-5" />
           </div>
           <div className="text-xs text-muted-foreground font-medium">A receber</div>
-          <div className="font-display font-bold text-xl mt-0.5">
-            {formatBRL(data.aReceber)}
-          </div>
+          <div className="font-display font-bold text-xl mt-0.5">{formatBRL(data.aReceber)}</div>
         </Card>
 
         <Card className="p-4">
@@ -79,9 +81,7 @@ function RelatoriosPage() {
             <Users className="h-5 w-5" />
           </div>
           <div className="text-xs text-muted-foreground font-medium">Ticket médio</div>
-          <div className="font-display font-bold text-xl mt-0.5">
-            {formatBRL(data.ticketMedio)}
-          </div>
+          <div className="font-display font-bold text-xl mt-0.5">{formatBRL(data.ticketMedio)}</div>
         </Card>
       </div>
 
@@ -95,7 +95,7 @@ function RelatoriosPage() {
                 <div
                   className={cn(
                     "w-full rounded-t transition-all",
-                    d.valor > 0 ? "bg-money" : "bg-muted"
+                    d.valor > 0 ? "bg-money" : "bg-muted",
                   )}
                   style={{ height: `${Math.max(h, 2)}%` }}
                   title={`${d.dia}: ${formatBRL(d.valor)}`}
@@ -105,7 +105,9 @@ function RelatoriosPage() {
           })}
         </div>
         <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
-          <span>{data.dias[0]?.dia.slice(8, 10)}/{data.dias[0]?.dia.slice(5, 7)}</span>
+          <span>
+            {data.dias[0]?.dia.slice(8, 10)}/{data.dias[0]?.dia.slice(5, 7)}
+          </span>
           <span>hoje</span>
         </div>
       </Card>
@@ -119,9 +121,7 @@ function RelatoriosPage() {
             <div className="space-y-2">
               {data.topClientes.map((c, i) => (
                 <div key={c.nome} className="flex items-center gap-2 text-sm">
-                  <span className="w-5 text-center font-bold text-muted-foreground">
-                    {i + 1}
-                  </span>
+                  <span className="w-5 text-center font-bold text-muted-foreground">{i + 1}</span>
                   <span className="flex-1 truncate">{c.nome}</span>
                   <span className="text-xs text-muted-foreground">{c.qtd} OS</span>
                   <span className="font-bold text-money">{formatBRL(c.valor)}</span>
@@ -139,9 +139,7 @@ function RelatoriosPage() {
             <div className="space-y-2">
               {data.topServicos.map((s, i) => (
                 <div key={s.nome} className="flex items-center gap-2 text-sm">
-                  <span className="w-5 text-center font-bold text-muted-foreground">
-                    {i + 1}
-                  </span>
+                  <span className="w-5 text-center font-bold text-muted-foreground">{i + 1}</span>
                   <span className="flex-1 truncate">{s.nome}</span>
                   <span className="text-xs text-muted-foreground">{s.qtd}x</span>
                   <span className="font-bold text-money">{formatBRL(s.valor)}</span>

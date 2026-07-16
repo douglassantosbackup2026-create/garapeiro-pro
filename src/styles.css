@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * MecânicoPRO — Industrial Modern Design System
+ * OficinaPRO — Industrial Modern Design System
  * Charcoal + Signal Orange + Money Green
  */
 
@@ -205,4 +205,98 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* Funil quiz (/quiz) */
+@keyframes progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes notify-scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.animate-pop {
+  animation: pop-in 0.35s ease-out both;
+}
+
+.animate-progress {
+  transform-origin: left;
+  animation: progress-fill 0.5s ease-out both;
+}
+
+.phone-notify-viewport {
+  height: 17.5rem;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+}
+
+.phone-notify-track {
+  animation: notify-scroll 22s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-notify-track {
+    animation: none;
+  }
+
+  .animate-money-toast-in,
+  .animate-money-toast-out {
+    animation: none;
+  }
+}
+
+@keyframes money-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes money-toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+.animate-money-toast-in {
+  animation: money-toast-in 0.35s ease-out both;
+}
+
+.animate-money-toast-out {
+  animation: money-toast-out 0.3s ease-in both;
 }

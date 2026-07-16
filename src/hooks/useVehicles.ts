@@ -1,9 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId } from "@/lib/workshop";
-import type { Database } from "@/integrations/supabase/types";
-
-type VehicleUpdate = Database["public"]["Tables"]["vehicles"]["Update"];
+import { normalizePlate } from "@/lib/plate";
+import {
+  parseOrThrow,
+  VehicleSchema,
+  VehicleUpdateSchema,
+  type VehicleInput,
+  type VehicleUpdateInput,
+} from "@/lib/schemas";
 
 export function useVehicles() {
   return useQuery({
@@ -32,7 +37,7 @@ export function useVehicle(id: string | undefined) {
       const { data, error } = await supabase
         .from("vehicles")
         .select(
-          "*, clients(*), service_orders(*, service_order_services(*), service_order_parts(*))"
+          "*, clients(*), service_orders(*, service_order_services(*), service_order_parts(*))",
         )
         .eq("id", id!)
         .single();
@@ -45,11 +50,12 @@ export function useVehicle(id: string | undefined) {
 export function useVehicleByPlate() {
   return useMutation({
     mutationFn: async (placa: string) => {
+      const plate = normalizePlate(placa);
       const { data, error } = await supabase
         .from("vehicles")
         .select("*, clients(id, nome, telefone)")
         .eq("workshop_id", getCurrentWorkshopId())
-        .ilike("placa", placa)
+        .eq("placa", plate)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -60,18 +66,11 @@ export function useVehicleByPlate() {
 export function useCreateVehicle() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: {
-      client_id: string;
-      placa: string;
-      marca?: string | null;
-      modelo?: string | null;
-      ano?: number | null;
-      cor?: string | null;
-      km?: number | null;
-    }) => {
+    mutationFn: async (input: VehicleInput) => {
+      const valid = parseOrThrow(VehicleSchema, input);
       const { data, error } = await supabase
         .from("vehicles")
-        .insert({ ...input, workshop_id: getCurrentWorkshopId() })
+        .insert({ ...valid, workshop_id: getCurrentWorkshopId() })
         .select()
         .single();
       if (error) throw error;
@@ -84,8 +83,9 @@ export function useCreateVehicle() {
 export function useUpdateVehicle() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: VehicleUpdate }) => {
-      const { error } = await supabase.from("vehicles").update(patch).eq("id", id);
+    mutationFn: async ({ id, patch }: { id: string; patch: VehicleUpdateInput }) => {
+      const valid = parseOrThrow(VehicleUpdateSchema, patch);
+      const { error } = await supabase.from("vehicles").update(valid).eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {

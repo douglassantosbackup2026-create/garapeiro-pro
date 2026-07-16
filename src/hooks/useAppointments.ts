@@ -1,37 +1,42 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId } from "@/lib/workshop";
+import { AppointmentSchema, parseOrThrow, type AppointmentInput } from "@/lib/schemas";
+import type { Tables } from "@/integrations/supabase/types";
 
-export type Appointment = {
-  id: string;
-  workshop_id: string;
-  client_id: string | null;
-  vehicle_id: string | null;
-  nome_cliente: string;
-  telefone: string | null;
-  servico_previsto: string | null;
-  categoria: string | null;
-  data_hora: string;
-  duracao_min: number;
-  status: string;
-  os_id: string | null;
-  observacoes: string | null;
-  criada_em: string;
+export type AppointmentStatus =
+  | "agendado"
+  | "confirmado"
+  | "em_andamento"
+  | "concluido"
+  | "cancelado"
+  | "faltou";
+
+export type Appointment = Omit<Tables<"appointments">, "status"> & {
+  status: AppointmentStatus;
 };
 
-export type AppointmentStatus = "agendado" | "confirmado" | "em_andamento" | "concluido" | "cancelado" | "faltou";
+export type { AppointmentInput };
 
-export type AppointmentInput = {
-  nome_cliente: string;
-  telefone?: string | null;
-  servico_previsto?: string | null;
-  categoria?: string | null;
-  data_hora: string;
-  duracao_min?: number;
-  observacoes?: string | null;
-  client_id?: string | null;
-  vehicle_id?: string | null;
-};
+const APPOINTMENT_STATUSES: readonly AppointmentStatus[] = [
+  "agendado",
+  "confirmado",
+  "em_andamento",
+  "concluido",
+  "cancelado",
+  "faltou",
+] as const;
+
+export function isAppointmentStatus(value: string): value is AppointmentStatus {
+  return (APPOINTMENT_STATUSES as readonly string[]).includes(value);
+}
+
+function mapAppointment(row: Tables<"appointments">): Appointment {
+  return {
+    ...row,
+    status: isAppointmentStatus(row.status) ? row.status : "agendado",
+  };
+}
 
 export function useAppointments(dateFrom?: string, dateTo?: string) {
   return useQuery({
@@ -48,7 +53,7 @@ export function useAppointments(dateFrom?: string, dateTo?: string) {
       if (dateTo) q = q.lt("data_hora", dateTo);
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as Appointment[];
+      return (data ?? []).map(mapAppointment);
     },
   });
 }
@@ -57,13 +62,18 @@ export function useCreateAppointment() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: AppointmentInput) => {
+      const valid = parseOrThrow(AppointmentSchema, input);
       const { data, error } = await supabase
         .from("appointments")
-        .insert({ ...input, workshop_id: getCurrentWorkshopId(), duracao_min: input.duracao_min ?? 60 })
+        .insert({
+          ...valid,
+          workshop_id: getCurrentWorkshopId(),
+          duracao_min: valid.duracao_min ?? 60,
+        })
         .select()
         .single();
       if (error) throw error;
-      return data as Appointment;
+      return mapAppointment(data);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["appointments"] }),
   });
@@ -72,8 +82,22 @@ export function useCreateAppointment() {
 export function useUpdateAppointment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...patch }: Partial<AppointmentInput> & { id: string; status?: string; os_id?: string | null }) => {
-      const { error } = await supabase.from("appointments").update(patch).eq("id", id);
+    mutationFn: async ({
+      id,
+      ...patch
+    }: Partial<AppointmentInput> & {
+      id: string;
+      status?: AppointmentStatus;
+      os_id?: string | null;
+    }) => {
+      const { status, os_id, ...rest } = patch;
+      const valid = parseOrThrow(AppointmentSchema.partial(), rest);
+      const payload = {
+        ...valid,
+        ...(status !== undefined ? { status } : {}),
+        ...(os_id !== undefined ? { os_id } : {}),
+      };
+      const { error } = await supabase.from("appointments").update(payload).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["appointments"] }),

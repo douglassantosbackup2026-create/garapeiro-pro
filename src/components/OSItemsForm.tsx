@@ -36,11 +36,11 @@ export function OSItemsForm({ servicos, setServicos, pecas, setPecas }: Props) {
     const totalServ = servicos.reduce((s, x) => s + Number(x.valor || 0), 0);
     const totalPecasV = pecas.reduce(
       (s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0),
-      0
+      0,
     );
     const totalCusto = pecas.reduce(
       (s, x) => s + Number(x.quantidade || 0) * Number(x.custo_unitario || 0),
-      0
+      0,
     );
     const total = totalServ + totalPecasV;
     return { totalServ, totalPecasV, totalCusto, total, margem: total - totalCusto };
@@ -110,11 +110,8 @@ export function OSItemsForm({ servicos, setServicos, pecas, setPecas }: Props) {
         <Label>Peças</Label>
         <div className="space-y-2 mt-2">
           {pecas.map((p, i) => {
-            const stock = p.inventory_id
-              ? inventory?.find((x) => x.id === p.inventory_id)
-              : null;
-            const semEstoque =
-              stock && Number(p.quantidade || 0) > Number(stock.quantidade);
+            const stock = p.inventory_id ? inventory?.find((x) => x.id === p.inventory_id) : null;
+            const semEstoque = stock && Number(p.quantidade || 0) > Number(stock.quantidade);
             return (
               <div key={i} className="space-y-1">
                 <div className="grid grid-cols-12 gap-2 items-center">
@@ -221,9 +218,7 @@ export function OSItemsForm({ servicos, setServicos, pecas, setPecas }: Props) {
         )}
         <div className="flex justify-between mt-3 pt-3 border-t">
           <span className="font-bold">Total</span>
-          <span className="font-display font-bold text-2xl text-money">
-            {formatBRL(total)}
-          </span>
+          <span className="font-display font-bold text-2xl text-money">{formatBRL(total)}</span>
         </div>
         {totalCusto > 0 && (
           <div className="flex justify-between text-xs mt-1">

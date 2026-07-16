@@ -79,11 +79,7 @@ export function gerarOrcamentoPDF(os: OSForPDF, workshop: WorkshopForPDF): jsPDF
   doc.setFont("helvetica", "normal");
   y += 5;
   doc.text(os.cliente.nome, margin, y);
-  doc.text(
-    `${os.veiculo.marca ?? ""} ${os.veiculo.modelo ?? ""}`.trim() || "—",
-    pageW / 2,
-    y
-  );
+  doc.text(`${os.veiculo.marca ?? ""} ${os.veiculo.modelo ?? ""}`.trim() || "—", pageW / 2, y);
   y += 4;
   if (os.cliente.telefone) doc.text(formatPhone(os.cliente.telefone), margin, y);
   doc.text(`Placa: ${os.veiculo.placa}`, pageW / 2, y);
@@ -157,11 +153,7 @@ export function gerarOrcamentoPDF(os: OSForPDF, workshop: WorkshopForPDF): jsPDF
   if (os.forma_pagamento) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(
-      `Forma de pagamento: ${os.forma_pagamento.replace("_", " ")}`,
-      margin,
-      y
-    );
+    doc.text(`Forma de pagamento: ${os.forma_pagamento.replace("_", " ")}`, margin, y);
     y += 5;
   }
 
@@ -181,7 +173,7 @@ export function gerarOrcamentoPDF(os: OSForPDF, workshop: WorkshopForPDF): jsPDF
   doc.text(
     "Orçamento válido por 7 dias. Os valores podem ser ajustados após avaliação técnica.",
     margin,
-    285
+    285,
   );
 
   return doc;

@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useState, useCallback, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  type ReactNode,
+} from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import type { Session, User } from "@supabase/supabase-js";
@@ -25,9 +33,18 @@ type AuthState = {
 const Ctx = createContext<AuthState | null>(null);
 
 const AUTH_QUERY_KEYS = [
-  "workshop", "clients", "vehicles", "service_orders", "parts",
-  "smart_alerts", "return_alerts", "payments", "appointments",
-  "dashboard_stats", "financial_report", "services_catalog",
+  "workshop",
+  "clients",
+  "vehicles",
+  "service_orders",
+  "parts",
+  "smart_alerts",
+  "return_alerts",
+  "payments",
+  "appointments",
+  "dashboard_stats",
+  "financial_report",
+  "services_catalog",
 ];
 
 async function fetchProfile(userId: string): Promise<Profile | null> {
@@ -56,7 +73,11 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
   return data;
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+type AuthProviderProps = {
+  children: ReactNode;
+};
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -86,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
         setCurrentWorkshopId(null);
       }
-      AUTH_QUERY_KEYS.forEach(key => qc.invalidateQueries({ queryKey: [key] }));
+      AUTH_QUERY_KEYS.forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
       router.invalidate();
     });
 
@@ -102,7 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const refreshProfile = useCallback(async () => {
-    const { data: { session: current } } = await supabase.auth.getSession();
+    const {
+      data: { session: current },
+    } = await supabase.auth.getSession();
     const uid = current?.user?.id ?? session?.user?.id;
     if (uid) await loadProfile(uid);
     qc.invalidateQueries({ queryKey: ["workshop"] });
@@ -127,11 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [loading, session, profile, adoptSession, refreshProfile, signOut],
   );
 
-  return (
-    <Ctx.Provider value={value}>
-      {children}
-    </Ctx.Provider>
-  );
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {

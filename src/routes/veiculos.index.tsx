@@ -36,7 +36,11 @@ function Veiculos() {
         />
       </div>
       {filtered.length === 0 ? (
-        <EmptyState icon={Car} title="Nenhum veículo cadastrado" description="Cadastre um veículo criando uma OS." />
+        <EmptyState
+          icon={Car}
+          title="Nenhum veículo cadastrado"
+          description="Cadastre um veículo criando uma OS."
+        />
       ) : (
         <div className="space-y-2">
           {filtered.map((v) => {

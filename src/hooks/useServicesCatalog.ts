@@ -1,27 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId } from "@/lib/workshop";
+import { CatalogItemSchema, parseOrThrow, type CatalogItemInput } from "@/lib/schemas";
+import type { Tables } from "@/integrations/supabase/types";
 
-export type CatalogItem = {
-  id: string;
-  workshop_id: string;
-  nome: string;
-  descricao: string | null;
-  categoria: string;
-  preco_padrao: number | null;
-  duracao_estimada_min: number | null;
-  ativo: boolean;
-  criada_em: string;
-};
-
-type CatalogInput = {
-  nome: string;
-  descricao?: string | null;
-  categoria: string;
-  preco_padrao?: number | null;
-  duracao_estimada_min?: number | null;
-  ativo?: boolean;
-};
+export type CatalogItem = Tables<"services_catalog">;
 
 export function useServicesCatalog() {
   return useQuery({
@@ -36,7 +19,7 @@ export function useServicesCatalog() {
         .order("categoria")
         .order("nome");
       if (error) throw error;
-      return (data ?? []) as CatalogItem[];
+      return data ?? [];
     },
   });
 }
@@ -44,14 +27,15 @@ export function useServicesCatalog() {
 export function useCreateCatalogItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: CatalogInput) => {
+    mutationFn: async (input: CatalogItemInput) => {
+      const valid = parseOrThrow(CatalogItemSchema, input);
       const { data, error } = await supabase
         .from("services_catalog")
-        .insert({ ...input, workshop_id: getCurrentWorkshopId() })
+        .insert({ ...valid, workshop_id: getCurrentWorkshopId() })
         .select()
         .single();
       if (error) throw error;
-      return data as CatalogItem;
+      return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["services_catalog"] }),
   });
@@ -60,8 +44,9 @@ export function useCreateCatalogItem() {
 export function useUpdateCatalogItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...patch }: Partial<CatalogInput> & { id: string }) => {
-      const { error } = await supabase.from("services_catalog").update(patch).eq("id", id);
+    mutationFn: async ({ id, ...patch }: Partial<CatalogItemInput> & { id: string }) => {
+      const valid = parseOrThrow(CatalogItemSchema.partial(), patch);
+      const { error } = await supabase.from("services_catalog").update(valid).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["services_catalog"] }),

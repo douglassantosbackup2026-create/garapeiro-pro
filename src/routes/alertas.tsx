@@ -40,13 +40,18 @@ function buildMessage(a: SmartAlert, workshopNome: string): string {
   }
 }
 
-const META: Record<
-  SmartAlert["tipo"],
-  { label: string; icon: typeof Cake; color: string }
-> = {
+const META: Record<SmartAlert["tipo"], { label: string; icon: typeof Cake; color: string }> = {
   retorno: { label: "Retorno", icon: Phone, color: "bg-destructive/10 text-destructive" },
-  revisao_km: { label: "Revisão (km)", icon: Gauge, color: "bg-status-progress/30 text-status-progress-foreground" },
-  revisao_tempo: { label: "Revisão (tempo)", icon: Calendar, color: "bg-status-progress/30 text-status-progress-foreground" },
+  revisao_km: {
+    label: "Revisão (km)",
+    icon: Gauge,
+    color: "bg-status-progress/30 text-status-progress-foreground",
+  },
+  revisao_tempo: {
+    label: "Revisão (tempo)",
+    icon: Calendar,
+    color: "bg-status-progress/30 text-status-progress-foreground",
+  },
   aniversario: { label: "Aniversário", icon: Cake, color: "bg-primary/10 text-primary" },
   satisfacao: { label: "Pós-entrega", icon: Heart, color: "bg-money/10 text-money" },
 };
@@ -75,7 +80,7 @@ function Alertas() {
   const dismiss = useDismissAlert();
   const updateSat = useUpdateSatisfaction();
   const [satOs, setSatOs] = useState<{ id: string; numero: number; nome: string } | null>(null);
-  const [satNota, setSatNota] = useState<number>(5);
+  const [satNota, setSatNota] = useState<1 | 2 | 3 | 4 | 5>(5);
 
   const list = alerts ?? [];
 
@@ -110,13 +115,15 @@ function Alertas() {
                     a.nome,
                     a.veiculo ?? "seu carro",
                     a.placa ?? "",
-                    workshop ?? { nome: "nossa oficina" }
+                    workshop ?? { nome: "nossa oficina" },
                   )
                 : msg;
             return (
               <Card key={a.key} className="p-3">
                 <div className="flex items-start gap-3 mb-2">
-                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${meta.color}`}>
+                  <div
+                    className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${meta.color}`}
+                  >
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -126,9 +133,7 @@ function Alertas() {
                         {meta.label}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {descricao(a)}
-                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{descricao(a)}</div>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -152,11 +157,7 @@ function Alertas() {
                       <Star className="h-4 w-4 mr-1" /> Registrar nota
                     </Button>
                   )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => dismiss.mutate(a.clientId)}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => dismiss.mutate(a.clientId)}>
                     Dispensar
                   </Button>
                 </div>
@@ -173,11 +174,9 @@ function Alertas() {
               Nota de satisfação · {satOs ? formatOSNumber(satOs.numero) : ""}
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            {satOs?.nome} respondeu com qual nota?
-          </p>
+          <p className="text-sm text-muted-foreground">{satOs?.nome} respondeu com qual nota?</p>
           <div className="flex justify-center gap-2 my-4">
-            {[1, 2, 3, 4, 5].map((n) => (
+            {([1, 2, 3, 4, 5] as const).map((n) => (
               <button
                 key={n}
                 type="button"
@@ -188,7 +187,7 @@ function Alertas() {
                 <Star
                   className={cn(
                     "h-9 w-9 transition-colors",
-                    n <= satNota ? "fill-primary text-primary" : "text-muted-foreground/40"
+                    n <= satNota ? "fill-primary text-primary" : "text-muted-foreground/40",
                   )}
                 />
               </button>

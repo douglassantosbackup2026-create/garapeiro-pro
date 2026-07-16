@@ -1,9 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId, peekCurrentWorkshopId } from "@/lib/workshop";
-import type { Database } from "@/integrations/supabase/types";
-
-type WorkshopUpdate = Database["public"]["Tables"]["workshops"]["Update"];
+import { WorkshopUpdateSchema, parseOrThrow, type WorkshopUpdateInput } from "@/lib/schemas";
 
 export function useWorkshop() {
   const wsId = peekCurrentWorkshopId();
@@ -13,11 +11,7 @@ export function useWorkshop() {
     staleTime: 30 * 60_000,
     gcTime: 60 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("workshops")
-        .select("*")
-        .eq("id", wsId!)
-        .single();
+      const { data, error } = await supabase.from("workshops").select("*").eq("id", wsId!).single();
       if (error) throw error;
       return data;
     },
@@ -27,10 +21,11 @@ export function useWorkshop() {
 export function useUpdateWorkshop() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (patch: WorkshopUpdate) => {
+    mutationFn: async (patch: WorkshopUpdateInput) => {
+      const valid = parseOrThrow(WorkshopUpdateSchema, patch);
       const { error } = await supabase
         .from("workshops")
-        .update(patch)
+        .update(valid)
         .eq("id", getCurrentWorkshopId());
       if (error) throw error;
     },
@@ -71,7 +66,7 @@ export function useUploadLogo() {
 
       const { error: updErr } = await supabase
         .from("workshops")
-        .update({ logo_url: publicUrl } satisfies WorkshopUpdate)
+        .update({ logo_url: publicUrl } satisfies WorkshopUpdateInput)
         .eq("id", getCurrentWorkshopId());
       if (updErr) throw updErr;
 
@@ -91,7 +86,7 @@ export function useRemoveLogo() {
       const path = extractLogoPath(currentUrl);
       const { error } = await supabase
         .from("workshops")
-        .update({ logo_url: null } satisfies WorkshopUpdate)
+        .update({ logo_url: null } satisfies WorkshopUpdateInput)
         .eq("id", getCurrentWorkshopId());
       if (error) throw error;
       if (path) await supabase.storage.from(LOGO_BUCKET).remove([path]);

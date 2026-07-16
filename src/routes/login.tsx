@@ -16,7 +16,7 @@ export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>): LoginSearch => ({
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
   }),
-  head: () => ({ meta: [{ title: "Entrar — MecânicoPRO" }] }),
+  head: () => ({ meta: [{ title: "Entrar — OficinaPRO" }] }),
 });
 
 async function fetchWorkshopId(userId: string): Promise<string | null> {
@@ -51,7 +51,9 @@ function LoginPage() {
         return;
       }
       toast.error(
-        error.message === "Invalid login credentials" ? "E-mail ou senha incorretos" : error.message,
+        error.message === "Invalid login credentials"
+          ? "E-mail ou senha incorretos"
+          : error.message,
       );
       return;
     }
@@ -77,7 +79,7 @@ function LoginPage() {
           <div className="bg-primary rounded-md p-1.5">
             <Wrench className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div className="font-display font-bold text-lg">MecânicoPRO</div>
+          <div className="font-display font-bold text-lg">OficinaPRO</div>
         </div>
         <h1 className="text-xl font-bold mb-1">Entrar</h1>
         <p className="text-sm text-muted-foreground mb-5">Acesse sua oficina</p>

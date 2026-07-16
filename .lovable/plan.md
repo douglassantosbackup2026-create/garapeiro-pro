@@ -1,5 +1,5 @@
 
-# Roadmap de melhorias — MecânicoPRO
+# Roadmap de melhorias — OficinaPRO
 
 Baseado nas suas respostas: você quer **ganhar dinheiro melhor, organizar a oficina, controlar estoque e não perder cliente**, operando sozinho e usando WhatsApp como único canal com o cliente.
 

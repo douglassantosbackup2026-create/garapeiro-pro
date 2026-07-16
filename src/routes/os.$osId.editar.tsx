@@ -39,8 +39,9 @@ function EditOS() {
   const [previsao, setPrevisao] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [vencimento, setVencimento] = useState("");
-  const [pagamento, setPagamento] =
-    useState<Database["public"]["Enums"]["forma_pagamento"] | null>(null);
+  const [pagamento, setPagamento] = useState<Database["public"]["Enums"]["forma_pagamento"] | null>(
+    null,
+  );
   const [km, setKm] = useState("");
   const [hydrated, setHydrated] = useState(false);
 
@@ -50,7 +51,7 @@ function EditOS() {
       (os.service_order_services ?? []).map((s) => ({
         descricao: s.descricao,
         valor: Number(s.valor),
-      }))
+      })),
     );
     setPecas(
       (os.service_order_parts ?? []).map((p) => ({
@@ -59,7 +60,7 @@ function EditOS() {
         valor_unitario: Number(p.valor_unitario),
         custo_unitario: Number(p.custo_unitario || 0),
         inventory_id: p.inventory_id ?? null,
-      }))
+      })),
     );
     setPrevisao(os.previsao_entrega ?? "");
     setObservacoes(os.observacoes ?? "");
@@ -118,27 +119,16 @@ function EditOS() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Previsão de entrega</Label>
-            <Input
-              type="date"
-              value={previsao}
-              onChange={(e) => setPrevisao(e.target.value)}
-            />
+            <Input type="date" value={previsao} onChange={(e) => setPrevisao(e.target.value)} />
           </div>
           <div>
             <Label>KM de entrada</Label>
-            <Input
-              type="number"
-              value={km}
-              onChange={(e) => setKm(e.target.value)}
-            />
+            <Input type="number" value={km} onChange={(e) => setKm(e.target.value)} />
           </div>
         </div>
         <div>
           <Label>Observações</Label>
-          <Textarea
-            value={observacoes}
-            onChange={(e) => setObservacoes(e.target.value)}
-          />
+          <Textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
         </div>
         <div>
           <Label>Forma de pagamento</Label>
@@ -147,14 +137,12 @@ function EditOS() {
               <button
                 key={p.value}
                 type="button"
-                onClick={() =>
-                  setPagamento(pagamento === p.value ? null : p.value)
-                }
+                onClick={() => setPagamento(pagamento === p.value ? null : p.value)}
                 className={cn(
                   "px-3 py-1.5 rounded-full border text-sm",
                   pagamento === p.value
                     ? "bg-secondary text-secondary-foreground border-secondary"
-                    : "bg-background"
+                    : "bg-background",
                 )}
               >
                 {p.label}
@@ -164,19 +152,10 @@ function EditOS() {
         </div>
         <div>
           <Label>Vencimento (fiado / a prazo)</Label>
-          <Input
-            type="date"
-            value={vencimento}
-            onChange={(e) => setVencimento(e.target.value)}
-          />
+          <Input type="date" value={vencimento} onChange={(e) => setVencimento(e.target.value)} />
         </div>
 
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={salvar}
-          disabled={update.isPending}
-        >
+        <Button size="lg" className="w-full" onClick={salvar} disabled={update.isPending}>
           {update.isPending ? "Salvando…" : "Salvar alterações"}
         </Button>
       </div>

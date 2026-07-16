@@ -8,12 +8,7 @@ type Props = {
   className?: string;
 };
 
-export function PlateInput({
-  value,
-  onChange,
-  placeholder = "AAA-0000",
-  className,
-}: Props) {
+export function PlateInput({ value, onChange, placeholder = "AAA-0000", className }: Props) {
   return (
     <Input
       value={formatPlate(value)}

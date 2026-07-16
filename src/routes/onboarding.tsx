@@ -10,10 +10,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { createWorkshop } from "@/lib/workshop.functions";
 import { setCurrentWorkshopId } from "@/lib/workshop";
 import { WorkshopSchema } from "@/lib/schemas";
+import { consumeVerifiedPlaybookTrial } from "@/lib/playbookAssets";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
-  head: () => ({ meta: [{ title: "Configurar oficina — MecânicoPRO" }] }),
+  head: () => ({ meta: [{ title: "Configurar oficina — OficinaPRO" }] }),
 });
 
 function OnboardingPage() {
@@ -54,8 +56,14 @@ function OnboardingPage() {
         },
       });
       setCurrentWorkshopId(workshopId);
+      if (await consumeVerifiedPlaybookTrial()) {
+        await supabase
+          .from("workshops")
+          .update({ playbook_unlocked_at: new Date().toISOString() })
+          .eq("id", workshopId);
+      }
       await refreshProfile();
-      toast.success("Oficina criada! Bem-vindo ao MecânicoPRO.");
+      toast.success("Oficina criada! Bem-vindo ao OficinaPRO.");
       navigate({ to: "/" });
     } catch (err) {
       toast.error((err as Error).message);
@@ -83,7 +91,7 @@ function OnboardingPage() {
           <div className="bg-primary rounded-md p-1.5">
             <Wrench className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div className="font-display font-bold text-lg">MecânicoPRO</div>
+          <div className="font-display font-bold text-lg">OficinaPRO</div>
         </div>
         <h1 className="text-xl font-bold mb-1">Configure sua oficina</h1>
         <p className="text-sm text-muted-foreground mb-5">

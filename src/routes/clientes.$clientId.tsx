@@ -118,11 +118,9 @@ function ClientDetail() {
         <Card className="p-4 text-sm text-muted-foreground">Nenhuma OS ainda.</Card>
       ) : (
         <div className="space-y-2">
-          {c.service_orders!
-            .slice()
-            .sort(
-              (a, b) => new Date(b.data_entrada).getTime() - new Date(a.data_entrada).getTime()
-            )
+          {c
+            .service_orders!.slice()
+            .sort((a, b) => new Date(b.data_entrada).getTime() - new Date(a.data_entrada).getTime())
             .map((o) => (
               <Link key={o.id} to="/os/$osId" params={{ osId: o.id }} className="block">
                 <Card className="p-3 hover:border-primary">
@@ -135,9 +133,7 @@ function ClientDetail() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">{formatDate(o.data_entrada)}</span>
-                    <span className="text-money font-bold">
-                      {formatBRL(o.total_geral)}
-                    </span>
+                    <span className="text-money font-bold">{formatBRL(o.total_geral)}</span>
                   </div>
                 </Card>
               </Link>

@@ -8,9 +8,22 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPhone, formatDate, daysBetween } from "@/lib/format";
 
-export const Route = createFileRoute("/clientes/")({ component: Clientes });
+export const Route = createFileRoute("/clientes/")({
+  validateSearch: (search: Record<string, unknown>): { novo?: number } => {
+    const raw = search.novo;
+    const n = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : undefined;
+    return { novo: n !== undefined && !Number.isNaN(n) ? n : undefined };
+  },
+  component: Clientes,
+});
 
-const COLORS = ["bg-primary", "bg-money", "bg-status-progress", "bg-status-part", "bg-status-cancel"];
+const COLORS = [
+  "bg-primary",
+  "bg-money",
+  "bg-status-progress",
+  "bg-status-part",
+  "bg-status-cancel",
+];
 function colorFor(name: string) {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
@@ -25,7 +38,10 @@ const ClientCard = memo(function ClientCard({ c }: { c: ClientRow }) {
     let maxTime = -Infinity;
     for (const o of c.service_orders ?? []) {
       const t = new Date(o.data_entrada).getTime();
-      if (t > maxTime) { maxTime = t; last = o; }
+      if (t > maxTime) {
+        maxTime = t;
+        last = o;
+      }
     }
     return last;
   }, [c.service_orders]);
@@ -69,7 +85,7 @@ function Clientes() {
     if (!q) return clients ?? [];
     const s = q.toLowerCase();
     return (clients ?? []).filter(
-      (c) => c.nome.toLowerCase().includes(s) || c.telefone.includes(s)
+      (c) => c.nome.toLowerCase().includes(s) || c.telefone.includes(s),
     );
   }, [clients, q]);
 
@@ -86,10 +102,16 @@ function Clientes() {
         />
       </div>
       {filtered.length === 0 ? (
-        <EmptyState icon={Users} title="Nenhum cliente" description="Cadastre seu primeiro cliente." />
+        <EmptyState
+          icon={Users}
+          title="Nenhum cliente"
+          description="Cadastre seu primeiro cliente."
+        />
       ) : (
         <div className="space-y-2">
-          {filtered.map((c) => <ClientCard key={c.id} c={c} />)}
+          {filtered.map((c) => (
+            <ClientCard key={c.id} c={c} />
+          ))}
         </div>
       )}
     </div>

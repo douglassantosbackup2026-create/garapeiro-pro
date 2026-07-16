@@ -16,12 +16,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useSmartAlerts, type SmartAlert } from "@/hooks/useSmartAlerts";
 import { useDismissAlert } from "@/hooks/useReturnAlerts";
@@ -30,12 +25,7 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-import {
-  formatBRL,
-  formatLongDate,
-  formatOSNumber,
-  getGreeting,
-} from "@/lib/format";
+import { formatBRL, formatLongDate, formatOSNumber, getGreeting } from "@/lib/format";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -63,7 +53,9 @@ function alertSummary(a: SmartAlert): string {
     case "revisao_tempo":
       return `Revisão · ${a.mesesDesde} meses · ${a.placa}`;
     case "aniversario":
-      return a.diasParaAniversario === 0 ? "Aniversário hoje 🎂" : `Aniversário em ${a.diasParaAniversario}d`;
+      return a.diasParaAniversario === 0
+        ? "Aniversário hoje 🎂"
+        : `Aniversário em ${a.diasParaAniversario}d`;
     case "satisfacao":
       return `Pesquisa pós-entrega · OS ${formatOSNumber(a.osNumero)}`;
   }
@@ -88,7 +80,7 @@ function Dashboard() {
   todayEnd.setHours(23, 59, 59, 999);
   const { data: todayAppointments } = useAppointments(
     todayStart.toISOString(),
-    todayEnd.toISOString()
+    todayEnd.toISOString(),
   );
 
   return (
@@ -97,18 +89,11 @@ function Dashboard() {
       <header className="flex items-start justify-between mb-5">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            {getGreeting()},{" "}
-            <span className="text-primary">{workshop?.nome ?? "Mecânico"}</span>
+            {getGreeting()}, <span className="text-primary">{workshop?.nome ?? "Mecânico"}</span>
           </h1>
-          <p className="text-sm text-muted-foreground capitalize">
-            {formatLongDate()}
-          </p>
+          <p className="text-sm text-muted-foreground capitalize">{formatLongDate()}</p>
         </div>
-        <Link
-          to="/alertas"
-          className="relative p-2 rounded-md hover:bg-muted"
-          aria-label="Alertas"
-        >
+        <Link to="/alertas" className="relative p-2 rounded-md hover:bg-muted" aria-label="Alertas">
           <Bell className="h-6 w-6" />
           {alertCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
@@ -161,7 +146,9 @@ function Dashboard() {
         {(todayAppointments ?? []).filter((a) => a.status !== "cancelado").length === 0 ? (
           <Card className="p-4 text-center text-sm text-muted-foreground">
             Nenhum agendamento para hoje.{" "}
-            <Link to="/agenda" className="text-primary font-medium">Agendar →</Link>
+            <Link to="/agenda" className="text-primary font-medium">
+              Agendar →
+            </Link>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -176,7 +163,9 @@ function Dashboard() {
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{a.nome_cliente}</div>
                     {a.servico_previsto && (
-                      <div className="text-xs text-muted-foreground truncate">{a.servico_previsto}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {a.servico_previsto}
+                      </div>
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -204,12 +193,7 @@ function Dashboard() {
             </Card>
           ) : (
             stats?.recentes.map((os) => (
-              <Link
-                key={os.id}
-                to="/os/$osId"
-                params={{ osId: os.id }}
-                className="block"
-              >
+              <Link key={os.id} to="/os/$osId" params={{ osId: os.id }} className="block">
                 <Card className="p-3 flex items-center gap-3 hover:border-primary transition-colors">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -218,14 +202,10 @@ function Dashboard() {
                       </span>
                       <PlacaBadge placa={os.vehicles?.placa ?? ""} size="sm" />
                     </div>
-                    <div className="text-sm font-medium truncate">
-                      {os.clients?.nome}
-                    </div>
+                    <div className="text-sm font-medium truncate">{os.clients?.nome}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-money font-bold text-sm">
-                      {formatBRL(os.total_geral)}
-                    </div>
+                    <div className="text-money font-bold text-sm">{formatBRL(os.total_geral)}</div>
                     <StatusBadge status={os.status} className="mt-1" />
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -258,20 +238,14 @@ function Dashboard() {
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <div className="font-medium truncate">{a.nome}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {alertSummary(a)}
-                    </div>
+                    <div className="text-xs text-muted-foreground">{alertSummary(a)}</div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <WhatsAppButton
                       phone={a.telefone}
                       message={`Olá ${a.nome}! 👋 Aqui é da ${workshop?.nome ?? "oficina"}.`}
                     />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => dismiss.mutate(a.clientId)}
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => dismiss.mutate(a.clientId)}>
                       Dispensar
                     </Button>
                   </div>
@@ -331,7 +305,7 @@ function Dashboard() {
               className="justify-start gap-3"
               onClick={() => {
                 setFabOpen(false);
-                navigate({ to: "/clientes", search: { novo: 1 } as never });
+                navigate({ to: "/clientes", search: { novo: 1 } });
               }}
             >
               <Users className="h-5 w-5" /> Novo Cliente

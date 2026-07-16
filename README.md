@@ -1,4 +1,4 @@
-# MecânicoPRO
+# OficinaPRO
 
 Sistema de gestão para oficinas mecânicas: ordens de serviço, clientes, veículos, estoque, financeiro e alertas com integração WhatsApp.
 
@@ -48,15 +48,21 @@ npm run dev
 
 Acesse [http://localhost:5173](http://localhost:5173).
 
+### Funil quiz (Playbook)
+
+Rota pública do diagnóstico: [http://localhost:5173/quiz](http://localhost:5173/quiz).
+
+Env opcionais: `VITE_CHECKOUT_URL` (gateway depois), `VITE_APP_CADASTRO_URL` (CTA SaaS; padrão `/cadastro`), `VITE_META_PIXEL_ID`.
+
 ## Scripts
 
-| Comando | Descrição |
-|---------|-----------|
-| `npm run dev` | Desenvolvimento com hot reload |
-| `npm run build` | Build de produção (SPA estático em `dist/`) |
-| `npm run preview` | Preview do build |
-| `npm run lint` | ESLint |
-| `npm run test` | Testes unitários (Vitest) |
+| Comando           | Descrição                                   |
+| ----------------- | ------------------------------------------- |
+| `npm run dev`     | Desenvolvimento com hot reload              |
+| `npm run build`   | Build de produção (SPA estático em `dist/`) |
+| `npm run preview` | Preview do build                            |
+| `npm run lint`    | ESLint                                      |
+| `npm run test`    | Testes unitários (Vitest)                   |
 
 ## Deploy (SPA estático)
 
@@ -66,7 +72,12 @@ npm run build
 
 A pasta `dist/` gerada pode ser publicada em qualquer host estático: Netlify, Vercel, Cloudflare Pages, GitHub Pages, etc.
 
+- **Netlify / Cloudflare Pages:** headers em `public/_headers` (copiados para `dist/`).
+- **Vercel:** headers e SPA rewrite em `vercel.json`.
+
 As operações admin (criar oficina, convites, time) rodam como **Supabase Edge Functions** — sem servidor próprio necessário.
+
+Configure o secret `ALLOWED_ORIGINS` na Edge Function `workshop-api` (CSV das origens do app, ex.: `https://seu-dominio.com,http://localhost:5173`). Enquanto não estiver definido, qualquer origem é aceita (compatibilidade); com o secret, só a lista passa.
 
 ## Stack
 

@@ -32,7 +32,7 @@ export function useFinancialReport() {
           supabase
             .from("service_orders")
             .select(
-              "id, total_geral, data_entrada, client_id, clients(nome), service_order_services(descricao, valor)"
+              "id, total_geral, data_entrada, client_id, clients(nome), service_order_services(descricao, valor)",
             )
             .eq("workshop_id", getCurrentWorkshopId())
             .gte("data_entrada", inicioMes.toISOString())
@@ -45,10 +45,7 @@ export function useFinancialReport() {
         ]);
 
       const faturamento = (paysMes ?? []).reduce((s, p) => s + Number(p.valor || 0), 0);
-      const faturamentoPrev = (paysPrev ?? []).reduce(
-        (s, p) => s + Number(p.valor || 0),
-        0
-      );
+      const faturamentoPrev = (paysPrev ?? []).reduce((s, p) => s + Number(p.valor || 0), 0);
       const variacao =
         faturamentoPrev > 0 ? ((faturamento - faturamentoPrev) / faturamentoPrev) * 100 : 0;
 
@@ -68,7 +65,7 @@ export function useFinancialReport() {
         for (const p of pays ?? []) {
           paidMap.set(
             p.service_order_id,
-            (paidMap.get(p.service_order_id) ?? 0) + Number(p.valor || 0)
+            (paidMap.get(p.service_order_id) ?? 0) + Number(p.valor || 0),
           );
         }
       }

@@ -17,12 +17,13 @@ import {
   useDeleteAppointment,
   type Appointment,
   type AppointmentInput,
+  type AppointmentStatus,
 } from "@/hooks/useAppointments";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/agenda")({ component: AgendaPage });
 
-const STATUS_LABEL: Record<string, string> = {
+const STATUS_LABEL: Record<AppointmentStatus, string> = {
   agendado: "Agendado",
   confirmado: "Confirmado",
   em_andamento: "Em andamento",
@@ -31,7 +32,7 @@ const STATUS_LABEL: Record<string, string> = {
   faltou: "Faltou",
 };
 
-const STATUS_COLOR: Record<string, string> = {
+const STATUS_COLOR: Record<AppointmentStatus, string> = {
   agendado: "bg-blue-100 text-blue-800",
   confirmado: "bg-green-100 text-green-800",
   em_andamento: "bg-yellow-100 text-yellow-800",
@@ -50,7 +51,7 @@ const DURATIONS = [
   { value: 480, label: "Dia inteiro" },
 ];
 
-const STATUS_TRANSITIONS: Record<string, string[]> = {
+const STATUS_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
   agendado: ["confirmado", "cancelado", "faltou"],
   confirmado: ["em_andamento", "cancelado", "faltou"],
   em_andamento: ["concluido", "cancelado"],
@@ -150,7 +151,12 @@ function AgendaPage() {
   function openNew() {
     setEditingAppt(null);
     const defaultTime = "09:00";
-    setForm({ ...BLANK, date: selectedDate, time: defaultTime, data_hora: selectedDate + "T" + defaultTime });
+    setForm({
+      ...BLANK,
+      date: selectedDate,
+      time: defaultTime,
+      data_hora: selectedDate + "T" + defaultTime,
+    });
     setDialogOpen(true);
   }
 
@@ -221,7 +227,7 @@ function AgendaPage() {
     }
   }
 
-  async function handleStatusChange(a: Appointment, newStatus: string) {
+  async function handleStatusChange(a: Appointment, newStatus: AppointmentStatus) {
     try {
       await updateAppt.mutateAsync({ id: a.id, status: newStatus });
       setStatusDialog(null);
@@ -234,7 +240,7 @@ function AgendaPage() {
   function handleConvertToOS(a: Appointment) {
     navigate({
       to: "/os/nova",
-      search: { apptId: a.id, nomeCliente: a.nome_cliente, telefone: a.telefone ?? "" } as never,
+      search: { apptId: a.id, nomeCliente: a.nome_cliente, telefone: a.telefone ?? "" },
     });
   }
 
@@ -277,20 +283,22 @@ function AgendaPage() {
                   "flex flex-col items-center py-1.5 rounded-md text-xs transition-colors",
                   isSelected && "bg-primary text-primary-foreground",
                   !isSelected && isToday && "border border-primary text-primary",
-                  !isSelected && !isToday && "hover:bg-muted"
+                  !isSelected && !isToday && "hover:bg-muted",
                 )}
               >
-                <span className="uppercase font-medium">
-                  {formatDayLabel(day).split(",")[0]}
-                </span>
-                <span className={cn("text-base font-bold", isSelected && "text-primary-foreground")}>
+                <span className="uppercase font-medium">{formatDayLabel(day).split(",")[0]}</span>
+                <span
+                  className={cn("text-base font-bold", isSelected && "text-primary-foreground")}
+                >
                   {new Date(day + "T12:00:00").getDate()}
                 </span>
                 {count > 0 && (
                   <span
                     className={cn(
                       "text-[10px] font-bold rounded-full px-1",
-                      isSelected ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
+                      isSelected
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : "bg-primary/10 text-primary",
                     )}
                   >
                     {count}
@@ -311,9 +319,7 @@ function AgendaPage() {
             month: "long",
           })}
         </h2>
-        <span className="text-sm text-muted-foreground">
-          {dayAppts.length} agendamento(s)
-        </span>
+        <span className="text-sm text-muted-foreground">{dayAppts.length} agendamento(s)</span>
       </div>
 
       {/* Appointments list */}
@@ -347,7 +353,7 @@ function AgendaPage() {
                     <span
                       className={cn(
                         "text-[10px] font-semibold rounded-full px-2 py-0.5",
-                        STATUS_COLOR[a.status] ?? "bg-muted text-muted-foreground"
+                        STATUS_COLOR[a.status] ?? "bg-muted text-muted-foreground",
                       )}
                     >
                       {STATUS_LABEL[a.status] ?? a.status}
@@ -360,7 +366,9 @@ function AgendaPage() {
                     </div>
                   )}
                   {a.observacoes && (
-                    <div className="text-xs text-muted-foreground mt-0.5 truncate">{a.observacoes}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {a.observacoes}
+                    </div>
                   )}
                 </div>
 
@@ -497,7 +505,10 @@ function AgendaPage() {
                 <Button
                   variant="ghost"
                   className="text-destructive hover:text-destructive"
-                  onClick={() => { handleDelete(editingAppt); setDialogOpen(false); }}
+                  onClick={() => {
+                    handleDelete(editingAppt);
+                    setDialogOpen(false);
+                  }}
                 >
                   Excluir
                 </Button>

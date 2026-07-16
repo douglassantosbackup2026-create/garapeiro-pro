@@ -9,6 +9,7 @@ import { getCurrentWorkshopId } from "@/lib/workshop";
 import { useAllPayments, paymentStatus } from "@/hooks/usePayments";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { PlacaBadge } from "@/components/PlacaBadge";
+import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
 import { formatBRL, formatOSNumber, formatDate } from "@/lib/format";
 import { buildWhatsappUrl } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
@@ -29,7 +30,7 @@ function useFinanceiroOrders() {
       const { data, error } = await supabase
         .from("service_orders")
         .select(
-          "id, numero, status, total_geral, data_entrada, vencimento_fiado, clients(nome, telefone), vehicles(placa)"
+          "id, numero, status, total_geral, data_entrada, vencimento_fiado, clients(nome, telefone), vehicles(placa)",
         )
         .eq("workshop_id", getCurrentWorkshopId())
         .neq("status", "cancelado")
@@ -63,9 +64,9 @@ function FinanceiroPage() {
   const cobrar = (r: (typeof rows)[number]) => {
     if (!r.clients?.telefone) return;
     const msg = `Olá ${r.clients?.nome ?? ""}! 👋\n\nPassando para lembrar da OS ${formatOSNumber(
-      r.numero
+      r.numero,
     )} (placa ${r.vehicles?.placa ?? ""}) que está com saldo em aberto de *${formatBRL(
-      r.saldo
+      r.saldo,
     )}*.\n\nQualquer dúvida, é só chamar! 🙏\n\n— ${workshop?.nome ?? ""}`;
     window.open(buildWhatsappUrl(r.clients.telefone, msg), "_blank");
   };
@@ -76,9 +77,7 @@ function FinanceiroPage() {
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <DollarSign className="h-6 w-6 text-money" /> Financeiro
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Controle de recebimentos e fiado por OS.
-        </p>
+        <p className="text-sm text-muted-foreground">Controle de recebimentos e fiado por OS.</p>
       </header>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
@@ -105,7 +104,7 @@ function FinanceiroPage() {
               "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors",
               filter === f.value
                 ? "bg-secondary text-secondary-foreground border-secondary"
-                : "bg-background text-foreground border-border"
+                : "bg-background text-foreground border-border",
             )}
           >
             {f.label}
@@ -122,17 +121,13 @@ function FinanceiroPage() {
           {filtered.map((r) => (
             <Card key={r.id} className="p-3">
               <div className="flex items-center gap-3">
-                <Link
-                  to="/os/$osId"
-                  params={{ osId: r.id }}
-                  className="flex-1 min-w-0"
-                >
+                <Link to="/os/$osId" params={{ osId: r.id }} className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-mono text-sm font-bold text-muted-foreground">
                       {formatOSNumber(r.numero)}
                     </span>
                     <PlacaBadge placa={r.vehicles?.placa ?? ""} size="sm" />
-                    <PgtoBadge status={r.status_pgto} />
+                    <PaymentStatusBadge status={r.status_pgto} />
                   </div>
                   <div className="text-sm font-medium truncate">{r.clients?.nome}</div>
                   <div className="text-xs text-muted-foreground">
@@ -145,7 +140,7 @@ function FinanceiroPage() {
                         "text-xs mt-0.5 font-medium",
                         new Date(r.vencimento_fiado) < new Date(new Date().toDateString())
                           ? "text-destructive"
-                          : "text-muted-foreground"
+                          : "text-muted-foreground",
                       )}
                     >
                       Vence em {formatDate(r.vencimento_fiado)}
@@ -160,7 +155,7 @@ function FinanceiroPage() {
                   <div
                     className={cn(
                       "font-display font-bold text-lg",
-                      r.saldo > 0 ? "text-destructive" : "text-money"
+                      r.saldo > 0 ? "text-destructive" : "text-money",
                     )}
                   >
                     {formatBRL(r.saldo)}
@@ -183,24 +178,5 @@ function FinanceiroPage() {
         </div>
       )}
     </div>
-  );
-}
-
-function PgtoBadge({ status }: { status: "pago" | "parcial" | "aberto" }) {
-  const map = {
-    pago: "bg-status-delivered text-status-delivered-foreground",
-    parcial: "bg-status-progress text-status-progress-foreground",
-    aberto: "bg-status-cancel text-status-cancel-foreground",
-  };
-  const label = { pago: "Pago", parcial: "Parcial", aberto: "Em aberto" };
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
-        map[status]
-      )}
-    >
-      {label[status]}
-    </span>
   );
 }

@@ -6,15 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/EmptyState";
 import { formatBRL } from "@/lib/format";
-import { CATEGORY_GROUPS, ALL_SUBCATEGORIES, getGroupLabel, CATEGORY_COLORS, type MainCategory } from "@/lib/service-categories";
+import {
+  CATEGORY_GROUPS,
+  ALL_SUBCATEGORIES,
+  getGroupLabel,
+  CATEGORY_COLORS,
+  isSubCategoryOf,
+  type MainCategory,
+} from "@/lib/service-categories";
 import {
   useServicesCatalog,
   useCreateCatalogItem,
@@ -50,10 +52,7 @@ function ServicosPage() {
   const items = (catalog ?? []).filter((c) => {
     if (!c.ativo) return false;
     if (grupoFiltro !== "todos") {
-      const group = CATEGORY_GROUPS.find((g) => g.key === grupoFiltro);
-      if (!group) return false;
-      const vals = group.subcategories.map((s) => s.value);
-      if (!vals.includes(c.categoria as never)) return false;
+      if (!isSubCategoryOf(grupoFiltro, c.categoria)) return false;
     }
     if (q) {
       const s = q.toLowerCase();
@@ -147,7 +146,7 @@ function ServicosPage() {
             "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors",
             grupoFiltro === "todos"
               ? "bg-secondary text-secondary-foreground border-secondary"
-              : "bg-background border-border"
+              : "bg-background border-border",
           )}
         >
           Todos
@@ -160,7 +159,7 @@ function ServicosPage() {
               "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors",
               grupoFiltro === g.key
                 ? "bg-secondary text-secondary-foreground border-secondary"
-                : "bg-background border-border"
+                : "bg-background border-border",
             )}
           >
             {g.label}
@@ -186,7 +185,7 @@ function ServicosPage() {
                   <span
                     className={cn(
                       "text-[10px] font-semibold rounded-full px-2 py-0.5",
-                      CATEGORY_COLORS[groupKey(item.categoria)]
+                      CATEGORY_COLORS[groupKey(item.categoria)],
                     )}
                   >
                     {getGroupLabel(item.categoria)}
@@ -203,7 +202,8 @@ function ServicosPage() {
                   )}
                   {item.duracao_estimada_min != null && (
                     <span className="text-xs text-muted-foreground">
-                      ~{item.duracao_estimada_min >= 60
+                      ~
+                      {item.duracao_estimada_min >= 60
                         ? `${Math.round(item.duracao_estimada_min / 60)}h`
                         : `${item.duracao_estimada_min}min`}
                     </span>
@@ -211,7 +211,12 @@ function ServicosPage() {
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(item)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => openEdit(item)}
+                >
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
                 <Button
@@ -278,7 +283,10 @@ function ServicosPage() {
                   min="0"
                   value={form.preco_padrao ?? ""}
                   onChange={(e) =>
-                    setForm({ ...form, preco_padrao: e.target.value ? Number(e.target.value) : null })
+                    setForm({
+                      ...form,
+                      preco_padrao: e.target.value ? Number(e.target.value) : null,
+                    })
                   }
                   placeholder="0,00"
                 />
@@ -287,7 +295,9 @@ function ServicosPage() {
                 <Label>Duração estimada</Label>
                 <select
                   value={form.duracao_estimada_min ?? 60}
-                  onChange={(e) => setForm({ ...form, duracao_estimada_min: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setForm({ ...form, duracao_estimada_min: Number(e.target.value) })
+                  }
                   className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
                 >
                   <option value={30}>30 min</option>

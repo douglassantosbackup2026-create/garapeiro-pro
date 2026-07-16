@@ -104,16 +104,24 @@ export const CATEGORY_GROUPS = [
 export type MainCategory = (typeof CATEGORY_GROUPS)[number]["key"];
 export type SubCategory = (typeof CATEGORY_GROUPS)[number]["subcategories"][number]["value"];
 
-type SubItem = { value: string; label: string };
-export const ALL_SUBCATEGORIES: SubItem[] = CATEGORY_GROUPS.flatMap(
-  (g) => g.subcategories as readonly SubItem[],
+export const ALL_SUBCATEGORIES: { value: SubCategory; label: string }[] = CATEGORY_GROUPS.flatMap(
+  (g) => [...g.subcategories],
 );
+
+export function isSubCategoryOf(groupKey: string, value: string | null | undefined): boolean {
+  if (!value) return false;
+  const group = CATEGORY_GROUPS.find((g) => g.key === groupKey);
+  if (!group) return false;
+  return group.subcategories.some((s) => s.value === value);
+}
 
 export function getSubcategoryLabel(value: string): string {
   return ALL_SUBCATEGORIES.find((s) => s.value === value)?.label ?? value;
 }
 
-export function getGroupForSubcategory(value: string): (typeof CATEGORY_GROUPS)[number] | undefined {
+export function getGroupForSubcategory(
+  value: string,
+): (typeof CATEGORY_GROUPS)[number] | undefined {
   return CATEGORY_GROUPS.find((g) => g.subcategories.some((s) => s.value === value));
 }
 

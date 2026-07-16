@@ -31,9 +31,15 @@ function Navbar() {
         </div>
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-          <a href="#funcionalidades" className="hover:text-foreground transition-colors">Funcionalidades</a>
-          <a href="#planos" className="hover:text-foreground transition-colors">Planos</a>
-          <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+          <a href="#funcionalidades" className="hover:text-foreground transition-colors">
+            Funcionalidades
+          </a>
+          <a href="#planos" className="hover:text-foreground transition-colors">
+            Planos
+          </a>
+          <a href="#faq" className="hover:text-foreground transition-colors">
+            FAQ
+          </a>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -42,6 +48,12 @@ function Navbar() {
             className="hidden md:inline-flex px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors"
           >
             Entrar
+          </Link>
+          <Link
+            to="/quiz"
+            className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors"
+          >
+            Diagnóstico
           </Link>
           <Link
             to="/cadastro"
@@ -59,10 +71,26 @@ function Navbar() {
 
 function AppMockup() {
   const columns = [
-    { label: "Aguardando", color: "border-l-status-waiting bg-status-waiting/10", cards: ["Troca de óleo", "Revisão 30k"] },
-    { label: "Em andamento", color: "border-l-status-progress bg-status-progress/10", cards: ["Alinhamento", "Freios dianteiros"] },
-    { label: "Concluído", color: "border-l-status-done bg-status-done/10", cards: ["Funilaria lateral"] },
-    { label: "Entregue", color: "border-l-status-delivered bg-status-delivered/10", cards: ["Insulfilm"] },
+    {
+      label: "Aguardando",
+      color: "border-l-status-waiting bg-status-waiting/10",
+      cards: ["Troca de óleo", "Revisão 30k"],
+    },
+    {
+      label: "Em andamento",
+      color: "border-l-status-progress bg-status-progress/10",
+      cards: ["Alinhamento", "Freios dianteiros"],
+    },
+    {
+      label: "Concluído",
+      color: "border-l-status-done bg-status-done/10",
+      cards: ["Funilaria lateral"],
+    },
+    {
+      label: "Entregue",
+      color: "border-l-status-delivered bg-status-delivered/10",
+      cards: ["Insulfilm"],
+    },
   ];
 
   return (
@@ -95,14 +123,16 @@ function AppMockup() {
           <div className="flex gap-2 h-full">
             {columns.map((col) => (
               <div key={col.label} className="flex-1 min-w-0">
-                <div className="text-[10px] font-semibold text-muted-foreground mb-1.5 truncate">{col.label}</div>
+                <div className="text-[10px] font-semibold text-muted-foreground mb-1.5 truncate">
+                  {col.label}
+                </div>
                 <div className="flex flex-col gap-1.5">
                   {col.cards.map((card) => (
                     <div
                       key={card}
                       className={cn(
                         "rounded-md border-l-2 px-1.5 py-1 text-[9px] font-medium",
-                        col.color
+                        col.color,
                       )}
                     >
                       {card}
@@ -131,8 +161,7 @@ function Hero() {
           </span>
 
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-6">
-            O sistema completo para sua oficina{" "}
-            <span className="text-primary">crescer</span>
+            O sistema completo para sua oficina <span className="text-primary">crescer</span>
           </h1>
 
           <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
@@ -142,17 +171,17 @@ function Hero() {
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              to="/cadastro"
+              to="/quiz"
               className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
             >
-              Criar conta grátis →
+              Diagnóstico gratuito →
             </Link>
-            <a
-              href="#funcionalidades"
+            <Link
+              to="/cadastro"
               className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold rounded-lg border border-border hover:bg-muted transition-colors"
             >
-              Ver funcionalidades ↓
-            </a>
+              Criar conta grátis
+            </Link>
           </div>
 
           <p className="text-xs text-muted-foreground mt-4">
@@ -242,7 +271,8 @@ function Features() {
             Tudo que sua oficina precisa
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            De mecânicas gerais a funilarias, estéticas e muito mais. Uma plataforma, todas as especialidades.
+            De mecânicas gerais a funilarias, estéticas e muito mais. Uma plataforma, todas as
+            especialidades.
           </p>
         </div>
 
@@ -294,7 +324,9 @@ function HowItWorks() {
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <div className="text-center mb-14">
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Como funciona</h2>
-          <p className="text-muted-foreground text-lg">Começar é simples. Em menos de 5 minutos você já está operando.</p>
+          <p className="text-muted-foreground text-lg">
+            Começar é simples. Em menos de 5 minutos você já está operando.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
@@ -335,7 +367,7 @@ function Specialties() {
               key={g.key}
               className={cn(
                 "px-4 py-2 rounded-full text-sm font-semibold",
-                CATEGORY_COLORS[g.key as MainCategory]
+                CATEGORY_COLORS[g.key as MainCategory],
               )}
             >
               {g.label}
@@ -429,8 +461,12 @@ function Pricing() {
     <section id="planos" className="py-24">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <div className="text-center mb-14">
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Planos simples e transparentes</h2>
-          <p className="text-muted-foreground text-lg">Comece de graça e evolua conforme sua oficina cresce.</p>
+          <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+            Planos simples e transparentes
+          </h2>
+          <p className="text-muted-foreground text-lg">
+            Comece de graça e evolua conforme sua oficina cresce.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 items-stretch">
@@ -441,7 +477,7 @@ function Pricing() {
                 "rounded-2xl border p-8 flex flex-col",
                 plan.highlight
                   ? "border-primary shadow-lg shadow-primary/10 bg-background relative"
-                  : "border-border bg-background"
+                  : "border-border bg-background",
               )}
             >
               {plan.badge && (
@@ -481,7 +517,7 @@ function Pricing() {
                   "w-full text-center py-3 rounded-lg font-semibold text-sm transition-colors",
                   plan.ctaVariant === "primary"
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "border border-border hover:bg-muted"
+                    : "border border-border hover:bg-muted",
                 )}
               >
                 {plan.cta}
@@ -491,7 +527,8 @@ function Pricing() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Preços marcados como "R$ ––,––" serão divulgados em breve. · Sem fidelidade, cancele quando quiser.
+          Preços marcados como "R$ ––,––" serão divulgados em breve. · Sem fidelidade, cancele
+          quando quiser.
         </p>
       </div>
     </section>
@@ -631,12 +668,20 @@ function FooterCTA() {
         <p className="text-primary-foreground/70 text-lg mb-8">
           Plano gratuito sem prazo de expiração. Sem cartão de crédito.
         </p>
-        <Link
-          to="/cadastro"
-          className="inline-flex items-center px-8 py-4 text-base font-bold rounded-xl bg-background text-foreground hover:bg-background/90 transition-colors shadow-lg"
-        >
-          Criar conta grátis — é gratuito
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            to="/quiz"
+            className="inline-flex items-center px-8 py-4 text-base font-bold rounded-xl bg-background text-foreground hover:bg-background/90 transition-colors shadow-lg"
+          >
+            Diagnóstico gratuito
+          </Link>
+          <Link
+            to="/cadastro"
+            className="inline-flex items-center px-8 py-4 text-base font-bold rounded-xl border border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
+          >
+            Criar conta grátis
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -656,10 +701,18 @@ function Footer() {
         </div>
 
         <nav className="flex items-center gap-5 text-sm text-muted-foreground">
-          <a href="#funcionalidades" className="hover:text-foreground transition-colors">Funcionalidades</a>
-          <a href="#planos" className="hover:text-foreground transition-colors">Planos</a>
-          <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
-          <Link to="/login" className="hover:text-foreground transition-colors">Entrar</Link>
+          <a href="#funcionalidades" className="hover:text-foreground transition-colors">
+            Funcionalidades
+          </a>
+          <a href="#planos" className="hover:text-foreground transition-colors">
+            Planos
+          </a>
+          <a href="#faq" className="hover:text-foreground transition-colors">
+            FAQ
+          </a>
+          <Link to="/login" className="hover:text-foreground transition-colors">
+            Entrar
+          </Link>
         </nav>
 
         <p className="text-xs text-muted-foreground">

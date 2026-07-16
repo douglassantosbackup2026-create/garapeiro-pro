@@ -13,6 +13,7 @@ import {
   LogOut,
   CalendarDays,
   BookOpen,
+  BookMarked,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
@@ -20,7 +21,7 @@ import { useSmartAlerts } from "@/hooks/useSmartAlerts";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "@tanstack/react-router";
 
-const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
+const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean; playbookOnly?: boolean }[] = [
   { to: "/", label: "Início", icon: Home, exact: true },
   { to: "/os", label: "Ordens", icon: Wrench },
   { to: "/os/kanban", label: "Painel", icon: KanbanSquare },
@@ -29,6 +30,7 @@ const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] =
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/estoque", label: "Estoque", icon: Package },
   { to: "/servicos", label: "Catálogo", icon: BookOpen },
+  { to: "/playbook", label: "Playbook", icon: BookMarked, playbookOnly: true },
   { to: "/veiculos", label: "Veículos", icon: Car },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/configuracoes", label: "Ajustes", icon: Settings },
@@ -43,7 +45,7 @@ export function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { loading, session, profile, signOut } = useAuth();
 
-  const PUBLIC = ["/login", "/cadastro", "/recuperar-senha", "/reset-password"];
+  const PUBLIC = ["/login", "/cadastro", "/recuperar-senha", "/reset-password", "/quiz"];
   const isPublic = PUBLIC.includes(pathname) || pathname.startsWith("/convite/");
   const isOnboarding = pathname === "/onboarding";
 
@@ -75,6 +77,8 @@ function AuthedShell({ pathname, signOut }: AuthedShellProps) {
   const { data: workshop } = useWorkshop();
   const { data: alerts } = useSmartAlerts();
   const alertCount = alerts?.length ?? 0;
+  const playbookUnlocked = Boolean(workshop?.playbook_unlocked_at);
+  const navItems = NAV.filter((item) => !item.playbookOnly || playbookUnlocked);
 
   return (
     <div className="min-h-screen w-full flex bg-background">
@@ -97,7 +101,7 @@ function AuthedShell({ pathname, signOut }: AuthedShellProps) {
               </div>
             )}
             <div>
-              <div className="font-display font-bold text-lg leading-none">MecânicoPRO</div>
+              <div className="font-display font-bold text-lg leading-none">OficinaPRO</div>
               <div className="text-xs text-sidebar-foreground/60 mt-0.5">
                 {workshop?.nome ?? "Oficina"}
               </div>
@@ -105,7 +109,7 @@ function AuthedShell({ pathname, signOut }: AuthedShellProps) {
           </div>
         </div>
         <nav className="flex-1 p-2">
-          {NAV.map((item) => {
+          {navItems.map((item) => {
             const active = isActive(item.to, pathname, item.exact);
             const Icon = item.icon;
             return (
@@ -116,7 +120,7 @@ function AuthedShell({ pathname, signOut }: AuthedShellProps) {
                   "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -154,7 +158,9 @@ function AuthedShell({ pathname, signOut }: AuthedShellProps) {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-secondary text-secondary-foreground border-t border-border h-16 grid grid-cols-5">
-        {NAV.filter((i) => ["/", "/agenda", "/os", "/financeiro", "/configuracoes"].includes(i.to)).map((item) => {
+        {NAV.filter((i) =>
+          ["/", "/agenda", "/os", "/financeiro", "/configuracoes"].includes(i.to),
+        ).map((item) => {
           const active = isActive(item.to, pathname, item.exact);
           const Icon = item.icon;
           return (
@@ -163,7 +169,7 @@ function AuthedShell({ pathname, signOut }: AuthedShellProps) {
               to={item.to as string}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors",
-                active ? "text-primary" : "text-secondary-foreground/60"
+                active ? "text-primary" : "text-secondary-foreground/60",
               )}
             >
               <Icon className={cn("h-5 w-5", active && "stroke-[2.5]")} />

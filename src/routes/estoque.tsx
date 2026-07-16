@@ -19,25 +19,24 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/estoque")({ component: EstoquePage });
 
-const PartCard = memo(function PartCard({
-  part,
-  onEdit,
-  onDelete,
-}: {
+type PartCardProps = {
   part: Part;
   onEdit: (p: Part) => void;
   onDelete: (p: Part) => void;
-}) {
+};
+
+const PartCard = memo(function PartCard({ part, onEdit, onDelete }: PartCardProps) {
   const baixo = useMemo(
     () => Number(part.estoque_minimo) > 0 && Number(part.quantidade) <= Number(part.estoque_minimo),
-    [part.estoque_minimo, part.quantidade]
+    [part.estoque_minimo, part.quantidade],
   );
   const margem = useMemo(
     () =>
       Number(part.preco_venda) > 0
-        ? ((Number(part.preco_venda) - Number(part.custo_unitario)) / Number(part.preco_venda)) * 100
+        ? ((Number(part.preco_venda) - Number(part.custo_unitario)) / Number(part.preco_venda)) *
+          100
         : 0,
-    [part.preco_venda, part.custo_unitario]
+    [part.preco_venda, part.custo_unitario],
   );
   return (
     <Card className="p-3 flex items-center gap-3">
@@ -111,24 +110,21 @@ function EstoquePage() {
   const list = useMemo(() => {
     const s = busca.toLowerCase().trim();
     return (parts ?? []).filter(
-      (p) =>
-        !s ||
-        p.nome.toLowerCase().includes(s) ||
-        (p.codigo ?? "").toLowerCase().includes(s)
+      (p) => !s || p.nome.toLowerCase().includes(s) || (p.codigo ?? "").toLowerCase().includes(s),
     );
   }, [parts, busca]);
 
   const lowStock = useMemo(
     () =>
       (parts ?? []).filter(
-        (p) => Number(p.estoque_minimo) > 0 && Number(p.quantidade) <= Number(p.estoque_minimo)
+        (p) => Number(p.estoque_minimo) > 0 && Number(p.quantidade) <= Number(p.estoque_minimo),
       ),
-    [parts]
+    [parts],
   );
 
   const totalValor = useMemo(
     () => (parts ?? []).reduce((s, p) => s + Number(p.quantidade) * Number(p.custo_unitario), 0),
-    [parts]
+    [parts],
   );
 
   function openNew() {
@@ -175,14 +171,17 @@ function EstoquePage() {
           setOpen(false);
         },
         onError: (e) => toast.error("Erro: " + (e as Error).message),
-      }
+      },
     );
   }
 
-  const excluir = useCallback((p: Part) => {
-    if (!confirm(`Excluir "${p.nome}" do estoque?`)) return;
-    del.mutate(p.id, { onSuccess: () => toast.success("Peça removida") });
-  }, [del]);
+  const excluir = useCallback(
+    (p: Part) => {
+      if (!confirm(`Excluir "${p.nome}" do estoque?`)) return;
+      del.mutate(p.id, { onSuccess: () => toast.success("Peça removida") });
+    },
+    [del],
+  );
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-5xl mx-auto pb-24">
@@ -202,10 +201,13 @@ function EstoquePage() {
         <Card className="p-3 mb-4 border-destructive/40 bg-destructive/5 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-destructive" />
           <div className="text-sm">
-            <span className="font-bold text-destructive">{lowStock.length}</span>{" "}
-            peça(s) abaixo do estoque mínimo:{" "}
+            <span className="font-bold text-destructive">{lowStock.length}</span> peça(s) abaixo do
+            estoque mínimo:{" "}
             <span className="text-muted-foreground">
-              {lowStock.slice(0, 3).map((p) => p.nome).join(", ")}
+              {lowStock
+                .slice(0, 3)
+                .map((p) => p.nome)
+                .join(", ")}
               {lowStock.length > 3 ? "…" : ""}
             </span>
           </div>

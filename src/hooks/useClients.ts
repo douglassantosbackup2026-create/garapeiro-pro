@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId } from "@/lib/workshop";
-import type { Database } from "@/integrations/supabase/types";
-
-type ClientUpdate = Database["public"]["Tables"]["clients"]["Update"];
+import {
+  ClientSchema,
+  ClientUpdateSchema,
+  parseOrThrow,
+  type ClientInput,
+  type ClientUpdateInput,
+} from "@/lib/schemas";
 
 export function useClients() {
   return useQuery({
@@ -43,10 +47,11 @@ export function useClient(id: string | undefined) {
 export function useCreateClient() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { nome: string; telefone: string; email?: string | null }) => {
+    mutationFn: async (input: ClientInput) => {
+      const valid = parseOrThrow(ClientSchema, input);
       const { data, error } = await supabase
         .from("clients")
-        .insert({ ...input, workshop_id: getCurrentWorkshopId() })
+        .insert({ ...valid, workshop_id: getCurrentWorkshopId() })
         .select()
         .single();
       if (error) throw error;
@@ -59,8 +64,9 @@ export function useCreateClient() {
 export function useUpdateClient() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: ClientUpdate }) => {
-      const { error } = await supabase.from("clients").update(patch).eq("id", id);
+    mutationFn: async ({ id, patch }: { id: string; patch: ClientUpdateInput }) => {
+      const valid = parseOrThrow(ClientUpdateSchema, patch);
+      const { error } = await supabase.from("clients").update(valid).eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {

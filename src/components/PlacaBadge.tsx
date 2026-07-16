@@ -17,7 +17,5 @@ const SIZES: Record<PlacaSize, string> = {
 };
 
 export function PlacaBadge({ placa, size = "md", className }: Props) {
-  return (
-    <span className={cn("plate-badge", SIZES[size], className)}>{formatPlate(placa)}</span>
-  );
+  return <span className={cn("plate-badge", SIZES[size], className)}>{formatPlate(placa)}</span>;
 }

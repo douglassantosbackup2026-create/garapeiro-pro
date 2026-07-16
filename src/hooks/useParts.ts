@@ -1,21 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId } from "@/lib/workshop";
+import { parseOrThrow, PartSchema, type PartInput } from "@/lib/schemas";
+import type { Tables } from "@/integrations/supabase/types";
 
-export type Part = {
-  id: string;
-  workshop_id: string;
-  nome: string;
-  codigo: string | null;
-  quantidade: number;
-  estoque_minimo: number;
-  custo_unitario: number;
-  preco_venda: number;
-  unidade: string;
-  observacao: string | null;
-  criada_em: string;
-  atualizada_em: string;
-};
+export type Part = Tables<"parts_inventory">;
 
 export function useParts() {
   return useQuery({
@@ -29,42 +18,32 @@ export function useParts() {
         .eq("workshop_id", getCurrentWorkshopId())
         .order("nome");
       if (error) throw error;
-      return data as Part[];
+      return data ?? [];
     },
   });
 }
 
-export type PartInput = {
-  nome: string;
-  codigo?: string | null;
-  quantidade: number;
-  estoque_minimo: number;
-  custo_unitario: number;
-  preco_venda: number;
-  unidade?: string;
-  observacao?: string | null;
-};
-
 export function useUpsertPart() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: PartInput & { id?: string }) => {
+    mutationFn: async (input: PartInput) => {
+      const valid = parseOrThrow(PartSchema, input);
       const payload = {
         workshop_id: getCurrentWorkshopId(),
-        nome: input.nome,
-        codigo: input.codigo ?? null,
-        quantidade: input.quantidade,
-        estoque_minimo: input.estoque_minimo,
-        custo_unitario: input.custo_unitario,
-        preco_venda: input.preco_venda,
-        unidade: input.unidade ?? "un",
-        observacao: input.observacao ?? null,
+        nome: valid.nome,
+        codigo: valid.codigo ?? null,
+        quantidade: valid.quantidade,
+        estoque_minimo: valid.estoque_minimo,
+        custo_unitario: valid.custo_unitario,
+        preco_venda: valid.preco_venda,
+        unidade: valid.unidade ?? "un",
+        observacao: valid.observacao ?? null,
       };
-      if (input.id) {
+      if (valid.id) {
         const { data, error } = await supabase
           .from("parts_inventory")
           .update(payload)
-          .eq("id", input.id)
+          .eq("id", valid.id)
           .select()
           .single();
         if (error) throw error;

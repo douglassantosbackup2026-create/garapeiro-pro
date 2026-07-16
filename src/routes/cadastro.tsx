@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,26 +9,52 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CadastroSchema } from "@/lib/schemas";
+import { rememberPlaybookTrialFromSearch } from "@/lib/playbookAssets";
 
-type CadastroSearch = { redirect?: string };
+type CadastroSearch = {
+  redirect?: string;
+  trial?: string;
+  order?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+};
+
+function asOptionalString(v: unknown): string | undefined {
+  return typeof v === "string" && v.length > 0 ? v : undefined;
+}
 
 export const Route = createFileRoute("/cadastro")({
   component: SignupPage,
   validateSearch: (search: Record<string, unknown>): CadastroSearch => ({
-    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+    redirect: asOptionalString(search.redirect),
+    trial: asOptionalString(search.trial),
+    order: asOptionalString(search.order),
+    utm_source: asOptionalString(search.utm_source),
+    utm_medium: asOptionalString(search.utm_medium),
+    utm_campaign: asOptionalString(search.utm_campaign),
+    utm_content: asOptionalString(search.utm_content),
+    utm_term: asOptionalString(search.utm_term),
   }),
-  head: () => ({ meta: [{ title: "Criar conta — MecânicoPRO" }] }),
+  head: () => ({ meta: [{ title: "Criar conta — OficinaPRO" }] }),
 });
 
 function SignupPage() {
   const navigate = useNavigate();
   const { adoptSession } = useAuth();
-  const { redirect } = Route.useSearch();
+  const search = Route.useSearch();
+  const { redirect, trial, order } = search;
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [awaitingEmail, setAwaitingEmail] = useState(false);
+
+  useEffect(() => {
+    rememberPlaybookTrialFromSearch({ trial, order });
+  }, [trial, order]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -92,7 +118,7 @@ function SignupPage() {
           <div className="bg-primary rounded-md p-1.5">
             <Wrench className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div className="font-display font-bold text-lg">MecânicoPRO</div>
+          <div className="font-display font-bold text-lg">OficinaPRO</div>
         </div>
         <h1 className="text-xl font-bold mb-1">Criar conta</h1>
         <p className="text-sm text-muted-foreground mb-5">Comece grátis em 1 minuto</p>

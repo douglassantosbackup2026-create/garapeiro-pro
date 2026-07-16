@@ -27,7 +27,20 @@ import { CATEGORY_GROUPS } from "@/lib/service-categories";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
-export const Route = createFileRoute("/os/nova")({ component: NovaOS });
+export const Route = createFileRoute("/os/nova")({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): {
+    apptId?: string;
+    nomeCliente?: string;
+    telefone?: string;
+  } => ({
+    apptId: typeof search.apptId === "string" ? search.apptId : undefined,
+    nomeCliente: typeof search.nomeCliente === "string" ? search.nomeCliente : undefined,
+    telefone: typeof search.telefone === "string" ? search.telefone : undefined,
+  }),
+  component: NovaOS,
+});
 
 const PAGAMENTOS: { value: Database["public"]["Enums"]["forma_pagamento"]; label: string }[] = [
   { value: "pix", label: "Pix" },
@@ -72,17 +85,15 @@ function NovaOS() {
   // P3
   const [previsao, setPrevisao] = useState("");
   const [observacoes, setObservacoes] = useState("");
-  const [pagamento, setPagamento] =
-    useState<Database["public"]["Enums"]["forma_pagamento"] | null>(null);
+  const [pagamento, setPagamento] = useState<Database["public"]["Enums"]["forma_pagamento"] | null>(
+    null,
+  );
   const [vencimentoFiado, setVencimentoFiado] = useState("");
   const [enviarWhats, setEnviarWhats] = useState(true);
 
   const total =
     servicos.reduce((s, x) => s + Number(x.valor || 0), 0) +
-    pecas.reduce(
-      (s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0),
-      0
-    );
+    pecas.reduce((s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0), 0);
 
   const filteredClients = useMemo(() => {
     if (!searchCliente) return [];
@@ -96,7 +107,11 @@ function NovaOS() {
     if (!catalogSearch.trim()) return [];
     const s = catalogSearch.toLowerCase();
     return (catalog ?? [])
-      .filter((c) => c.ativo && (c.nome.toLowerCase().includes(s) || (c.descricao ?? "").toLowerCase().includes(s)))
+      .filter(
+        (c) =>
+          c.ativo &&
+          (c.nome.toLowerCase().includes(s) || (c.descricao ?? "").toLowerCase().includes(s)),
+      )
       .slice(0, 6);
   }, [catalogSearch, catalog]);
 
@@ -200,8 +215,8 @@ function NovaOS() {
                 total,
                 previsao_entrega: previsao || null,
               },
-              workshop
-            )
+              workshop,
+            ),
           );
           window.open(url, "_blank");
         }
@@ -269,7 +284,9 @@ function NovaOS() {
               {CATEGORY_GROUPS.map((g) => (
                 <optgroup key={g.key} label={g.label}>
                   {g.subcategories.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
                   ))}
                 </optgroup>
               ))}
@@ -280,9 +297,7 @@ function NovaOS() {
             <Label>Cliente</Label>
             {clientId ? (
               <Card className="p-3 mt-2 flex justify-between items-center">
-                <span className="font-medium">
-                  {clients?.find((c) => c.id === clientId)?.nome}
-                </span>
+                <span className="font-medium">{clients?.find((c) => c.id === clientId)?.nome}</span>
                 <Button size="sm" variant="ghost" onClick={() => setClientId(null)}>
                   Trocar
                 </Button>
@@ -297,20 +312,14 @@ function NovaOS() {
                 <Input
                   placeholder="Telefone (WhatsApp)"
                   value={novoCliente.telefone}
-                  onChange={(e) =>
-                    setNovoCliente({ ...novoCliente, telefone: e.target.value })
-                  }
+                  onChange={(e) => setNovoCliente({ ...novoCliente, telefone: e.target.value })}
                 />
                 <Input
                   placeholder="E-mail (opcional)"
                   value={novoCliente.email}
                   onChange={(e) => setNovoCliente({ ...novoCliente, email: e.target.value })}
                 />
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowNovoCliente(false)}
-                >
+                <Button size="sm" variant="ghost" onClick={() => setShowNovoCliente(false)}>
                   ← Buscar existente
                 </Button>
               </div>
@@ -431,11 +440,7 @@ function NovaOS() {
         <div className="space-y-4">
           <div>
             <Label>Previsão de entrega</Label>
-            <Input
-              type="date"
-              value={previsao}
-              onChange={(e) => setPrevisao(e.target.value)}
-            />
+            <Input type="date" value={previsao} onChange={(e) => setPrevisao(e.target.value)} />
           </div>
           <div>
             <Label>Observações</Label>
@@ -456,7 +461,7 @@ function NovaOS() {
                     "px-3 py-1.5 rounded-full border text-sm",
                     pagamento === p.value
                       ? "bg-secondary text-secondary-foreground border-secondary"
-                      : "bg-background"
+                      : "bg-background",
                   )}
                 >
                   {p.label}
@@ -478,19 +483,12 @@ function NovaOS() {
           <Card className="p-3 flex items-center justify-between">
             <div>
               <div className="font-medium text-sm">Enviar orçamento por WhatsApp</div>
-              <div className="text-xs text-muted-foreground">
-                Abre o WhatsApp ao salvar
-              </div>
+              <div className="text-xs text-muted-foreground">Abre o WhatsApp ao salvar</div>
             </div>
             <Switch checked={enviarWhats} onCheckedChange={setEnviarWhats} />
           </Card>
 
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={handleCreate}
-            disabled={createOS.isPending}
-          >
+          <Button size="lg" className="w-full" onClick={handleCreate} disabled={createOS.isPending}>
             {createOS.isPending ? "Criando..." : "Criar Ordem de Serviço"}
           </Button>
         </div>

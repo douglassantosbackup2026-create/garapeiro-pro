@@ -33,7 +33,7 @@ export function useDashboardStats() {
         supabase
           .from("service_orders")
           .select(
-            "id, numero, status, total_geral, data_entrada, clients(nome), vehicles(placa), service_order_services(descricao)"
+            "id, numero, status, total_geral, data_entrada, clients(nome), vehicles(placa), service_order_services(descricao)",
           )
           .eq("workshop_id", getCurrentWorkshopId())
           .order("criada_em", { ascending: false })
@@ -50,7 +50,7 @@ export function useDashboardStats() {
         for (const p of pays ?? []) {
           paidByOs.set(
             p.service_order_id,
-            (paidByOs.get(p.service_order_id) ?? 0) + Number(p.valor || 0)
+            (paidByOs.get(p.service_order_id) ?? 0) + Number(p.valor || 0),
           );
         }
       }

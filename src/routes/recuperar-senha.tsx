@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { RecuperarSenhaSchema, parseOrThrow } from "@/lib/schemas";
 
 export const Route = createFileRoute("/recuperar-senha")({
   component: RecuperarSenhaPage,
-  head: () => ({ meta: [{ title: "Recuperar senha — MecânicoPRO" }] }),
+  head: () => ({ meta: [{ title: "Recuperar senha — OficinaPRO" }] }),
 });
 
 function RecuperarSenhaPage() {
@@ -20,16 +21,22 @@ function RecuperarSenhaPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    const redirectTo = `${window.location.origin}/reset-password`;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const valid = parseOrThrow(RecuperarSenhaSchema, { email });
+      setLoading(true);
+      const redirectTo = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(valid.email, { redirectTo });
+      setLoading(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      setSent(true);
+      toast.success("Enviamos um link para redefinir sua senha.");
+    } catch (err) {
+      setLoading(false);
+      toast.error((err as Error).message);
     }
-    setSent(true);
-    toast.success("Enviamos um link para redefinir sua senha.");
   }
 
   return (
@@ -39,7 +46,7 @@ function RecuperarSenhaPage() {
           <div className="bg-primary rounded-md p-1.5">
             <Wrench className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div className="font-display font-bold text-lg">MecânicoPRO</div>
+          <div className="font-display font-bold text-lg">OficinaPRO</div>
         </div>
         <h1 className="text-xl font-bold mb-1">Recuperar senha</h1>
         {sent ? (

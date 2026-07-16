@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { EmptyState } from "@/components/EmptyState";
 import { formatBRL, formatDate, formatOSNumber } from "@/lib/format";
-import { CATEGORY_GROUPS, getGroupLabel } from "@/lib/service-categories";
+import { CATEGORY_GROUPS, getGroupLabel, isSubCategoryOf } from "@/lib/service-categories";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/os/")({ component: OSList });
@@ -31,24 +31,24 @@ function OSList() {
   const [q, setQ] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
 
-  const filtered = useMemo(() => (orders ?? []).filter((o) => {
-    if (filter !== "todas" && o.status !== filter) return false;
-    if (catFilter !== "todas") {
-      const group = CATEGORY_GROUPS.find((g) => g.key === catFilter);
-      if (!group) return false;
-      const vals = group.subcategories.map((s) => s.value);
-      const osCat = (o as { categoria?: string | null }).categoria;
-      if (!osCat || !vals.includes(osCat as never)) return false;
-    }
-    if (q) {
-      const s = q.toLowerCase();
-      const placa = o.vehicles?.placa?.toLowerCase() ?? "";
-      const cliente = o.clients?.nome?.toLowerCase() ?? "";
-      const num = String(o.numero);
-      if (!placa.includes(s) && !cliente.includes(s) && !num.includes(s)) return false;
-    }
-    return true;
-  }), [orders, filter, catFilter, q]);
+  const filtered = useMemo(
+    () =>
+      (orders ?? []).filter((o) => {
+        if (filter !== "todas" && o.status !== filter) return false;
+        if (catFilter !== "todas") {
+          if (!isSubCategoryOf(catFilter, o.categoria)) return false;
+        }
+        if (q) {
+          const s = q.toLowerCase();
+          const placa = o.vehicles?.placa?.toLowerCase() ?? "";
+          const cliente = o.clients?.nome?.toLowerCase() ?? "";
+          const num = String(o.numero);
+          if (!placa.includes(s) && !cliente.includes(s) && !num.includes(s)) return false;
+        }
+        return true;
+      }),
+    [orders, filter, catFilter, q],
+  );
 
   const virtualizer = useWindowVirtualizer({
     count: filtered.length,
@@ -87,7 +87,7 @@ function OSList() {
               "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors",
               filter === f.value
                 ? "bg-secondary text-secondary-foreground border-secondary"
-                : "bg-background text-foreground border-border"
+                : "bg-background text-foreground border-border",
             )}
           >
             {f.label}
@@ -102,7 +102,7 @@ function OSList() {
             "shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
             catFilter === "todas"
               ? "bg-primary text-primary-foreground border-primary"
-              : "bg-background text-foreground border-border"
+              : "bg-background text-foreground border-border",
           )}
         >
           Todas categorias
@@ -115,7 +115,7 @@ function OSList() {
               "shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
               catFilter === g.key
                 ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background text-foreground border-border"
+                : "bg-background text-foreground border-border",
             )}
           >
             {g.label}

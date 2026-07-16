@@ -1,5 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Edit, MessageCircle, RefreshCw, CheckCircle2, DollarSign, Trash2, FileText, Star, TrendingUp } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  MessageCircle,
+  RefreshCw,
+  CheckCircle2,
+  DollarSign,
+  Trash2,
+  FileText,
+  Star,
+  TrendingUp,
+} from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,20 +41,10 @@ import {
 } from "@/hooks/usePayments";
 import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-import {
-  formatBRL,
-  formatDate,
-  formatDateTime,
-  formatOSNumber,
-  formatPhone,
-} from "@/lib/format";
-import {
-  buildWhatsappUrl,
-  renderAtualizacao,
-  renderOrcamento,
-  STATUS_LABEL,
-} from "@/lib/whatsapp";
+import { formatBRL, formatDate, formatDateTime, formatOSNumber, formatPhone } from "@/lib/format";
+import { buildWhatsappUrl, renderAtualizacao, renderOrcamento, STATUS_LABEL } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { baixarOrcamentoPDF } from "@/lib/pdf";
@@ -84,7 +85,7 @@ function OSDetail() {
   const pgtoStatus = paymentStatus(total, paid);
   const totalCusto = (os.service_order_parts ?? []).reduce(
     (s, p) => s + Number(p.custo_unitario || 0) * Number(p.quantidade || 0),
-    0
+    0,
   );
   const margem = total - totalCusto;
   const margemPct = total > 0 ? (margem / total) * 100 : 0;
@@ -111,7 +112,7 @@ function OSDetail() {
             total: Number(os.total_geral),
             previsao_entrega: os.previsao_entrega,
           },
-          workshop
+          workshop,
         )
       : "";
 
@@ -156,7 +157,7 @@ function OSDetail() {
         total_pecas: Number(os.total_pecas),
         total_geral: Number(os.total_geral),
       },
-      workshop
+      workshop,
     );
     toast.success("PDF gerado");
   };
@@ -180,15 +181,15 @@ function OSDetail() {
                   servicos: [],
                   pecas: [],
                   total: 0,
-                  status: STATUS_LABEL[s],
+                  status: s,
                 },
-                workshop
-              )
+                workshop,
+              ),
             );
             window.open(url, "_blank");
           }
         },
-      }
+      },
     );
   };
 
@@ -218,7 +219,7 @@ function OSDetail() {
           setPayOpen(false);
         },
         onError: () => toast.error("Erro ao registrar pagamento"),
-      }
+      },
     );
   };
 
@@ -268,9 +269,7 @@ function OSDetail() {
           <div>
             <div className="text-xs text-muted-foreground">Cliente</div>
             <div className="font-bold">{os.clients?.nome}</div>
-            <div className="text-sm text-muted-foreground">
-              {formatPhone(os.clients?.telefone)}
-            </div>
+            <div className="text-sm text-muted-foreground">{formatPhone(os.clients?.telefone)}</div>
           </div>
           <WhatsAppButton phone={os.clients?.telefone ?? ""} />
         </div>
@@ -315,7 +314,7 @@ function OSDetail() {
           <h3 className="font-bold flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-money" /> Pagamentos
           </h3>
-          <PgtoTag status={pgtoStatus} />
+          <PaymentStatusBadge status={pgtoStatus} />
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-center mb-3">
@@ -398,9 +397,7 @@ function OSDetail() {
         )}
         <div className="flex justify-between">
           <span className="text-muted-foreground">Pagamento:</span>
-          <span className="capitalize">
-            {os.forma_pagamento?.replace("_", " ") ?? "—"}
-          </span>
+          <span className="capitalize">{os.forma_pagamento?.replace("_", " ") ?? "—"}</span>
         </div>
         {os.nota_satisfacao != null && (
           <div className="flex justify-between items-center">
@@ -413,7 +410,7 @@ function OSDetail() {
                     "h-3.5 w-3.5",
                     i < (os.nota_satisfacao ?? 0)
                       ? "fill-primary text-primary"
-                      : "text-muted-foreground/40"
+                      : "text-muted-foreground/40",
                   )}
                 />
               ))}
@@ -527,24 +524,5 @@ function OSDetail() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function PgtoTag({ status }: { status: "pago" | "parcial" | "aberto" }) {
-  const map = {
-    pago: "bg-status-delivered text-status-delivered-foreground",
-    parcial: "bg-status-progress text-status-progress-foreground",
-    aberto: "bg-status-cancel text-status-cancel-foreground",
-  };
-  const label = { pago: "Pago", parcial: "Parcial", aberto: "Em aberto" };
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
-        map[status]
-      )}
-    >
-      {label[status]}
-    </span>
   );
 }

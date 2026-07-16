@@ -16,7 +16,7 @@ export function useReturnAlerts() {
         supabase
           .from("clients")
           .select(
-            "id, nome, telefone, service_orders!inner(id, data_entrada, vehicles(placa, marca, modelo), service_order_services(descricao))"
+            "id, nome, telefone, service_orders!inner(id, data_entrada, vehicles(placa, marca, modelo), service_order_services(descricao))",
           )
           .eq("workshop_id", getCurrentWorkshopId())
           .lt("service_orders.data_entrada", cutoffIso),
@@ -30,7 +30,7 @@ export function useReturnAlerts() {
       const dismissedSet = new Set(
         (dismissed ?? [])
           .filter((d) => now - new Date(d.dispensado_em).getTime() < DISMISS_TTL_MS)
-          .map((d) => d.client_id)
+          .map((d) => d.client_id),
       );
 
       const alerts: {
@@ -44,12 +44,14 @@ export function useReturnAlerts() {
 
       for (const c of clients ?? []) {
         if (dismissedSet.has(c.id)) continue;
-        const orders = (c.service_orders ?? []).slice().sort(
-          (a, b) => new Date(b.data_entrada).getTime() - new Date(a.data_entrada).getTime()
-        );
+        const orders = (c.service_orders ?? [])
+          .slice()
+          .sort((a, b) => new Date(b.data_entrada).getTime() - new Date(a.data_entrada).getTime());
         if (!orders.length) continue;
         const last = orders[0];
-        const dias = Math.floor((now - new Date(last.data_entrada).getTime()) / (24 * 60 * 60 * 1000));
+        const dias = Math.floor(
+          (now - new Date(last.data_entrada).getTime()) / (24 * 60 * 60 * 1000),
+        );
         if (now - new Date(last.data_entrada).getTime() < NINETY_DAYS_MS) continue;
         alerts.push({
           clientId: c.id,

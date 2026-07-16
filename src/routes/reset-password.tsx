@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { ResetPasswordSchema, parseOrThrow } from "@/lib/schemas";
 
 export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
-  head: () => ({ meta: [{ title: "Nova senha — MecânicoPRO" }] }),
+  head: () => ({ meta: [{ title: "Nova senha — OficinaPRO" }] }),
 });
 
 function ResetPasswordPage() {
@@ -21,23 +22,21 @@ function ResetPasswordPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("A senha precisa ter pelo menos 6 caracteres");
-      return;
+    try {
+      const valid = parseOrThrow(ResetPasswordSchema, { password, confirm });
+      setLoading(true);
+      const { error } = await supabase.auth.updateUser({ password: valid.password });
+      setLoading(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Senha atualizada! Faça login com a nova senha.");
+      navigate({ to: "/login" });
+    } catch (err) {
+      setLoading(false);
+      toast.error((err as Error).message);
     }
-    if (password !== confirm) {
-      toast.error("As senhas não coincidem");
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Senha atualizada! Faça login com a nova senha.");
-    navigate({ to: "/login" });
   }
 
   return (
@@ -47,7 +46,7 @@ function ResetPasswordPage() {
           <div className="bg-primary rounded-md p-1.5">
             <Wrench className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div className="font-display font-bold text-lg">MecânicoPRO</div>
+          <div className="font-display font-bold text-lg">OficinaPRO</div>
         </div>
         <h1 className="text-xl font-bold mb-1">Nova senha</h1>
         <p className="text-sm text-muted-foreground mb-5">Defina sua nova senha de acesso.</p>
@@ -57,7 +56,7 @@ function ResetPasswordPage() {
             <Input
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -68,7 +67,7 @@ function ResetPasswordPage() {
             <Input
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               autoComplete="new-password"

@@ -9,12 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  useWorkshop,
-  useUpdateWorkshop,
-  useUploadLogo,
-  useRemoveLogo,
-} from "@/hooks/useWorkshop";
+import { useWorkshop, useUpdateWorkshop, useUploadLogo, useRemoveLogo } from "@/hooks/useWorkshop";
 import { toast } from "sonner";
 import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { TeamSection } from "@/components/TeamSection";
@@ -170,7 +165,11 @@ function Configuracoes() {
               toast.error(result.error.issues[0].message);
               return;
             }
-            save({ nome: result.data.nome, telefone: result.data.telefone, endereco: result.data.endereco });
+            save({
+              nome: result.data.nome,
+              telefone: result.data.telefone,
+              endereco: result.data.endereco,
+            });
           }}
         >
           Salvar
@@ -180,8 +179,8 @@ function Configuracoes() {
       <Card className="p-4 space-y-3">
         <h2 className="font-bold">Mensagens do WhatsApp</h2>
         <p className="text-xs text-muted-foreground">
-          Variáveis: {"{cliente}"} {"{veiculo}"} {"{placa}"} {"{numero}"} {"{itens}"}{" "}
-          {"{total}"} {"{previsao}"} {"{status}"} {"{oficina}"}
+          Variáveis: {"{cliente}"} {"{veiculo}"} {"{placa}"} {"{numero}"} {"{itens}"} {"{total}"}{" "}
+          {"{previsao}"} {"{status}"} {"{oficina}"}
         </p>
         <div>
           <Label>Orçamento</Label>
@@ -221,6 +220,39 @@ function Configuracoes() {
       </Card>
 
       <TeamSection />
+
+      <Card className="space-y-3 p-4">
+        <h2 className="font-bold">Playbook OficinaPRO</h2>
+        {workshop?.playbook_unlocked_at ? (
+          <p className="text-sm text-muted-foreground">
+            Materiais liberados. Acesse pelo menu <strong>Playbook</strong>.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Já comprou o Playbook no diagnóstico? Libere os PDFs neste sistema
+              (até o pagamento automático estar ligado).
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={update.isPending}
+              onClick={async () => {
+                try {
+                  await update.mutateAsync({
+                    playbook_unlocked_at: new Date().toISOString(),
+                  });
+                  toast.success("Playbook liberado no menu!");
+                } catch (err) {
+                  toast.error((err as Error).message);
+                }
+              }}
+            >
+              Já comprei o Playbook — liberar materiais
+            </Button>
+          </>
+        )}
+      </Card>
 
       <Card className="p-4 space-y-2">
         <h2 className="font-bold">Assinatura</h2>

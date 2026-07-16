@@ -13,6 +13,8 @@ import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as QuizRouteImport } from './routes/quiz'
+import { Route as PlaybookRouteImport } from './routes/playbook'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
@@ -51,6 +53,16 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
 const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuizRoute = QuizRouteImport.update({
+  id: '/quiz',
+  path: '/quiz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaybookRoute = PlaybookRouteImport.update({
+  id: '/playbook',
+  path: '/playbook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -159,6 +171,8 @@ export interface FileRoutesByFullPath {
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/playbook': typeof PlaybookRoute
+  '/quiz': typeof QuizRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -184,6 +198,8 @@ export interface FileRoutesByTo {
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/playbook': typeof PlaybookRoute
+  '/quiz': typeof QuizRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -210,6 +226,8 @@ export interface FileRoutesById {
   '/financeiro': typeof FinanceiroRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/playbook': typeof PlaybookRoute
+  '/quiz': typeof QuizRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/relatorios': typeof RelatoriosRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -237,6 +255,8 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/login'
     | '/onboarding'
+    | '/playbook'
+    | '/quiz'
     | '/recuperar-senha'
     | '/relatorios'
     | '/reset-password'
@@ -262,6 +282,8 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/login'
     | '/onboarding'
+    | '/playbook'
+    | '/quiz'
     | '/recuperar-senha'
     | '/relatorios'
     | '/reset-password'
@@ -287,6 +309,8 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/login'
     | '/onboarding'
+    | '/playbook'
+    | '/quiz'
     | '/recuperar-senha'
     | '/relatorios'
     | '/reset-password'
@@ -313,6 +337,8 @@ export interface RootRouteChildren {
   FinanceiroRoute: typeof FinanceiroRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PlaybookRoute: typeof PlaybookRoute
+  QuizRoute: typeof QuizRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -356,6 +382,20 @@ declare module '@tanstack/react-router' {
       path: '/recuperar-senha'
       fullPath: '/recuperar-senha'
       preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quiz': {
+      id: '/quiz'
+      path: '/quiz'
+      fullPath: '/quiz'
+      preLoaderRoute: typeof QuizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playbook': {
+      id: '/playbook'
+      path: '/playbook'
+      fullPath: '/playbook'
+      preLoaderRoute: typeof PlaybookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -515,6 +555,8 @@ const rootRouteChildren: RootRouteChildren = {
   FinanceiroRoute: FinanceiroRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PlaybookRoute: PlaybookRoute,
+  QuizRoute: QuizRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResetPasswordRoute: ResetPasswordRoute,

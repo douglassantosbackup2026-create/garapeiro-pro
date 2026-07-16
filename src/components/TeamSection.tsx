@@ -13,12 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  createInvite,
-  listMembers,
-  removeMember,
-  revokeInvite,
-} from "@/lib/workshop.functions";
+import { createInvite, listMembers, removeMember, revokeInvite } from "@/lib/workshop.functions";
+import { CreateInviteSchema, parseOrThrow } from "@/lib/schemas";
 import { useAuth } from "@/hooks/useAuth";
 
 export function TeamSection() {
@@ -33,9 +29,7 @@ export function TeamSection() {
     queryFn: () => listMembers(),
   });
 
-  const isOwner = (data?.members ?? []).some(
-    (m) => m.id === user?.id && m.roles.includes("dono"),
-  );
+  const isOwner = (data?.members ?? []).some((m) => m.id === user?.id && m.roles.includes("dono"));
 
   if (isLoading) {
     return (
@@ -53,15 +47,17 @@ export function TeamSection() {
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
-    const normalized = email.trim().toLowerCase();
-    if (!normalized) return;
-    if (pendingEmails.has(normalized)) {
-      toast.error("Já existe um convite pendente para este e-mail.");
-      return;
-    }
-    setInviting(true);
     try {
-      const inv = await createInvite({ data: { email: normalized, role } });
+      const { email: normalized, role: inviteRole } = parseOrThrow(CreateInviteSchema, {
+        email: email.trim().toLowerCase(),
+        role,
+      });
+      if (pendingEmails.has(normalized)) {
+        toast.error("Já existe um convite pendente para este e-mail.");
+        return;
+      }
+      setInviting(true);
+      const inv = await createInvite({ data: { email: normalized, role: inviteRole } });
       const link = `${window.location.origin}/convite/${inv.token}`;
       await navigator.clipboard.writeText(link);
       toast.success("Convite criado! Link copiado para a área de transferência.");
@@ -144,9 +140,7 @@ export function TeamSection() {
               >
                 <div>
                   <span className="font-medium">{m.nome ?? "Sem nome"}</span>
-                  <span className="text-muted-foreground ml-2">
-                    {m.roles.join(", ") || "—"}
-                  </span>
+                  <span className="text-muted-foreground ml-2">{m.roles.join(", ") || "—"}</span>
                 </div>
                 {m.id !== user?.id && (
                   <Button

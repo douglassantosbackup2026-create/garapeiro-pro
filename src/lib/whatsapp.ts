@@ -23,7 +23,7 @@ export type OSForMessage = {
   pecas: { nome: string; quantidade: number; valor_total: number }[];
   total: number;
   previsao_entrega?: string | null;
-  status?: string;
+  status?: OSStatus;
 };
 
 function renderItens(os: OSForMessage): string {
@@ -65,12 +65,13 @@ export function renderOrcamento(os: OSForMessage, workshop: Workshop): string {
 
 export function renderAtualizacao(os: OSForMessage, workshop: Workshop): string {
   const tpl = workshop.mensagem_atualizacao || DEFAULT_ATUALIZACAO;
+  const statusLabel = os.status ? STATUS_LABEL[os.status] : "";
   return tpl
     .replaceAll("{cliente}", os.cliente_nome)
     .replaceAll("{veiculo}", os.veiculo)
     .replaceAll("{placa}", os.placa)
     .replaceAll("{numero}", formatOSNumber(os.numero))
-    .replaceAll("{status}", os.status || "")
+    .replaceAll("{status}", statusLabel)
     .replaceAll("{oficina}", workshop.nome);
 }
 
@@ -78,7 +79,7 @@ export function renderRetorno(
   cliente: string,
   veiculo: string,
   placa: string,
-  workshop: Workshop
+  workshop: Workshop,
 ): string {
   const tpl = workshop.mensagem_retorno || DEFAULT_RETORNO;
   return tpl

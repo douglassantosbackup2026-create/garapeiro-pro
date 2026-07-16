@@ -1,5 +1,9 @@
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import type { Enums } from "@/integrations/supabase/types";
+import type { CreateInviteInput, AcceptInviteInput } from "@/lib/schemas";
+
+type AppRole = Enums<"app_role">;
 
 async function parseInvokeError(error: unknown): Promise<string> {
   if (error instanceof FunctionsHttpError) {
@@ -36,26 +40,27 @@ export const createWorkshop = ({
   };
 }) => invoke<{ workshopId: string }>("createWorkshop", data);
 
-export const createInvite = ({
-  data,
-}: {
-  data: { email: string; role?: "dono" | "mecanico" };
-}) =>
-  invoke<{ id: string; token: string; email: string; role: string; expires_at: string }>(
+export const createInvite = ({ data }: { data: CreateInviteInput }) =>
+  invoke<{ id: string; token: string; email: string; role: AppRole; expires_at: string }>(
     "createInvite",
     data,
   );
 
-export const acceptInvite = ({ data }: { data: { token: string } }) =>
+export const acceptInvite = ({ data }: { data: AcceptInviteInput }) =>
   invoke<{ workshopId: string }>("acceptInvite", data);
 
 export const listMembers = () =>
   invoke<{
-    members: Array<{ id: string; nome: string | null; avatar_url: string | null; roles: string[] }>;
+    members: Array<{
+      id: string;
+      nome: string | null;
+      avatar_url: string | null;
+      roles: AppRole[];
+    }>;
     invites: Array<{
       id: string;
       email: string;
-      role: string;
+      role: AppRole;
       token: string;
       expires_at: string;
       used_at: string | null;

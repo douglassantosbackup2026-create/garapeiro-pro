@@ -74,9 +74,9 @@ function VehicleDetail() {
 
   if (isLoading || !v) return <div className="p-8 text-center">Carregando...</div>;
 
-  const orders = (v.service_orders ?? []).slice().sort(
-    (a, b) => new Date(b.data_entrada).getTime() - new Date(a.data_entrada).getTime()
-  );
+  const orders = (v.service_orders ?? [])
+    .slice()
+    .sort((a, b) => new Date(b.data_entrada).getTime() - new Date(a.data_entrada).getTime());
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-2xl mx-auto">
@@ -107,9 +107,7 @@ function VehicleDetail() {
           </div>
           {(v.km_proxima_revisao || v.data_ultima_revisao) && (
             <div className="text-muted-foreground pt-1 border-t mt-2">
-              {v.km_proxima_revisao && (
-                <div>🔧 Próxima revisão: {v.km_proxima_revisao} km</div>
-              )}
+              {v.km_proxima_revisao && <div>🔧 Próxima revisão: {v.km_proxima_revisao} km</div>}
               {v.data_ultima_revisao && (
                 <div>
                   Última revisão: {formatDate(v.data_ultima_revisao)} · a cada{" "}
@@ -125,9 +123,7 @@ function VehicleDetail() {
         <div>
           <div className="text-xs text-muted-foreground">Proprietário</div>
           <div className="font-bold">{v.clients?.nome}</div>
-          <div className="text-sm text-muted-foreground">
-            {formatPhone(v.clients?.telefone)}
-          </div>
+          <div className="text-sm text-muted-foreground">{formatPhone(v.clients?.telefone)}</div>
         </div>
         <WhatsAppButton phone={v.clients?.telefone ?? ""} />
       </Card>
@@ -141,12 +137,7 @@ function VehicleDetail() {
         <div className="relative pl-5 space-y-3">
           <div className="absolute left-1.5 top-2 bottom-2 w-px bg-border" />
           {orders.map((o) => (
-            <Link
-              key={o.id}
-              to="/os/$osId"
-              params={{ osId: o.id }}
-              className="block relative"
-            >
+            <Link key={o.id} to="/os/$osId" params={{ osId: o.id }} className="block relative">
               <div className="absolute -left-[18px] top-3 h-3 w-3 rounded-full bg-primary border-2 border-background" />
               <Card className="p-3 hover:border-primary">
                 <div className="flex items-center gap-2 mb-1">
@@ -161,20 +152,14 @@ function VehicleDetail() {
                 <div className="text-sm">
                   {(o.service_order_services ?? []).map((s) => s.descricao).join(", ") || "—"}
                 </div>
-                <div className="text-money font-bold text-sm mt-1">
-                  {formatBRL(o.total_geral)}
-                </div>
+                <div className="text-money font-bold text-sm mt-1">{formatBRL(o.total_geral)}</div>
               </Card>
             </Link>
           ))}
         </div>
       )}
 
-      <Button
-        size="lg"
-        className="w-full mt-5 gap-1"
-        onClick={() => navigate({ to: "/os/nova" })}
-      >
+      <Button size="lg" className="w-full mt-5 gap-1" onClick={() => navigate({ to: "/os/nova" })}>
         <Plus className="h-4 w-4" /> Nova OS para este veículo
       </Button>
 
@@ -195,11 +180,7 @@ function VehicleDetail() {
               </div>
               <div>
                 <Label>Ano</Label>
-                <Input
-                  type="number"
-                  value={ano}
-                  onChange={(e) => setAno(e.target.value)}
-                />
+                <Input type="number" value={ano} onChange={(e) => setAno(e.target.value)} />
               </div>
               <div>
                 <Label>Cor</Label>
@@ -207,19 +188,11 @@ function VehicleDetail() {
               </div>
               <div>
                 <Label>KM atual</Label>
-                <Input
-                  type="number"
-                  value={km}
-                  onChange={(e) => setKm(e.target.value)}
-                />
+                <Input type="number" value={km} onChange={(e) => setKm(e.target.value)} />
               </div>
               <div>
                 <Label>KM próxima revisão</Label>
-                <Input
-                  type="number"
-                  value={kmProx}
-                  onChange={(e) => setKmProx(e.target.value)}
-                />
+                <Input type="number" value={kmProx} onChange={(e) => setKmProx(e.target.value)} />
               </div>
               <div>
                 <Label>Data última revisão</Label>

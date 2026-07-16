@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  daysBetween,
-  formatBRL,
-  formatOSNumber,
-  formatPhone,
-} from "./format";
+import { daysBetween, formatBRL, formatOSNumber, formatPhone } from "./format";
 
 describe("formatBRL", () => {
   it("formata valores em reais", () => {

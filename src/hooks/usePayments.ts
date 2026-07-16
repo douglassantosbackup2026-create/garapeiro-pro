@@ -1,18 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentWorkshopId } from "@/lib/workshop";
-import type { Database } from "@/integrations/supabase/types";
+import { parseOrThrow, PaymentSchema, type PaymentInput } from "@/lib/schemas";
+import type { Tables, Enums } from "@/integrations/supabase/types";
 
-export type FormaPagamento = Database["public"]["Enums"]["forma_pagamento"];
-
-export type Payment = {
-  id: string;
-  service_order_id: string;
-  valor: number;
-  forma_pagamento: FormaPagamento | null;
-  observacao: string | null;
-  recebido_em: string;
-};
+export type FormaPagamento = Enums<"forma_pagamento">;
+export type Payment = Tables<"payments">;
 
 export function usePaymentsByOS(osId: string | undefined) {
   return useQuery({
@@ -27,7 +20,7 @@ export function usePaymentsByOS(osId: string | undefined) {
         .eq("service_order_id", osId!)
         .order("recebido_em", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Payment[];
+      return data ?? [];
     },
   });
 }
@@ -56,18 +49,14 @@ export function useAllPayments() {
 export function useAddPayment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: {
-      service_order_id: string;
-      valor: number;
-      forma_pagamento?: FormaPagamento | null;
-      observacao?: string | null;
-    }) => {
+    mutationFn: async (input: PaymentInput) => {
+      const valid = parseOrThrow(PaymentSchema, input);
       const { error } = await supabase.from("payments").insert({
         workshop_id: getCurrentWorkshopId(),
-        service_order_id: input.service_order_id,
-        valor: input.valor,
-        forma_pagamento: input.forma_pagamento ?? null,
-        observacao: input.observacao ?? null,
+        service_order_id: valid.service_order_id,
+        valor: valid.valor,
+        forma_pagamento: valid.forma_pagamento ?? null,
+        observacao: valid.observacao ?? null,
       });
       if (error) throw error;
     },

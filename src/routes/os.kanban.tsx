@@ -39,15 +39,33 @@ const COLUMNS: { status: OSStatus; label: string; tone: ColumnTone }[] = [
   { status: "cancelado", label: "Cancelado", tone: "border-status-cancel" },
 ];
 
+type OSListItem = NonNullable<ReturnType<typeof useServiceOrders>["data"]>[number];
+
 type OSItem = {
   id: string;
   numero: number;
   status: OSStatus;
-  total_geral: number | string;
+  total_geral: number;
   data_entrada: string;
   clients: { nome: string } | null;
   vehicles: { placa: string } | null;
 };
+
+function toKanbanItem(o: OSListItem): OSItem {
+  return {
+    id: o.id,
+    numero: o.numero,
+    status: o.status,
+    total_geral: Number(o.total_geral),
+    data_entrada: o.data_entrada,
+    clients: o.clients,
+    vehicles: o.vehicles,
+  };
+}
+
+function isOSStatus(value: string | number): value is OSStatus {
+  return COLUMNS.some((c) => c.status === value);
+}
 
 function KanbanPage() {
   const { data: orders } = useServiceOrders();
@@ -57,48 +75,52 @@ function KanbanPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
   );
 
+  const items = useMemo(() => (orders ?? []).map(toKanbanItem), [orders]);
+
   const grouped = useMemo(() => {
-    const g: Record<OSStatus, OSItem[]> = {} as Record<OSStatus, OSItem[]>;
+    const g = {} as Record<OSStatus, OSItem[]>;
     for (const c of COLUMNS) g[c.status] = [];
-    for (const o of (orders ?? []) as OSItem[]) {
+    for (const o of items) {
       if (g[o.status]) g[o.status].push(o);
     }
     return g;
-  }, [orders]);
+  }, [items]);
 
-  const activeOS = useMemo(
-    () => ((orders ?? []) as OSItem[]).find((o) => o.id === activeId) ?? null,
-    [activeId, orders]
-  );
+  const activeOS = useMemo(() => items.find((o) => o.id === activeId) ?? null, [activeId, items]);
 
   const handleOpen = useCallback(
     (id: string) => navigate({ to: "/os/$osId", params: { osId: id } }),
-    [navigate]
+    [navigate],
   );
 
   const onDragStart = useCallback((e: DragStartEvent) => setActiveId(String(e.active.id)), []);
 
-  const onDragEnd = useCallback((e: DragEndEvent) => {
-    setActiveId(null);
-    if (!e.over) return;
-    const newStatus = e.over.id as OSStatus;
-    const id = String(e.active.id);
-    const os = ((orders ?? []) as OSItem[]).find((o) => o.id === id);
-    if (!os || os.status === newStatus) return;
-    update.mutate(
-      { id, status: newStatus },
-      {
-        onSuccess: () => {
-          const label = COLUMNS.find((c) => c.status === newStatus)?.label ?? newStatus;
-          toast.success(`OS movida para ${label}`);
+  const onDragEnd = useCallback(
+    (e: DragEndEvent) => {
+      setActiveId(null);
+      if (!e.over) return;
+      const overId = String(e.over.id);
+      if (!isOSStatus(overId)) return;
+      const newStatus = overId;
+      const id = String(e.active.id);
+      const os = items.find((o) => o.id === id);
+      if (!os || os.status === newStatus) return;
+      update.mutate(
+        { id, status: newStatus },
+        {
+          onSuccess: () => {
+            const label = COLUMNS.find((c) => c.status === newStatus)?.label ?? newStatus;
+            toast.success(`OS movida para ${label}`);
+          },
+          onError: () => toast.error("Não consegui mover a OS"),
         },
-        onError: () => toast.error("Não consegui mover a OS"),
-      }
-    );
-  }, [orders, update]);
+      );
+    },
+    [items, update],
+  );
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-[1400px] mx-auto">
@@ -135,9 +157,7 @@ function KanbanPage() {
             />
           ))}
         </div>
-        <DragOverlay>
-          {activeOS ? <KanbanCard os={activeOS} dragging /> : null}
-        </DragOverlay>
+        <DragOverlay>{activeOS ? <KanbanCard os={activeOS} dragging /> : null}</DragOverlay>
       </DndContext>
     </div>
   );
@@ -171,7 +191,7 @@ const Column = memo(function Column({ status, label, tone, items, onOpen }: Colu
       className={cn(
         "rounded-lg border-2 bg-card/40 p-2 min-h-[200px] min-w-[240px] shrink-0 transition-colors",
         tone,
-        isOver && "bg-accent/30"
+        isOver && "bg-accent/30",
       )}
     >
       <div className="flex items-center justify-between px-2 py-1.5 mb-2">
@@ -187,9 +207,7 @@ const Column = memo(function Column({ status, label, tone, items, onOpen }: Colu
         {items.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-6">Vazio</p>
         ) : (
-          items.map((o) => (
-            <DraggableCard key={o.id} os={o} onOpen={() => onOpen(o.id)} />
-          ))
+          items.map((o) => <DraggableCard key={o.id} os={o} onOpen={() => onOpen(o.id)} />)
         )}
       </div>
     </div>
@@ -204,10 +222,7 @@ const DraggableCard = memo(function DraggableCard({ os, onOpen }: DraggableCardP
       {...attributes}
       {...listeners}
       onClick={onOpen}
-      className={cn(
-        "cursor-grab active:cursor-grabbing",
-        isDragging && "opacity-30"
-      )}
+      className={cn("cursor-grab active:cursor-grabbing", isDragging && "opacity-30")}
     >
       <KanbanCard os={os} />
     </div>
@@ -220,7 +235,7 @@ const KanbanCard = memo(function KanbanCard({ os, dragging }: KanbanCardProps) {
     <div
       className={cn(
         "rounded-md bg-card border p-2.5 shadow-sm",
-        dragging && "shadow-lg ring-2 ring-primary"
+        dragging && "shadow-lg ring-2 ring-primary",
       )}
     >
       <div className="flex items-center gap-2 mb-1.5">
@@ -235,7 +250,7 @@ const KanbanCard = memo(function KanbanCard({ os, dragging }: KanbanCardProps) {
         <span
           className={cn(
             "text-[11px] text-muted-foreground",
-            dias > 7 && "text-destructive font-semibold"
+            dias > 7 && "text-destructive font-semibold",
           )}
         >
           {dias === 0 ? "hoje" : `${dias}d`}

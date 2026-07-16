@@ -36,18 +36,14 @@ export function PartCombobox({ value, inventoryId, onPick, onTypeChange }: Props
 
   const selected: Part | undefined = useMemo(
     () => parts?.find((p) => p.id === inventoryId),
-    [parts, inventoryId]
+    [parts, inventoryId],
   );
 
   const filteredParts = useMemo(() => {
     if (!query) return (parts ?? []).slice(0, 30);
     const q = query.toLowerCase();
     return (parts ?? [])
-      .filter(
-        (p) =>
-          p.nome.toLowerCase().includes(q) ||
-          (p.codigo ?? "").toLowerCase().includes(q)
-      )
+      .filter((p) => p.nome.toLowerCase().includes(q) || (p.codigo ?? "").toLowerCase().includes(q))
       .slice(0, 30);
   }, [parts, query]);
 
@@ -63,7 +59,7 @@ export function PartCombobox({ value, inventoryId, onPick, onTypeChange }: Props
       setOpen(false);
       setQuery("");
     },
-    [onPick]
+    [onPick],
   );
 
   const handleFreeText = useCallback(() => {
@@ -124,36 +120,32 @@ export function PartCombobox({ value, inventoryId, onPick, onTypeChange }: Props
             </CommandEmpty>
             <CommandGroup>
               {filteredParts.map((p) => {
-                  const isSel = p.id === inventoryId;
-                  const baixo =
-                    Number(p.estoque_minimo) > 0 &&
-                    Number(p.quantidade) <= Number(p.estoque_minimo);
-                  return (
-                    <CommandItem
-                      key={p.id}
-                      value={p.id}
-                      onSelect={() => handleSelect(p)}
-                      className="flex items-start gap-2"
-                    >
-                      <Check
-                        className={cn(
-                          "h-4 w-4 mt-0.5 shrink-0",
-                          isSel ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{p.nome}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatBRL(p.preco_venda)} ·{" "}
-                          <span className={cn(baixo && "text-destructive font-semibold")}>
-                            {Number(p.quantidade)} {p.unidade}
-                          </span>
-                          {p.codigo ? ` · #${p.codigo}` : ""}
-                        </div>
+                const isSel = p.id === inventoryId;
+                const baixo =
+                  Number(p.estoque_minimo) > 0 && Number(p.quantidade) <= Number(p.estoque_minimo);
+                return (
+                  <CommandItem
+                    key={p.id}
+                    value={p.id}
+                    onSelect={() => handleSelect(p)}
+                    className="flex items-start gap-2"
+                  >
+                    <Check
+                      className={cn("h-4 w-4 mt-0.5 shrink-0", isSel ? "opacity-100" : "opacity-0")}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{p.nome}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatBRL(p.preco_venda)} ·{" "}
+                        <span className={cn(baixo && "text-destructive font-semibold")}>
+                          {Number(p.quantidade)} {p.unidade}
+                        </span>
+                        {p.codigo ? ` · #${p.codigo}` : ""}
                       </div>
-                    </CommandItem>
-                  );
-                })}
+                    </div>
+                  </CommandItem>
+                );
+              })}
               {query && (
                 <CommandItem value="__free" onSelect={handleFreeText} className="text-primary">
                   + Usar “{query}” como peça avulsa

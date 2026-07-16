@@ -1,56 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { SmartAlertSchema, type SmartAlert } from "@/lib/schemas";
 
-export type SmartAlert =
-  | {
-      tipo: "retorno";
-      key: string;
-      clientId: string;
-      nome: string;
-      telefone: string;
-      diasSemVisita: number;
-      veiculo: string | null;
-      placa: string | null;
-    }
-  | {
-      tipo: "revisao_km";
-      key: string;
-      clientId: string;
-      nome: string;
-      telefone: string;
-      veiculo: string;
-      placa: string;
-      kmAtual: number;
-      kmProxima: number;
-    }
-  | {
-      tipo: "revisao_tempo";
-      key: string;
-      clientId: string;
-      nome: string;
-      telefone: string;
-      veiculo: string;
-      placa: string;
-      mesesDesde: number;
-    }
-  | {
-      tipo: "aniversario";
-      key: string;
-      clientId: string;
-      nome: string;
-      telefone: string;
-      diasParaAniversario: number;
-    }
-  | {
-      tipo: "satisfacao";
-      key: string;
-      clientId: string;
-      nome: string;
-      telefone: string;
-      osId: string;
-      osNumero: number;
-      diasDesdeEntrega: number;
-    };
+export type { SmartAlert };
+
+const SmartAlertsListSchema = z.array(SmartAlertSchema);
 
 export function useSmartAlerts() {
   return useQuery({
@@ -60,7 +15,12 @@ export function useSmartAlerts() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_smart_alerts");
       if (error) throw error;
-      return (data ?? []) as SmartAlert[];
+      const parsed = SmartAlertsListSchema.safeParse(data ?? []);
+      if (!parsed.success) {
+        console.error("[smart_alerts] invalid RPC payload", parsed.error);
+        return [] as SmartAlert[];
+      }
+      return parsed.data;
     },
   });
 }
