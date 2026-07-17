@@ -15,8 +15,10 @@ import {
 import { Plus, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useServiceOrders, useUpdateOSStatus, type OSStatus } from "@/hooks/useServiceOrders";
+import { useWorkshop } from "@/hooks/useWorkshop";
 import { PlacaBadge } from "@/components/PlacaBadge";
 import { formatBRL, formatOSNumber, daysBetween } from "@/lib/format";
+import { buildWhatsappUrl, renderAtualizacao } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -47,8 +49,8 @@ type OSItem = {
   status: OSStatus;
   total_geral: number;
   data_entrada: string;
-  clients: { nome: string } | null;
-  vehicles: { placa: string } | null;
+  clients: { nome: string; telefone?: string } | null;
+  vehicles: { placa: string; marca?: string | null; modelo?: string | null } | null;
 };
 
 function toKanbanItem(o: OSListItem): OSItem {
@@ -68,6 +70,7 @@ function isOSStatus(value: string | number): value is OSStatus {
 }
 
 function KanbanPage() {
+  const { data: workshop } = useWorkshop();
   const { data: orders } = useServiceOrders();
   const update = useUpdateOSStatus();
   const navigate = useNavigate();
@@ -114,12 +117,39 @@ function KanbanPage() {
           onSuccess: () => {
             const label = COLUMNS.find((c) => c.status === newStatus)?.label ?? newStatus;
             toast.success(`OS movida para ${label}`);
+            const phone = os.clients?.telefone;
+            if (phone && workshop) {
+              const veiculo = [os.vehicles?.marca, os.vehicles?.modelo].filter(Boolean).join(" ");
+              const url = buildWhatsappUrl(
+                phone,
+                renderAtualizacao(
+                  {
+                    numero: os.numero,
+                    cliente_nome: os.clients?.nome ?? "",
+                    veiculo,
+                    placa: os.vehicles?.placa ?? "",
+                    servicos: [],
+                    pecas: [],
+                    total: 0,
+                    status: newStatus,
+                  },
+                  workshop,
+                ),
+              );
+              toast("Avisar o cliente no WhatsApp?", {
+                action: {
+                  label: "Abrir WhatsApp",
+                  onClick: () => window.open(url, "_blank", "noopener,noreferrer"),
+                },
+                duration: 8000,
+              });
+            }
           },
           onError: () => toast.error("Não consegui mover a OS"),
         },
       );
     },
-    [items, update],
+    [items, update, workshop],
   );
 
   return (

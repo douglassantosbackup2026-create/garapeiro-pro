@@ -17,6 +17,7 @@ import {
 import { formatOSNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
+import { QueryErrorState } from "@/components/QueryErrorState";
 
 export const Route = createFileRoute("/os/$osId/editar")({ component: EditOS });
 
@@ -31,7 +32,7 @@ const PAGAMENTOS: { value: Database["public"]["Enums"]["forma_pagamento"]; label
 function EditOS() {
   const { osId } = Route.useParams();
   const navigate = useNavigate();
-  const { data: os, isLoading } = useServiceOrder(osId);
+  const { data: os, isLoading, isError, refetch } = useServiceOrder(osId);
   const update = useUpdateServiceOrder();
 
   const [servicos, setServicos] = useState<OSServicoInput[]>([]);
@@ -70,26 +71,39 @@ function EditOS() {
     setHydrated(true);
   }, [os, hydrated]);
 
-  if (isLoading || !os) {
+  if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Carregando…</div>;
+  }
+  if (isError || !os) {
+    return (
+      <QueryErrorState
+        message="Não foi possível carregar esta ordem de serviço."
+        onRetry={() => void refetch()}
+      />
+    );
   }
 
   const salvar = async () => {
     try {
-      await update.mutateAsync({
-        id: os.id,
-        previsao_entrega: previsao || null,
-        forma_pagamento: pagamento,
-        observacoes: observacoes || null,
-        vencimento_fiado: vencimento || null,
-        km_entrada: km ? Number(km) : null,
-        servicos,
-        pecas,
-      });
+      await update.mutateAsync(
+        {
+          id: os.id,
+          previsao_entrega: previsao || null,
+          forma_pagamento: pagamento,
+          observacoes: observacoes || null,
+          vencimento_fiado: vencimento || null,
+          km_entrada: km ? Number(km) : null,
+          servicos,
+          pecas,
+        },
+        {
+          onError: (e) => toast.error("Erro ao salvar: " + (e as Error).message),
+        },
+      );
       toast.success("OS atualizada");
       navigate({ to: "/os/$osId", params: { osId: os.id } });
-    } catch (e) {
-      toast.error("Erro ao salvar: " + (e as Error).message);
+    } catch {
+      // onError / MutationCache já notificou
     }
   };
 

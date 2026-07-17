@@ -15,6 +15,7 @@ type CadastroSearch = {
   redirect?: string;
   trial?: string;
   order?: string;
+  plano?: string;
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/cadastro")({
     redirect: asOptionalString(search.redirect),
     trial: asOptionalString(search.trial),
     order: asOptionalString(search.order),
+    plano: asOptionalString(search.plano),
     utm_source: asOptionalString(search.utm_source),
     utm_medium: asOptionalString(search.utm_medium),
     utm_campaign: asOptionalString(search.utm_campaign),
@@ -45,7 +47,7 @@ function SignupPage() {
   const navigate = useNavigate();
   const { adoptSession } = useAuth();
   const search = Route.useSearch();
-  const { redirect, trial, order } = search;
+  const { redirect, trial, order, plano } = search;
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,7 +56,14 @@ function SignupPage() {
 
   useEffect(() => {
     rememberPlaybookTrialFromSearch({ trial, order });
-  }, [trial, order]);
+    if (plano === "solo" || plano === "oficina") {
+      try {
+        localStorage.setItem("oficinapro-desired-plano", plano);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [trial, order, plano]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -85,11 +94,9 @@ function SignupPage() {
     }
     await adoptSession(data.session);
     toast.success("Conta criada! Vamos configurar sua oficina.");
-    if (redirect) {
-      navigate({ to: redirect });
-      return;
-    }
-    navigate({ to: "/onboarding" });
+    const safeRedirect =
+      redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : null;
+    navigate({ to: safeRedirect === "/onboarding" || !safeRedirect ? "/onboarding" : safeRedirect });
   }
 
   if (awaitingEmail) {

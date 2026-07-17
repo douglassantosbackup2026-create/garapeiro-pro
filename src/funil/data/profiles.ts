@@ -19,9 +19,9 @@ export const profiles: Record<ProfileId, Profile> = {
   "fuga-faturamento": {
     id: "fuga-faturamento",
     title: "Dinheiro vazando na oficina",
-    headline: "Sua oficina deixa dinheiro na mesa todo mês",
+    headline: "Sua oficina está deixando dinheiro na mesa todos os dias",
     description:
-      "Os sinais apontam pra vazamentos claros: poucos clientes novos de forma previsível, orçamentos sem cobrança e pouco retorno combinado. O Método ataca exatamente essas frentes.",
+      "Os sinais apontam pra vazamentos claros: poucos clientes novos de forma previsível, orçamentos sem cobrança e pouco retorno combinado. O gargalo não é “falta de serviço” — é falta de sistema.",
     opportunityLabel: "Alto potencial de recuperação",
     accent: "primary",
   },
@@ -30,7 +30,7 @@ export const profiles: Record<ProfileId, Profile> = {
     title: "Orçamento que esfria",
     headline: "Você atrai demanda, mas perde na hora de fechar",
     description:
-      "O gargalo está entre o orçamento e o serviço aprovado — e no valor que poderia ser maior. Com scripts, templates e um jeito simples de cobrar de novo, você fecha mais sem precisar de mais anúncio.",
+      "O gargalo está entre o orçamento e o serviço aprovado — e no valor que poderia ser maior. Com scripts, follow-up e um jeito simples de cobrar de novo, você fecha mais sem precisar de mais anúncio.",
     opportunityLabel: "Ganho rápido no fechamento",
     accent: "primary",
   },
@@ -39,7 +39,7 @@ export const profiles: Record<ProfileId, Profile> = {
     title: "Oficina que não escala",
     headline: "A operação segura o ritmo, mas não cresce",
     description:
-      "Dados espalhados e o dia a dia ainda consomem o dono. Sem rotina clara, as estratégias do Método não viram hábito. O próximo passo é organizar o básico pra crescer de verdade.",
+      "Você trabalha, mas sem sistema previsível: indicação some, cliente não volta e o mês fica no feeling. O próximo passo é organizar aquisição, cobrança e retorno pra o faturamento deixar de ser sorte.",
     opportunityLabel: "Pronto pra profissionalizar",
     accent: "money",
   },
@@ -48,7 +48,7 @@ export const profiles: Record<ProfileId, Profile> = {
     title: "Oficina no rumo",
     headline: "Base sólida — hora de acelerar com método",
     description:
-      "Você já faz muita coisa certa. O Método e os guias complementares servem pra padronizar o que funciona e liberar o próximo nível: mais parceria, ticket e previsibilidade.",
+      "Você já faz muita coisa certa. O Método serve pra padronizar o que funciona e liberar o próximo nível: mais parceria, ticket e previsibilidade — sem depender só do boca a boca.",
     opportunityLabel: "Otimização e escala",
     accent: "money",
   },

@@ -33,7 +33,7 @@ export const Route = createFileRoute("/quiz")({
       {
         name: "description",
         content:
-          "Diagnóstico gratuito: descubra quanto sua oficina deixa de faturar e receba o Playbook OficinaPRO com 50 estratégias.",
+          "Diagnóstico gratuito: descubra por que algumas oficinas vivem cheias e outras com o portão vazio — e o que travar o faturamento.",
       },
     ],
   }),

@@ -8,7 +8,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 /** CSP compartilhada — Mercado Pago/Libre Bricks + Supabase + gpteng */
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://sdk.mercadopago.com https://www.mercadopago.com https://http2.mlstatic.com",
+  "script-src 'self' 'unsafe-inline' https://cdn.gpteng.co https://sdk.mercadopago.com https://www.mercadopago.com https://http2.mlstatic.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.mlstatic.com https://*.mercadopago.com",
   "font-src 'self' data: https://fonts.gstatic.com https://cdn.gpteng.co https://*.mlstatic.com",
   "img-src 'self' data: blob: https://*.supabase.co https://cdn.gpteng.co https://*.mlstatic.com https://*.mercadopago.com https://*.mercadopago.com.br https://*.mercadolibre.com https://*.mercadolivre.com",
@@ -17,7 +17,7 @@ const CSP = [
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action *",
+  "form-action 'self' https://*.mercadopago.com https://*.mercadopago.com.br https://www.mercadopago.com",
 ].join("; ");
 
 export default defineConfig({

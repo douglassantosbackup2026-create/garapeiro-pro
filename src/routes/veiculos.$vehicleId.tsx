@@ -18,13 +18,14 @@ import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { formatBRL, formatDate, formatOSNumber, formatPhone } from "@/lib/format";
+import { QueryErrorState } from "@/components/QueryErrorState";
 
 export const Route = createFileRoute("/veiculos/$vehicleId")({ component: VehicleDetail });
 
 function VehicleDetail() {
   const { vehicleId } = Route.useParams();
   const navigate = useNavigate();
-  const { data: v, isLoading } = useVehicle(vehicleId);
+  const { data: v, isLoading, isError, refetch } = useVehicle(vehicleId);
   const updateVehicle = useUpdateVehicle();
   const [open, setOpen] = useState(false);
   const [marca, setMarca] = useState("");
@@ -67,12 +68,20 @@ function VehicleDetail() {
       });
       toast.success("Veículo atualizado");
       setOpen(false);
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch {
+      // MutationCache já notifica o usuário
     }
   }
 
-  if (isLoading || !v) return <div className="p-8 text-center">Carregando...</div>;
+  if (isLoading) return <div className="p-8 text-center">Carregando...</div>;
+  if (isError || !v) {
+    return (
+      <QueryErrorState
+        message="Não foi possível carregar este veículo."
+        onRetry={() => void refetch()}
+      />
+    );
+  }
 
   const orders = (v.service_orders ?? [])
     .slice()

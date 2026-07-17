@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
   type OSPecaInput,
   type OSServicoInput,
 } from "@/hooks/useServiceOrders";
+import { useUpdateAppointment } from "@/hooks/useAppointments";
 import { useServicesCatalog } from "@/hooks/useServicesCatalog";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { isValidPlate, lookupPlateMock, normalizePlate } from "@/lib/plate";
@@ -52,12 +53,14 @@ const PAGAMENTOS: { value: Database["public"]["Enums"]["forma_pagamento"]; label
 
 function NovaOS() {
   const navigate = useNavigate();
+  const { apptId, nomeCliente, telefone } = Route.useSearch();
   const { data: workshop } = useWorkshop();
   const { data: clients } = useClients();
   const lookupPlate = useVehicleByPlate();
   const createClient = useCreateClient();
   const createVehicle = useCreateVehicle();
   const createOS = useCreateServiceOrder();
+  const updateAppointment = useUpdateAppointment();
 
   const { data: catalog } = useServicesCatalog();
   const [step, setStep] = useState(1);
@@ -75,6 +78,32 @@ function NovaOS() {
   const [searchCliente, setSearchCliente] = useState("");
   const [showNovoCliente, setShowNovoCliente] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [prefillApplied, setPrefillApplied] = useState(false);
+
+  // Prefill from agenda → OS
+  useEffect(() => {
+    if (prefillApplied || (!nomeCliente && !telefone && !apptId)) return;
+    if (!clients) return;
+
+    const phoneDigits = (telefone ?? "").replace(/\D/g, "");
+    const match = clients.find((c) => {
+      if (phoneDigits && c.telefone.replace(/\D/g, "") === phoneDigits) return true;
+      if (nomeCliente && c.nome.toLowerCase() === nomeCliente.toLowerCase()) return true;
+      return false;
+    });
+
+    if (match) {
+      setClientId(match.id);
+    } else if (nomeCliente || telefone) {
+      setShowNovoCliente(true);
+      setNovoCliente({
+        nome: nomeCliente ?? "",
+        telefone: telefone ?? "",
+        email: "",
+      });
+    }
+    setPrefillApplied(true);
+  }, [apptId, nomeCliente, telefone, clients, prefillApplied]);
 
   // P2
   const [categoria, setCategoria] = useState<string>("");
@@ -192,6 +221,25 @@ function NovaOS() {
         pecas,
       });
 
+      if (apptId) {
+        try {
+          await updateAppointment.mutateAsync(
+            {
+              id: apptId,
+              status: "concluido",
+              os_id: os.id,
+              client_id: finalClientId,
+            },
+            {
+              onError: () =>
+                toast.warning("OS criada, mas não foi possível vincular o agendamento."),
+            },
+          );
+        } catch {
+          // onError já notificou
+        }
+      }
+
       toast.success(`OS ${formatOSNumber(os.numero)} criada!`);
 
       if (enviarWhats) {
@@ -218,13 +266,13 @@ function NovaOS() {
               workshop,
             ),
           );
-          window.open(url, "_blank");
+          window.open(url, "_blank", "noopener,noreferrer");
         }
       }
 
       navigate({ to: "/os/$osId", params: { osId: os.id } });
-    } catch (e) {
-      toast.error("Erro ao criar OS: " + (e as Error).message);
+    } catch {
+      // MutationCache já notifica (createClient / createVehicle / createOS)
     }
   }
 

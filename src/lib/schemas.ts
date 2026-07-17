@@ -162,12 +162,29 @@ export const WorkshopUpdateSchema = z.object({
   nome: z.string().min(1).max(255).optional(),
   telefone: z.string().max(30).nullable().optional(),
   endereco: z.string().max(500).nullable().optional(),
-  logo_url: z.string().nullable().optional(),
+  logo_url: z
+    .string()
+    .url()
+    .refine(
+      (u) => {
+        try {
+          const url = new URL(u);
+          return (
+            url.protocol === "https:" &&
+            url.hostname.endsWith(".supabase.co") &&
+            url.pathname.includes("/workshop-logos/")
+          );
+        } catch {
+          return false;
+        }
+      },
+      { message: "URL de logo inválida" },
+    )
+    .nullable()
+    .optional(),
   mensagem_orcamento: z.string().max(5000).nullable().optional(),
   mensagem_atualizacao: z.string().max(5000).nullable().optional(),
   mensagem_retorno: z.string().max(5000).nullable().optional(),
-  plano: z.enum(["gratuito", "solo", "oficina"]).optional(),
-  playbook_unlocked_at: z.string().nullable().optional(),
 });
 
 export const SatisfactionNotaSchema = z.union([

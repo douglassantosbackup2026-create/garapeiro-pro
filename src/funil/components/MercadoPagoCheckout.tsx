@@ -9,6 +9,8 @@ import {
 } from "@/funil/data/offers";
 import { useFunnel } from "@/funil/funnel/FunnelContext";
 import { trackMetaEvent } from "@/funil/lib/metaPixel";
+import { buildWhatsappRecoveryLink, touchLeadStep } from "@/funil/lib/storage";
+import { reportError } from "@/lib/reportError";
 import { BrandHeader, Shell } from "./BrandHeader";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -150,7 +152,7 @@ export function MercadoPagoCheckout() {
   }).current;
 
   const onBrickError = useRef((err: unknown) => {
-    console.error(err);
+    reportError(err, "MercadoPago.brick");
     setBrickLoading(false);
     setError(brickErrorMessage(err));
   }).current;
@@ -159,6 +161,26 @@ export function MercadoPagoCheckout() {
   const needsEmail = Boolean(state.lead && !state.lead.email.trim());
   const showPayment =
     !pendingPayment && !needsLead && !needsEmail && sdkReady && Boolean(state.lead);
+
+  // Recovery: mark abandonment if user leaves checkout mid-flow
+  useEffect(() => {
+    if (!state.lead?.whatsapp || pendingPayment) return;
+    const markAbandoned = () => {
+      void touchLeadStep(state.lead!.whatsapp, "checkout_abandoned", {
+        recoveryHint: "whatsapp",
+        profileId: state.lead?.name,
+      });
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") markAbandoned();
+    };
+    window.addEventListener("pagehide", markAbandoned);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", markAbandoned);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [state.lead, pendingPayment]);
 
   const totalCents = useMemo(() => {
     return (
@@ -523,6 +545,29 @@ export function MercadoPagoCheckout() {
           </p>
         </div>
 
+        {!pendingPayment && state.lead && (
+          <div className="rounded-xl border border-money/30 bg-money/10 px-4 py-3 text-sm">
+            <p className="font-medium text-foreground">
+              Olá, {state.lead.name.split(" ")[0]} — sua oferta ainda está aqui
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Complete o pagamento para liberar o Método. Se preferir,{" "}
+              <a
+                href={buildWhatsappRecoveryLink(
+                  state.lead,
+                  `Oi! Sou ${state.lead.name.split(" ")[0]}, fiz o diagnóstico OficinaPRO e quero finalizar a compra.`,
+                )}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-money underline underline-offset-2"
+              >
+                falar no WhatsApp
+              </a>
+              .
+            </p>
+          </div>
+        )}
+
         {!pendingPayment && (
           <>
             <ul className="divide-y divide-border rounded-xl border border-border bg-card">
@@ -689,7 +734,7 @@ export function MercadoPagoCheckout() {
                 visual: { showExternalReference: true },
               }}
               onError={(err) => {
-                console.error(err);
+                reportError(err, "MercadoPago.statusScreen");
                 setError("Não foi possível carregar o status do pagamento.");
               }}
             />

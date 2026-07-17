@@ -33,23 +33,44 @@ const RevokeInviteSchema = z.object({
   inviteId: z.string().regex(uuidRegex, "inviteId inválido"),
 });
 
+const UnlockPlaybookSchema = z.object({
+  orderId: z.string().regex(uuidRegex, "orderId inválido"),
+});
+
+const PlaybookSignedUrlSchema = z.object({
+  assetId: z.enum(["playbook", "recuperador", "kit-templates", "metodo-3km"]),
+});
+
+const PLAYBOOK_STORAGE_FILES: Record<string, string> = {
+  playbook: "playbook-oficinapro.pdf",
+  recuperador: "recuperador-orcamentos.pdf",
+  "kit-templates": "kit-templates.pdf",
+  "metodo-3km": "metodo-3km.pdf",
+};
+
 const allowedOriginsEnv = Deno.env.get("ALLOWED_ORIGINS");
 const ALLOWED_ORIGINS = allowedOriginsEnv
   ? allowedOriginsEnv
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean)
-  : null; // null = allow any origin until ALLOWED_ORIGINS is configured
+  : null;
 
 function corsHeadersFor(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin");
   const headers: Record<string, string> = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
     Vary: "Origin",
   };
   if (!ALLOWED_ORIGINS) {
-    headers["Access-Control-Allow-Origin"] = origin ?? "*";
+    if (origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      headers["Access-Control-Allow-Origin"] = origin;
+    } else if (!origin) {
+      headers["Access-Control-Allow-Origin"] = "*";
+    }
   } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
   }
@@ -57,8 +78,11 @@ function corsHeadersFor(req: Request): Record<string, string> {
 }
 
 function isOriginAllowed(req: Request): boolean {
-  if (!ALLOWED_ORIGINS) return true;
   const origin = req.headers.get("Origin");
+  if (!ALLOWED_ORIGINS) {
+    if (!origin) return true;
+    return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  }
   if (!origin) return true;
   return ALLOWED_ORIGINS.includes(origin);
 }
@@ -125,6 +149,16 @@ Deno.serve(async (req: Request) => {
         if (!p.success) return respond(req, { error: p.error.issues[0].message }, 400);
         return respond(req, await revokeInvite(user.id, p.data, admin));
       }
+      case "unlockPlaybook": {
+        const p = UnlockPlaybookSchema.safeParse(data);
+        if (!p.success) return respond(req, { error: p.error.issues[0].message }, 400);
+        return respond(req, await unlockPlaybook(user.id, p.data, admin));
+      }
+      case "getPlaybookSignedUrl": {
+        const p = PlaybookSignedUrlSchema.safeParse(data);
+        if (!p.success) return respond(req, { error: p.error.issues[0].message }, 400);
+        return respond(req, await getPlaybookSignedUrl(user.id, p.data, admin));
+      }
       default:
         return respond(req, { error: "Unknown action" }, 400);
     }
@@ -177,6 +211,28 @@ async function createWorkshop(
       { onConflict: "id" },
     );
   await admin.from("user_roles").insert({ user_id: userId, workshop_id: ws.id, role: "dono" });
+
+  const seedServices = [
+    { nome: "Troca de óleo e filtro", preco_padrao: 180, categoria: "mecanica_geral", duracao_estimada_min: 45 },
+    { nome: "Revisão preventiva", preco_padrao: 350, categoria: "mecanica_geral", duracao_estimada_min: 120 },
+    { nome: "Diagnóstico eletrônico", preco_padrao: 150, categoria: "eletrica", duracao_estimada_min: 60 },
+    { nome: "Alinhamento e balanceamento", preco_padrao: 120, categoria: "suspensao", duracao_estimada_min: 60 },
+    { nome: "Troca de pastilhas de freio", preco_padrao: 280, categoria: "freios", duracao_estimada_min: 90 },
+    { nome: "Troca de correia dentada", preco_padrao: 650, categoria: "mecanica_geral", duracao_estimada_min: 180 },
+    { nome: "Carga de ar-condicionado", preco_padrao: 200, categoria: "ar_condicionado", duracao_estimada_min: 60 },
+    { nome: "Polimento técnico", preco_padrao: 450, categoria: "estetica", duracao_estimada_min: 180 },
+    { nome: "Funilaria — painel (mão de obra)", preco_padrao: 800, categoria: "funilaria", duracao_estimada_min: 480 },
+    { nome: "Pintura — peça avulsa", preco_padrao: 600, categoria: "pintura", duracao_estimada_min: 360 },
+    { nome: "Troca de bateria", preco_padrao: 100, categoria: "eletrica", duracao_estimada_min: 30 },
+    { nome: "Geometria / cambagem", preco_padrao: 150, categoria: "suspensao", duracao_estimada_min: 60 },
+    { nome: "Limpeza de bicos injetores", preco_padrao: 250, categoria: "injecao", duracao_estimada_min: 90 },
+    { nome: "Troca de amortecedores (par)", preco_padrao: 400, categoria: "suspensao", duracao_estimada_min: 120 },
+    { nome: "Higienização interna", preco_padrao: 280, categoria: "estetica", duracao_estimada_min: 120 },
+  ];
+  await admin.from("services_catalog").insert(
+    seedServices.map((s) => ({ ...s, workshop_id: ws.id, ativo: true })),
+  );
+
   return { workshopId: ws.id };
 }
 
@@ -259,6 +315,15 @@ async function listMembers(userId: string, admin: Admin) {
   const wsId = prof?.workshop_id;
   if (!wsId) return { members: [], invites: [] };
 
+  const { data: ownerRole } = await admin
+    .from("user_roles")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("workshop_id", wsId)
+    .eq("role", "dono")
+    .maybeSingle();
+  if (!ownerRole) throw new Error("Apenas donos podem listar a equipe");
+
   const { data: profiles } = await admin
     .from("profiles")
     .select("id, nome, avatar_url")
@@ -267,9 +332,10 @@ async function listMembers(userId: string, admin: Admin) {
     .from("user_roles")
     .select("user_id, role")
     .eq("workshop_id", wsId);
+  // Never return invite tokens — link is only issued at createInvite time
   const { data: invites } = await admin
     .from("workshop_invites")
-    .select("id, email, role, token, expires_at, used_at, criada_em")
+    .select("id, email, role, expires_at, used_at, criada_em")
     .eq("workshop_id", wsId)
     .is("used_at", null)
     .order("criada_em", { ascending: false });
@@ -281,6 +347,96 @@ async function listMembers(userId: string, admin: Admin) {
     roles: (roles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role),
   }));
   return { members, invites: invites ?? [] };
+}
+
+async function unlockPlaybook(
+  userId: string,
+  data: { orderId: string },
+  admin: Admin,
+) {
+  const { data: prof } = await admin
+    .from("profiles")
+    .select("workshop_id")
+    .eq("id", userId)
+    .single();
+  const wsId = prof?.workshop_id;
+  if (!wsId) throw new Error("Sem oficina");
+
+  const { data: order } = await admin
+    .from("funil_orders")
+    .select("id, mp_status, mp_payment_id")
+    .eq("id", data.orderId)
+    .maybeSingle();
+  if (!order) throw new Error("Pedido não encontrado");
+
+  let status = order.mp_status as string | null;
+  if (order.mp_payment_id) {
+    try {
+      const token = Deno.env.get("MP_ACCESS_TOKEN");
+      if (token) {
+        const res = await fetch(
+          `https://api.mercadopago.com/v1/payments/${order.mp_payment_id}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        if (res.ok) {
+          const payment = (await res.json()) as { status?: string; status_detail?: string };
+          status = payment.status ?? status;
+          await admin
+            .from("funil_orders")
+            .update({
+              mp_status: payment.status,
+              mp_status_detail: payment.status_detail,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", order.id);
+        }
+      }
+    } catch {
+      /* usa status em banco */
+    }
+  }
+
+  const approved = status === "approved" || status === "authorized";
+  if (!approved) throw new Error("Pagamento ainda não aprovado");
+
+  const { error } = await admin
+    .from("workshops")
+    .update({ playbook_unlocked_at: new Date().toISOString() })
+    .eq("id", wsId);
+  if (error) throw new Error(error.message);
+  return { ok: true, unlocked: true };
+}
+
+async function getPlaybookSignedUrl(
+  userId: string,
+  data: { assetId: string },
+  admin: Admin,
+) {
+  const { data: prof } = await admin
+    .from("profiles")
+    .select("workshop_id")
+    .eq("id", userId)
+    .single();
+  const wsId = prof?.workshop_id;
+  if (!wsId) throw new Error("Sem oficina");
+
+  const { data: ws } = await admin
+    .from("workshops")
+    .select("playbook_unlocked_at")
+    .eq("id", wsId)
+    .single();
+  if (!ws?.playbook_unlocked_at) throw new Error("Playbook bloqueado");
+
+  const file = PLAYBOOK_STORAGE_FILES[data.assetId];
+  if (!file) throw new Error("Asset inválido");
+
+  const { data: signed, error } = await admin.storage
+    .from("playbook")
+    .createSignedUrl(file, 120);
+  if (error || !signed?.signedUrl) {
+    throw new Error(error?.message ?? "Arquivo indisponível. Contate o suporte.");
+  }
+  return { url: signed.signedUrl, fileName: file };
 }
 
 async function removeMember(userId: string, data: { userId: string }, admin: Admin) {

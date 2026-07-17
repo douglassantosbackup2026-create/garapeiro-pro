@@ -13,12 +13,18 @@ import { OfferCountdown } from "./OfferCountdown";
 import { cn } from "@/lib/utils";
 
 const MAIN_BULLETS = [
-  "50 processos práticos pra oficina",
-  "Scripts prontos de WhatsApp e follow-up",
-  "Checklist de atendimento e precificação",
-  "Rotina pra fazer o cliente voltar",
-  "Aplicação rápida — sem virar gente de marketing",
-  "Acesso vitalício ao material",
+  "Como atrair clientes sem depender só de indicação",
+  "Como recuperar orçamentos que esfriaram no Zap",
+  "Como fazer o cliente voltar (sem implorar)",
+  "Como cobrar melhor sem perder serviço",
+  "Rotinas práticas — sem virar “gente de marketing”",
+] as const;
+
+const AGITATION = [
+  "Depende de indicação — e sofre quando ela para",
+  "Trabalha o dia inteiro e no fim do mês sobra pouco",
+  "Cliente some depois do orçamento",
+  "Preço sempre pressionado pela concorrência",
 ] as const;
 
 export function OfferScreen() {
@@ -42,25 +48,57 @@ export function OfferScreen() {
       <section className="animate-pop space-y-5 pb-28">
         <div>
           <span className="inline-flex rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
-            Plano gerado com base nas suas respostas
+            Com base no seu diagnóstico
           </span>
           <h1 className="font-display mt-3 text-2xl font-bold tracking-tight">
-            Recomendação: {mainOffer.title}
+            Se sua oficina depende de indicação… você está jogando o jogo errado
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {mainOffer.subtitle} pra aumentar clientes, recuperar orçamentos e
-            fazer o faturamento ficar mais previsível.
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Oficina que fatura de forma previsível não espera o cliente da rua —
+            ela atrai, cobra e faz voltar com método.
           </p>
         </div>
 
         <OfferCountdown />
+
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Reconhece isso?
+          </p>
+          <ul className="mt-3 space-y-2">
+            {AGITATION.map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-2 text-sm text-foreground"
+              >
+                <span className="text-destructive" aria-hidden>
+                  ✕
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-2xl border border-primary/30 bg-accent/50 p-4 text-sm leading-relaxed">
+          <p className="font-display font-bold text-foreground">Faz a conta:</p>
+          <p className="mt-2 text-muted-foreground">
+            3 clientes novos por dia × ticket médio de R$&nbsp;150 × 20 dias ={" "}
+            <span className="font-bold text-foreground">R$&nbsp;9.000</span>
+          </p>
+          <p className="mt-2 text-muted-foreground">
+            Some clientes antigos voltando e orçamentos recuperados — chegar perto
+            de R$&nbsp;10–20&nbsp;mil deixa de ser sonho e vira matemática. O Método
+            mostra o caminho; o resto é execução.
+          </p>
+        </div>
 
         <LossCalculator />
 
         <article className="rounded-2xl border-2 border-primary bg-card p-5 shadow-md">
           <div className="mb-1">
             <span className="inline-block rounded-md bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-              Produto principal
+              Método OficinaPRO
             </span>
           </div>
           <div className="mt-3 flex items-start justify-between gap-3">
@@ -101,6 +139,9 @@ export function OfferScreen() {
             </p>
             <span className="pb-0.5 text-xs text-muted-foreground">à vista</span>
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Pagamento único · sem mensalidade do material · garantia 7 dias
+          </p>
         </article>
 
         <div className="flex gap-3 rounded-2xl border border-money/40 bg-money/10 p-4">
@@ -175,6 +216,12 @@ export function OfferScreen() {
           </ul>
         </div>
 
+        <p className="rounded-xl border border-border bg-muted/40 p-3 text-center text-xs leading-relaxed text-muted-foreground">
+          Se você quer continuar reclamando do movimento e trabalhando muito pra
+          ganhar pouco — pode sair agora. Se quer previsibilidade, o próximo passo
+          é começar.
+        </p>
+
         <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[11px] text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <ShieldCheck className="size-3.5 text-money" />
@@ -189,7 +236,7 @@ export function OfferScreen() {
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
           <div>
             <p className="text-xs text-muted-foreground">
-              Total do pedido · {selectedOfferIds.length} item
+              Total · {selectedOfferIds.length} item
               {selectedOfferIds.length > 1 ? "s" : ""}
             </p>
             <p className="font-display text-xl font-bold">
@@ -199,9 +246,9 @@ export function OfferScreen() {
           <button
             type="button"
             onClick={() => goToCheckout()}
-            className="rounded-xl bg-primary px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-primary-foreground shadow-md transition hover:brightness-105"
+            className="rounded-xl bg-primary px-5 py-3.5 text-sm font-bold uppercase tracking-wide text-primary-foreground shadow-md transition hover:brightness-105"
           >
-            Quero agora →
+            Começar agora →
           </button>
         </div>
       </div>

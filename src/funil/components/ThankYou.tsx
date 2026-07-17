@@ -158,14 +158,36 @@ export function ThankYou() {
                 if (!offer) return null;
                 return (
                   <li key={id}>
-                    <a
-                      href={offer.pdfPath}
-                      download={offer.pdfFileName}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold transition hover:border-primary/40 hover:bg-muted/50"
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left text-sm font-semibold transition hover:border-primary/40 hover:bg-muted/50"
+                      onClick={async () => {
+                        if (!payment?.orderId) return;
+                        const { data, error } = await supabase.functions.invoke(
+                          "mercado-pago",
+                          {
+                            body: {
+                              action: "getOrderAssetUrl",
+                              orderId: payment.orderId,
+                              assetId: offer.id,
+                            },
+                          },
+                        );
+                        if (error || !(data as { url?: string })?.url) {
+                          console.error(error ?? data);
+                          return;
+                        }
+                        const a = document.createElement("a");
+                        a.href = (data as { url: string }).url;
+                        a.download = offer.pdfFileName;
+                        a.rel = "noopener noreferrer";
+                        a.target = "_blank";
+                        a.click();
+                      }}
                     >
                       <span>{offer.title}</span>
                       <Download className="size-4 shrink-0 text-primary" />
-                    </a>
+                    </button>
                   </li>
                 );
               })}

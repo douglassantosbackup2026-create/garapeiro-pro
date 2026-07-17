@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { reportError } from "@/lib/reportError";
 
 const STORAGE_KEY = "oficinapro-funil-v1";
 
@@ -36,7 +37,7 @@ export function normalizeFunnelStep(
 }
 
 export type FunnelPersisted = {
-  version: 2;
+  version: 3;
   /** Pode ser `lead` em sessões antigas — normalizar com normalizeFunnelStep. */
   step: FunnelStep | "lead";
   questionIndex: number;
@@ -51,31 +52,22 @@ export type FunnelPersisted = {
   savedAt: string;
 };
 
-type FunilLeadsClient = {
-  from: (table: "funil_leads") => {
-    upsert: (
-      row: Record<string, unknown>,
-      opts: { onConflict: string },
-    ) => PromiseLike<{ error: { message: string; code?: string } | null }>;
-    update: (row: Record<string, unknown>) => {
-      eq: (
-        col: string,
-        val: string,
-      ) => PromiseLike<{ error: { message: string } | null }>;
-    };
-  };
-};
-
-function funilLeads() {
-  return supabase as unknown as FunilLeadsClient;
-}
-
 export function loadPersisted(): FunnelPersisted | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw) as FunnelPersisted;
-    if (!data || data.version !== 2) return null;
+    if (!data || (data.version !== 2 && data.version !== 3)) return null;
+    if (data.version === 2) {
+      return {
+        ...data,
+        version: 3,
+        answers: {},
+        questionIndex: 0,
+        step: "landing",
+        earningsCents: 0,
+      };
+    }
     return data;
   } catch {
     return null;
@@ -88,7 +80,7 @@ export function savePersisted(data: FunnelPersisted) {
       STORAGE_KEY,
       JSON.stringify({
         ...data,
-        version: 2 as const,
+        version: 3 as const,
         savedAt: new Date().toISOString(),
       }),
     );
@@ -105,36 +97,39 @@ export function clearPersisted() {
   }
 }
 
-/** Upsert lead por WhatsApp (captura precoce + last_step para CRM). */
+/** Upsert lead via edge (service_role) — sem acesso direto anon à tabela. */
 export async function maybeInsertLead(
   lead: StoredLead,
   meta: Record<string, unknown>,
   lastStep?: string,
 ) {
   try {
-    const { error } = await funilLeads().from("funil_leads").upsert(
-      {
+    const { data, error } = await supabase.functions.invoke("funil-api", {
+      body: {
+        action: "upsertLead",
         name: lead.name,
         whatsapp: lead.whatsapp,
         email: lead.email || null,
         meta,
-        last_step: lastStep ?? "checkout",
-        updated_at: new Date().toISOString(),
-        created_at: lead.createdAt,
+        lastStep: lastStep ?? "checkout",
+        createdAt: lead.createdAt,
       },
-      { onConflict: "whatsapp" },
-    );
+    });
     if (error) {
-      console.warn("funil_leads upsert:", error.message);
+      reportError(error, "funil.upsertLead");
+      return { ok: false as const, reason: "api" as const };
+    }
+    if (!(data as { ok?: boolean })?.ok) {
       return { ok: false as const, reason: "api" as const };
     }
     return { ok: true as const };
-  } catch {
+  } catch (e) {
+    reportError(e, "funil.upsertLead");
     return { ok: false as const, reason: "network" as const };
   }
 }
 
-/** Atualiza last_step do lead (recuperação WhatsApp / CRM). */
+/** Atualiza last_step do lead via edge (best-effort CRM). */
 export async function touchLeadStep(
   whatsapp: string,
   lastStep: string,
@@ -143,18 +138,17 @@ export async function touchLeadStep(
   if (!whatsapp) return;
 
   try {
-    const patch: Record<string, unknown> = {
-      last_step: lastStep,
-      updated_at: new Date().toISOString(),
-    };
-    if (meta) patch.meta = meta;
-    const { error } = await funilLeads()
-      .from("funil_leads")
-      .update(patch)
-      .eq("whatsapp", whatsapp);
-    if (error) console.warn("funil_leads update:", error.message);
-  } catch {
-    /* ignore */
+    const { error } = await supabase.functions.invoke("funil-api", {
+      body: {
+        action: "touchLeadStep",
+        whatsapp,
+        lastStep,
+        meta,
+      },
+    });
+    if (error) reportError(error, "funil.touchLeadStep");
+  } catch (e) {
+    reportError(e, "funil.touchLeadStep");
   }
 }
 

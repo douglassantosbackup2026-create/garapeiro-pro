@@ -59,6 +59,31 @@ export function useCreateServiceOrder() {
   return useMutation({
     mutationFn: async (input: CreateOSInput) => {
       const valid = parseOrThrow(CreateOSSchema, input);
+
+      // Gate: limite mensal do plano gratuito
+      const { data: ws } = await supabase
+        .from("workshops")
+        .select("plano")
+        .eq("id", getCurrentWorkshopId())
+        .single();
+      const plano = (ws?.plano as "gratuito" | "solo" | "oficina" | undefined) ?? "gratuito";
+      if (plano === "gratuito") {
+        const start = new Date();
+        start.setDate(1);
+        start.setHours(0, 0, 0, 0);
+        const { count, error: countErr } = await supabase
+          .from("service_orders")
+          .select("id", { count: "exact", head: true })
+          .eq("workshop_id", getCurrentWorkshopId())
+          .gte("criada_em", start.toISOString());
+        if (countErr) throw countErr;
+        if ((count ?? 0) >= 15) {
+          throw new Error(
+            "Limite de 15 OS/mês do plano Gratuito atingido. Faça upgrade em Ajustes.",
+          );
+        }
+      }
+
       const total_servicos = valid.servicos.reduce((s, x) => s + Number(x.valor || 0), 0);
       const total_pecas = valid.pecas.reduce(
         (s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0),
@@ -110,14 +135,48 @@ export function useCreateServiceOrder() {
           })),
         );
         if (e3) throw e3;
+        await applyStockDeltas(
+          valid.pecas
+            .filter((p) => p.inventory_id)
+            .map((p) => ({ inventory_id: p.inventory_id!, delta: -Number(p.quantidade || 0) })),
+        );
       }
       return os;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["service_orders"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["parts_inventory"] });
     },
   });
+}
+
+/** Aplica deltas de estoque (negativo = baixa). Falhas individuais não abortam a OS. */
+async function applyStockDeltas(
+  deltas: { inventory_id: string; delta: number }[],
+): Promise<void> {
+  for (const { inventory_id, delta } of deltas) {
+    if (!delta) continue;
+    const { data: cur, error: e1 } = await supabase
+      .from("parts_inventory")
+      .select("quantidade")
+      .eq("id", inventory_id)
+      .single();
+    if (e1 || !cur) continue;
+    const novo = Math.max(0, Number(cur.quantidade || 0) + delta);
+    await supabase.from("parts_inventory").update({ quantidade: novo }).eq("id", inventory_id);
+  }
+}
+
+function stockDeltaMap(
+  parts: { inventory_id?: string | null; quantidade: number }[],
+): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const p of parts) {
+    if (!p.inventory_id) continue;
+    map.set(p.inventory_id, (map.get(p.inventory_id) ?? 0) + Number(p.quantidade || 0));
+  }
+  return map;
 }
 
 export function useUpdateServiceOrder() {
@@ -130,6 +189,21 @@ export function useUpdateServiceOrder() {
         (s, x) => s + Number(x.quantidade || 0) * Number(x.valor_unitario || 0),
         0,
       );
+
+      // Diff estoque: devolve o que saiu, baixa o novo
+      const { data: oldParts } = await supabase
+        .from("service_order_parts")
+        .select("inventory_id, quantidade")
+        .eq("service_order_id", valid.id);
+      const oldMap = stockDeltaMap(oldParts ?? []);
+      const newMap = stockDeltaMap(valid.pecas);
+      const deltas: { inventory_id: string; delta: number }[] = [];
+      const allIds = new Set([...oldMap.keys(), ...newMap.keys()]);
+      for (const id of allIds) {
+        const delta = (oldMap.get(id) ?? 0) - (newMap.get(id) ?? 0);
+        if (delta !== 0) deltas.push({ inventory_id: id, delta });
+      }
+
       const { error } = await supabase
         .from("service_orders")
         .update({
@@ -174,12 +248,14 @@ export function useUpdateServiceOrder() {
         );
         if (e3) throw e3;
       }
+      await applyStockDeltas(deltas);
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["service_orders"] });
       qc.invalidateQueries({ queryKey: ["service_order", vars.id] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["financeiro"] });
+      qc.invalidateQueries({ queryKey: ["parts_inventory"] });
     },
   });
 }

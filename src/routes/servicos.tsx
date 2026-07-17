@@ -94,8 +94,8 @@ function ServicosPage() {
         toast.success("Serviço adicionado ao catálogo");
       }
       setDialogOpen(false);
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch {
+      // MutationCache já notifica
     }
   }
 
@@ -104,8 +104,8 @@ function ServicosPage() {
     try {
       await deleteItem.mutateAsync(item.id);
       toast.success("Serviço removido");
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch {
+      // MutationCache já notifica
     }
   }
 

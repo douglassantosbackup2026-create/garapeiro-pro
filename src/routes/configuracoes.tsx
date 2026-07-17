@@ -13,11 +13,23 @@ import { useWorkshop, useUpdateWorkshop, useUploadLogo, useRemoveLogo } from "@/
 import { toast } from "sonner";
 import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { TeamSection } from "@/components/TeamSection";
+import { PlanBillingSection } from "@/components/PlanBillingSection";
+import {
+  clearPlaybookTrialIntent,
+  peekPlaybookOrderId,
+} from "@/lib/playbookAssets";
+import { unlockPlaybook } from "@/lib/workshop.functions";
 
-export const Route = createFileRoute("/configuracoes")({ component: Configuracoes });
+export const Route = createFileRoute("/configuracoes")({
+  component: Configuracoes,
+  validateSearch: (search: Record<string, unknown>): { upgrade?: string } => ({
+    upgrade: typeof search.upgrade === "string" ? search.upgrade : undefined,
+  }),
+});
 
 function Configuracoes() {
-  const { data: workshop } = useWorkshop();
+  const { upgrade } = Route.useSearch();
+  const { data: workshop, refetch } = useWorkshop();
   const update = useUpdateWorkshop();
   const uploadLogo = useUploadLogo();
   const removeLogo = useRemoveLogo();
@@ -43,9 +55,24 @@ function Configuracoes() {
       });
   }, [workshop]);
 
+  useEffect(() => {
+    if (upgrade === "1") {
+      requestAnimationFrame(() => {
+        document.getElementById("planos-upgrade")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    }
+  }, [upgrade]);
+
   const save = async (patch: WorkshopUpdate) => {
-    await update.mutateAsync(patch);
-    toast.success("Salvo!");
+    try {
+      await update.mutateAsync(patch);
+      toast.success("Salvo!");
+    } catch {
+      // MutationCache já notifica
+    }
   };
 
   const onPickLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,8 +91,8 @@ function Configuracoes() {
     try {
       await uploadLogo.mutateAsync(file);
       toast.success("Logo atualizado!");
-    } catch (err) {
-      toast.error((err as Error).message);
+    } catch {
+      // MutationCache já notifica
     }
   };
 
@@ -73,14 +100,16 @@ function Configuracoes() {
     try {
       await removeLogo.mutateAsync(workshop?.logo_url);
       toast.success("Logo removido");
-    } catch (err) {
-      toast.error((err as Error).message);
+    } catch {
+      // MutationCache já notifica
     }
   };
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-2xl mx-auto space-y-5">
       <h1 className="text-2xl font-bold">Configurações</h1>
+
+      <PlanBillingSection highlightUpgrade={upgrade === "1"} />
 
       <Card className="p-4 space-y-3">
         <h2 className="font-bold">Logo da oficina</h2>
@@ -230,45 +259,34 @@ function Configuracoes() {
         ) : (
           <>
             <p className="text-sm text-muted-foreground">
-              Já comprou o Playbook no diagnóstico? Libere os PDFs neste sistema
-              (até o pagamento automático estar ligado).
+              Já comprou o Playbook no diagnóstico? Liberamos automaticamente após
+              o pagamento aprovado (pedido salvo no navegador após o checkout).
             </p>
             <Button
               type="button"
               variant="outline"
-              disabled={update.isPending}
               onClick={async () => {
+                const orderId = peekPlaybookOrderId();
+                if (!orderId) {
+                  toast.error(
+                    "Nenhum pedido encontrado neste navegador. Conclua a compra no diagnóstico ou use o mesmo dispositivo.",
+                  );
+                  return;
+                }
                 try {
-                  await update.mutateAsync({
-                    playbook_unlocked_at: new Date().toISOString(),
-                  });
+                  await unlockPlaybook({ data: { orderId } });
+                  clearPlaybookTrialIntent();
                   toast.success("Playbook liberado no menu!");
+                  await refetch();
                 } catch (err) {
                   toast.error((err as Error).message);
                 }
               }}
             >
-              Já comprei o Playbook — liberar materiais
+              Liberar com pedido aprovado
             </Button>
           </>
         )}
-      </Card>
-
-      <Card className="p-4 space-y-2">
-        <h2 className="font-bold">Assinatura</h2>
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center rounded-full bg-secondary text-secondary-foreground px-2.5 py-0.5 text-xs font-semibold capitalize">
-            Plano: {workshop?.plano ?? "gratuito"}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            onClick={() => toast.info("Planos pagos em breve!")}
-          >
-            Fazer upgrade
-          </Button>
-        </div>
       </Card>
     </div>
   );

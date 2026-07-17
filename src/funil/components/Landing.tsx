@@ -1,11 +1,4 @@
-﻿import {
-  Bell,
-  Rocket,
-  Shield,
-  Sparkles,
-  Star,
-  Users,
-} from "lucide-react";
+﻿import { Bell, Rocket, Shield, Sparkles, Star } from "lucide-react";
 import { BrandHeader, Shell } from "./BrandHeader";
 import { useFunnel } from "@/funil/funnel/FunnelContext";
 
@@ -45,20 +38,20 @@ export function Landing() {
       <section className="animate-pop flex flex-1 flex-col items-center text-center">
         <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
           <Sparkles className="size-3.5" />
-          Método OficinaPRO
+          Diagnóstico gratuito
         </div>
 
         <h1 className="font-display text-[1.65rem] font-bold leading-[1.25] tracking-tight text-foreground sm:text-3xl">
-          Descubra como faturar de{" "}
+          Por que algumas oficinas vivem{" "}
           <span className="inline rounded-md bg-primary px-1.5 py-0.5 text-primary-foreground">
-            R$&nbsp;5.000,00 a R$&nbsp;20.000,00
-          </span>{" "}
-          na sua oficina com o Diagnóstico OficinaPRO
+            cheias
+          </span>
+          … e outras ficam olhando o portão vazio?
         </h1>
 
         <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-          Mais de 50 processos práticos para aumentar clientes, recuperar
-          orçamentos e fazer clientes voltarem sem depender apenas de indicação.
+          Mesmo que você esteja começando do zero, sem equipe e sem gastar com
+          anúncios caros — descubra o que está travando o faturamento.
         </p>
 
         <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -95,9 +88,7 @@ export function Landing() {
                       <p className="truncate text-xs font-semibold text-foreground">
                         {n.title}
                       </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {n.time}
-                      </p>
+                      <p className="text-[10px] text-muted-foreground">{n.time}</p>
                     </div>
                     <span className="shrink-0 text-xs font-bold text-money">
                       {n.amount}
@@ -109,34 +100,36 @@ export function Landing() {
           </div>
         </div>
 
-        <p className="mt-8 text-sm font-medium text-muted-foreground">
-          Vamos começar?
+        <p className="mt-6 max-w-md text-sm font-medium leading-relaxed text-foreground">
+          O problema não é “falta de cliente no Brasil”. É oficina{" "}
+          <span className="text-primary">sem sistema</span> pra atrair, cobrar e
+          fazer voltar.
         </p>
 
         <button
           type="button"
           onClick={() => {
-            // Música só com opt-in (MusicToggle no quiz) — evita bounce no mobile
             dispatch({ type: "START" });
           }}
-          className="mt-3 flex w-full max-w-md items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-bold uppercase tracking-wide text-primary-foreground shadow-md transition hover:brightness-105 active:scale-[0.99]"
+          className="mt-6 flex w-full max-w-md flex-col items-center justify-center gap-0.5 rounded-xl bg-primary px-6 py-4 text-primary-foreground shadow-md transition hover:brightness-105 active:scale-[0.99]"
         >
-          <Rocket className="size-5" />
-          Começar agora
+          <span className="flex items-center gap-2 text-base font-bold uppercase tracking-wide">
+            <Rocket className="size-5" />
+            Fazer o diagnóstico gratuito
+          </span>
+          <span className="text-xs font-medium text-primary-foreground/80">
+            Cerca de 1 minuto · sem cartão
+          </span>
         </button>
 
         <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] font-medium text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <Shield className="size-3.5 text-primary" />
-            Garantia 7 dias
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Users className="size-3.5 text-primary" />
-            +3.200 oficinas
+            Garantia 7 dias no Método
           </span>
           <span className="inline-flex items-center gap-1">
             <Star className="size-3.5 text-primary" />
-            Nota 4.9/5
+            Para mecânica, funilaria, elétrica e mais
           </span>
         </div>
 

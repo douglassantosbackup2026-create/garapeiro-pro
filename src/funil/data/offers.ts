@@ -8,7 +8,6 @@ export type OfferItem = {
   /** Preço exibido (deve espelhar supabase/functions/_shared/funilCatalog.ts). */
   priceLabel: string;
   priceCents: number;
-  pdfPath: string;
   pdfFileName: string;
   isMain: boolean;
   badge?: string;
@@ -17,12 +16,11 @@ export type OfferItem = {
 export const mainOffer: OfferItem = {
   id: "playbook",
   title: "Método OficinaPRO",
-  subtitle: "50 estratégias para oficinas",
+  subtitle: "Sistema pra atrair, cobrar e fazer voltar",
   description:
-    "O manual completo em 6 partes: atrair clientes, converter orçamentos, subir ticket, fidelizar, organizar e economizar tempo. Sua base para executar o diagnóstico.",
+    "O manual em 6 partes: atrair clientes sem depender só de indicação, recuperar orçamentos, subir ticket, fidelizar, organizar a operação e economizar tempo. Sua base pra executar o diagnóstico.",
   priceLabel: "R$ 47",
   priceCents: 4700,
-  pdfPath: "/playbook-oficinapro.pdf",
   pdfFileName: "Playbook-OficinaPRO.pdf",
   isMain: true,
   badge: "Oferta principal",
@@ -37,7 +35,6 @@ export const orderBumps: OfferItem[] = [
       "Sequências de WhatsApp e e-mail para reativar orçamentos parados e recuperar vendas que você já quase fechou.",
     priceLabel: "R$ 27",
     priceCents: 2700,
-    pdfPath: "/recuperador-orcamentos.pdf",
     pdfFileName: "Recuperador-Orcamentos.pdf",
     isMain: false,
     badge: "Mais escolhido",
@@ -50,7 +47,6 @@ export const orderBumps: OfferItem[] = [
       "Modelos de orçamento, OS, mensagens e checklists para padronizar a comunicação e cortar tempo de digitação.",
     priceLabel: "R$ 37",
     priceCents: 3700,
-    pdfPath: "/kit-templates.pdf",
     pdfFileName: "Kit-Templates-OficinaPRO.pdf",
     isMain: false,
   },
@@ -62,7 +58,6 @@ export const orderBumps: OfferItem[] = [
       "Roteiro para montar parcerias num raio de 3 km: abordagem, proposta e acompanhamento com postos, lojas e frotas.",
     priceLabel: "R$ 27",
     priceCents: 2700,
-    pdfPath: "/metodo-3km.pdf",
     pdfFileName: "Metodo-3KM.pdf",
     isMain: false,
   },

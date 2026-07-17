@@ -292,7 +292,7 @@ type FunnelContextValue = {
   diagnosis: Diagnosis;
   selectedOfferIds: OfferId[];
   persistAndComplete: () => Promise<void>;
-  submitLead: (lead: StoredLead) => Promise<void>;
+  submitLead: (lead: StoredLead, lastStep?: string) => Promise<void>;
   goToCheckout: () => void;
 };
 
@@ -356,7 +356,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
       return;
     }
     savePersisted({
-      version: 2,
+      version: 3,
       step: state.step,
       questionIndex: state.questionIndex,
       answers: state.answers,
@@ -381,10 +381,10 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
     diagnosis.totalScore,
   ]);
 
-  // CRM: last_step on offer/checkout
+  // CRM: last_step on result/offer/checkout
   useEffect(() => {
     if (!state.lead?.whatsapp) return;
-    if (state.step !== "offer" && state.step !== "checkout") return;
+    if (state.step !== "result" && state.step !== "offer" && state.step !== "checkout") return;
     void touchLeadStep(state.lead.whatsapp, state.step, {
       profileId: diagnosis.profile.id,
       selectedOffers: selectedOfferIds,
@@ -392,7 +392,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
     });
   }, [state.step, state.lead?.whatsapp, diagnosis.profile.id, selectedOfferIds]);
 
-  async function submitLead(lead: StoredLead) {
+  async function submitLead(lead: StoredLead, lastStep: string = "checkout") {
     dispatch({ type: "SET_LEAD", lead });
     trackMetaEvent("Lead", {
       content_name: "funil-quiz",
@@ -408,7 +408,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
         sessionSeed: state.sessionSeed,
         softLead: !lead.email,
       },
-      "checkout",
+      lastStep,
     );
   }
 
@@ -436,7 +436,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
       return;
     }
     savePersisted({
-      version: 2,
+      version: 3,
       step: "thanks",
       questionIndex: state.questionIndex,
       answers: state.answers,

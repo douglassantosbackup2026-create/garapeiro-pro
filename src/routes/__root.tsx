@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 
 import { AppLayout } from "@/components/AppLayout";
 import { AuthProvider } from "@/hooks/useAuth";
+import { reportError } from "@/lib/reportError";
 
 function NotFoundComponent() {
   return (
@@ -33,7 +34,7 @@ type ErrorComponentProps = {
 };
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
+  reportError(error, "RouteError");
   const router = useRouter();
 
   return (

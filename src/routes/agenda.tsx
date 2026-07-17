@@ -212,8 +212,8 @@ function AgendaPage() {
         toast.success("Agendamento criado");
       }
       setDialogOpen(false);
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch {
+      // MutationCache já notifica
     }
   }
 
@@ -222,8 +222,8 @@ function AgendaPage() {
     try {
       await deleteAppt.mutateAsync(a.id);
       toast.success("Agendamento removido");
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch {
+      // MutationCache já notifica
     }
   }
 
@@ -232,8 +232,8 @@ function AgendaPage() {
       await updateAppt.mutateAsync({ id: a.id, status: newStatus });
       setStatusDialog(null);
       toast.success(`Status: ${STATUS_LABEL[newStatus]}`);
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch {
+      // MutationCache já notifica
     }
   }
 

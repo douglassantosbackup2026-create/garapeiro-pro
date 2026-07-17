@@ -1,16 +1,80 @@
 ﻿import { useState } from "react";
-import { ArrowRight, CheckCircle2, Target } from "lucide-react";
+import { ArrowRight, AlertTriangle, CheckCircle2, Target } from "lucide-react";
 import { useFunnel } from "@/funil/funnel/FunnelContext";
 import { formatBRL } from "@/funil/lib/sessionMoney";
 import { BonusUnlockModal } from "./BonusUnlockModal";
 import { BrandHeader, Shell } from "./BrandHeader";
 import { cn } from "@/lib/utils";
 
+function onlyDigits(v: string) {
+  return v.replace(/\D/g, "");
+}
+
+function maskWhatsapp(digits: string) {
+  const d = onlyDigits(digits).slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+const GAP_LABELS: Record<string, string> = {
+  clientes: "Falta de aquisição previsível (dependência de indicação)",
+  orcamentos: "Orçamentos que esfriam sem cobrança em sequência",
+  ticket: "Preço pressionado — perde serviço ou baixa o valor",
+  retorno: "Clientes antigos que somem sem lembrete de retorno",
+  organizacao: "Operação sem sistema claro no dia a dia",
+  tempo: "Dia a dia engolindo o dono — sem estratégia",
+};
+
 export function ResultScreen() {
-  const { state, diagnosis, dispatch } = useFunnel();
-  const { profile, strategies, totalScore, maxScore } = diagnosis;
+  const { state, diagnosis, dispatch, submitLead } = useFunnel();
+  const { profile, strategies, totalScore, maxScore, weakCategories } = diagnosis;
   const pct = Math.round((totalScore / maxScore) * 100);
   const [showBonusModal, setShowBonusModal] = useState(true);
+  const [showLead, setShowLead] = useState(!state.lead);
+  const [name, setName] = useState(state.lead?.name ?? "");
+  const [whatsapp, setWhatsapp] = useState(
+    state.lead?.whatsapp ? maskWhatsapp(state.lead.whatsapp) : "",
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const gaps = weakCategories.slice(0, 3).map((id) => GAP_LABELS[id] ?? id);
+
+  async function continueToOffer() {
+    if (state.lead) {
+      dispatch({ type: "TO_OFFER" });
+      return;
+    }
+    setShowLead(true);
+    const digits = onlyDigits(whatsapp);
+    if (!name.trim()) {
+      setError("Informe seu nome.");
+      return;
+    }
+    if (digits.length < 10) {
+      setError("Informe um WhatsApp válido com DDD.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await submitLead(
+        {
+          name: name.trim(),
+          whatsapp: digits,
+          email: "",
+          createdAt: new Date().toISOString(),
+        },
+        "result",
+      );
+      dispatch({ type: "TO_OFFER" });
+    } catch {
+      setError("Não foi possível salvar. Tente de novo.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <Shell>
@@ -31,21 +95,45 @@ export function ResultScreen() {
           )}
         >
           <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Você já recuperou no diagnóstico{" "}
+            No diagnóstico você já “recuperou”{" "}
             <span className="font-bold text-money">
               {formatBRL(state.earningsCents)}
-            </span>
+            </span>{" "}
+            (simulado)
           </p>
-          <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-            Isso é só o simulado respondendo. O Método transforma em rotina na
-            oficina.
+
+          <p className="mb-3 flex items-start gap-2 text-sm font-semibold leading-snug text-foreground">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-primary" />
+            Pelo que você respondeu… sua oficina está perdendo dinheiro todos os
+            dias — e nem percebe.
           </p>
+
           <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
             {profile.headline}
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             {profile.description}
           </p>
+
+          {gaps.length > 0 && (
+            <ul className="mt-4 space-y-2 rounded-xl border border-border/60 bg-background/60 p-3">
+              <li className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Hoje você está limitado por:
+              </li>
+              {gaps.map((g) => (
+                <li
+                  key={g}
+                  className="flex items-start gap-2 text-sm text-foreground"
+                >
+                  <span className="text-destructive" aria-hidden>
+                    ✕
+                  </span>
+                  {g}
+                </li>
+              ))}
+            </ul>
+          )}
+
           <div className="mt-4 flex items-center gap-3">
             <div className="relative size-14">
               <svg viewBox="0 0 36 36" className="size-14 -rotate-90">
@@ -83,11 +171,19 @@ export function ResultScreen() {
           </div>
         </div>
 
+        <div className="rounded-xl border border-money/30 bg-money/10 p-4 text-sm leading-relaxed text-foreground">
+          <p className="font-semibold">A boa notícia?</p>
+          <p className="mt-1 text-muted-foreground">
+            Isso não depende de sorte… nem de investimento alto em anúncio. Depende
+            de um método simples pra atrair, cobrar e fazer o cliente voltar.
+          </p>
+        </div>
+
         <div>
           <div className="mb-3 flex items-center gap-2">
             <Target className="size-4 text-primary" />
             <h2 className="font-display text-lg font-bold">
-              Prioridades do Método
+              Prioridades do Método pra você
             </h2>
           </div>
           <ul className="space-y-3">
@@ -111,20 +207,50 @@ export function ResultScreen() {
         </div>
 
         <div className="space-y-3">
-          <p className="text-center text-sm text-muted-foreground">
-            Próximo passo: liberar o Método com base neste diagnóstico.
-          </p>
+          {showLead && !state.lead && (
+            <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+              <p className="text-sm font-medium text-foreground">
+                Pra ver o método do seu diagnóstico, deixe seu WhatsApp
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Assim conseguimos te avisar se a oferta expirar ou se você sair
+                no meio.
+              </p>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Seu nome"
+                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
+                autoComplete="name"
+              />
+              <input
+                type="tel"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(maskWhatsapp(e.target.value))}
+                placeholder="(11) 99999-0000"
+                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
+                autoComplete="tel"
+                inputMode="numeric"
+              />
+              {error && <p className="text-xs text-destructive">{error}</p>}
+            </div>
+          )}
+
           <button
             type="button"
-            onClick={() => dispatch({ type: "TO_OFFER" })}
-            className="group flex w-full flex-col items-center justify-center gap-0.5 rounded-xl bg-primary px-6 py-4 text-primary-foreground shadow-md transition hover:brightness-105"
+            onClick={() => void continueToOffer()}
+            disabled={busy}
+            className="group flex w-full flex-col items-center justify-center gap-0.5 rounded-xl bg-primary px-6 py-4 text-primary-foreground shadow-md transition hover:brightness-105 disabled:opacity-60"
           >
             <span className="flex items-center gap-2 text-base font-semibold">
-              Quero aplicar o Método agora
-              <ArrowRight className="size-5 transition group-hover:translate-x-0.5" />
+              {busy ? "Salvando..." : "Ver o método do meu diagnóstico"}
+              {!busy && (
+                <ArrowRight className="size-5 transition group-hover:translate-x-0.5" />
+              )}
             </span>
             <span className="text-xs font-medium text-primary-foreground/80">
-              Desbloquear plano completo
+              Próximo: oferta com base nas suas respostas
             </span>
           </button>
         </div>

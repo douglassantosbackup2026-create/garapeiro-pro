@@ -178,7 +178,10 @@ function EstoquePage() {
   const excluir = useCallback(
     (p: Part) => {
       if (!confirm(`Excluir "${p.nome}" do estoque?`)) return;
-      del.mutate(p.id, { onSuccess: () => toast.success("Peça removida") });
+      del.mutate(p.id, {
+        onSuccess: () => toast.success("Peça removida"),
+        onError: (e) => toast.error("Erro ao excluir: " + (e as Error).message),
+      });
     },
     [del],
   );

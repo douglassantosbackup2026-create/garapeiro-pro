@@ -18,22 +18,18 @@ export function PhaseUnlockModal({ open, onClose }: Props) {
         className="animate-pop w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-center shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-2xl" aria-hidden>
-          🔓
-        </p>
         <h2
           id="phase-unlock-title"
-          className="font-display mt-2 text-xl font-bold tracking-tight text-foreground"
+          className="font-display text-xl font-bold tracking-tight text-foreground"
         >
-          FASE 1 DESBLOQUEADA
+          Diagnóstico iniciado
         </h2>
         <p className="mt-3 text-base font-semibold text-foreground">
-          Você começou. 🚀
+          Responda com sinceridade.
         </p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          A maioria nem chega aqui.
-          <br />
-          Cada passo certo = recompensa 💰
+          Cada resposta mostra onde a oficina perde dinheiro — aquisição,
+          orçamento, retorno ou preço.
         </p>
         <button
           type="button"

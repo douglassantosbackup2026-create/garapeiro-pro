@@ -12,6 +12,7 @@ import { useRouter } from "@tanstack/react-router";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { setCurrentWorkshopId } from "@/lib/workshop";
+import { reportError } from "@/lib/reportError";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -24,6 +25,8 @@ type AuthState = {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
+  /** Falha ao carregar/criar perfil com sessão ativa. */
+  profileError: string | null;
   /** Atualiza sessão/perfil logo após signUp (evita redirect para login no onboarding). */
   adoptSession: (session: Session) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -47,15 +50,19 @@ const AUTH_QUERY_KEYS = [
   "services_catalog",
 ];
 
-async function fetchProfile(userId: string): Promise<Profile | null> {
+type FetchProfileResult =
+  | { ok: true; profile: Profile }
+  | { ok: false; error: string };
+
+async function fetchProfile(userId: string): Promise<FetchProfileResult> {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, workshop_id, nome, avatar_url")
     .eq("id", userId)
     .maybeSingle();
   if (error) {
-    console.error("[auth] fetchProfile error", error);
-    return null;
+    reportError(error, "auth.fetchProfile");
+    return { ok: false, error: error.message || "Não foi possível carregar seu perfil." };
   }
   if (!data) {
     const payload: ProfileInsert = { id: userId };
@@ -65,12 +72,12 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
       .select("id, workshop_id, nome, avatar_url")
       .single();
     if (insErr) {
-      console.error("[auth] create profile error", insErr);
-      return null;
+      reportError(insErr, "auth.createProfile");
+      return { ok: false, error: insErr.message || "Não foi possível criar seu perfil." };
     }
-    return created;
+    return { ok: true, profile: created };
   }
-  return data;
+  return { ok: true, profile: data };
 }
 
 type AuthProviderProps = {
@@ -81,23 +88,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const router = useRouter();
   const qc = useQueryClient();
 
   const loadProfile = useCallback(async (uid: string) => {
-    const p = await fetchProfile(uid);
-    setProfile(p);
-    setCurrentWorkshopId(p?.workshop_id ?? null);
+    const result = await fetchProfile(uid);
+    if (result.ok) {
+      setProfile(result.profile);
+      setProfileError(null);
+      setCurrentWorkshopId(result.profile.workshop_id ?? null);
+    } else {
+      setProfile(null);
+      setProfileError(result.error);
+      setCurrentWorkshopId(null);
+    }
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      if (data.session?.user) {
-        await loadProfile(data.session.user.id);
-      }
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(async ({ data }) => {
+        setSession(data.session);
+        if (data.session?.user) {
+          await loadProfile(data.session.user.id);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        reportError(err, "auth.getSession");
+        setProfileError("Não foi possível verificar sua sessão.");
+        setLoading(false);
+      });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
@@ -105,6 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setTimeout(() => loadProfile(sess.user.id), 0);
       } else {
         setProfile(null);
+        setProfileError(null);
         setCurrentWorkshopId(null);
       }
       AUTH_QUERY_KEYS.forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
@@ -134,6 +157,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setCurrentWorkshopId(null);
+    setProfileError(null);
     qc.clear();
   }, [qc]);
 
@@ -143,11 +167,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       session,
       user: session?.user ?? null,
       profile,
+      profileError,
       adoptSession,
       refreshProfile,
       signOut,
     }),
-    [loading, session, profile, adoptSession, refreshProfile, signOut],
+    [loading, session, profile, profileError, adoptSession, refreshProfile, signOut],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

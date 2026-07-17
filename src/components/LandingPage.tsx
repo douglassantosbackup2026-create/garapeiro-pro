@@ -201,10 +201,10 @@ function Hero() {
 
 function Stats() {
   const items = [
-    { value: "500+", label: "oficinas ativas" },
-    { value: "20.000+", label: "OS criadas" },
-    { value: "R$ 50M+", label: "em serviços gerenciados" },
-    { value: "8", label: "especialidades suportadas" },
+    { value: "OS + Kanban", label: "fluxo do chão de oficina" },
+    { value: "Agenda → OS", label: "menos retrabalho no balcão" },
+    { value: "Financeiro", label: "a receber e cobrança WA" },
+    { value: "8+", label: "especialidades suportadas" },
   ];
 
   return (
@@ -212,7 +212,7 @@ function Stats() {
       <div className="max-w-6xl mx-auto px-4 md:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
         {items.map((item) => (
           <div key={item.label}>
-            <div className="font-display text-3xl font-bold">{item.value}</div>
+            <div className="font-display text-2xl md:text-3xl font-bold">{item.value}</div>
             <div className="text-sm text-primary-foreground/70 mt-1">{item.label}</div>
           </div>
         ))}
@@ -228,37 +228,37 @@ const FEATURES = [
     icon: Wrench,
     title: "Ordens de Serviço",
     description:
-      "Crie, edite e acompanhe OS com kanban drag-and-drop. Histórico completo por veículo, PDF de orçamento e status em tempo real.",
+      "Crie, edite e acompanhe OS com kanban drag-and-drop. Histórico por veículo, PDF de orçamento e status atualizado na hora.",
   },
   {
     icon: CalendarDays,
     title: "Agenda Inteligente",
     description:
-      "Agende clientes por horário, visualize o dia de um jeito claro e converta agendamentos em OS com 1 clique.",
+      "Agende clientes por horário, visualize o dia com clareza e converta agendamentos em OS com dados pré-preenchidos.",
   },
   {
     icon: DollarSign,
     title: "Controle Financeiro",
     description:
-      "Recebíveis, parcelas, fiado e datas de vencimento — tudo rastreado. Cobranças enviadas direto pelo WhatsApp.",
+      "Recebíveis, fiado e datas de vencimento por OS. Cobranças e registros de pagamento sem sair do sistema.",
   },
   {
     icon: Package,
     title: "Estoque de Peças",
     description:
-      "Vincule peças às OS, receba alertas de estoque mínimo e nunca fique sem o que precisa na hora errada.",
+      "Vincule peças às OS com baixa automática, receba alertas de estoque mínimo e evite falta na hora do serviço.",
   },
   {
     icon: BookOpen,
     title: "Catálogo de Serviços",
     description:
-      "+50 serviços pré-cadastrados por especialidade. Adicione ao orçamento em segundos, com preço e duração padrão.",
+      "Kit inicial de serviços ao criar a oficina. Adicione ao orçamento em segundos, com preço padrão.",
   },
   {
     icon: MessageCircle,
-    title: "WhatsApp Integrado",
+    title: "WhatsApp com 1 toque",
     description:
-      "Orçamentos, confirmações de agendamento, lembretes de revisão e cobranças — enviados com 1 clique.",
+      "Orçamentos, atualizações de status, lembretes e cobranças abrem no WhatsApp prontos para enviar — sem digitar de novo.",
   },
 ];
 
@@ -407,51 +407,49 @@ const PLANS: Plan[] = [
     features: [
       { text: "Até 15 OS por mês", included: true },
       { text: "1 usuário", included: true },
-      { text: "Clientes e veículos", included: true },
-      { text: "WhatsApp básico", included: true },
-      { text: "Catálogo de serviços", included: false },
+      { text: "Clientes, veículos e OS", included: true },
+      { text: "WhatsApp com 1 toque", included: true },
+      { text: "Catálogo inicial de serviços", included: true },
       { text: "Agenda", included: false },
       { text: "Financeiro e estoque", included: false },
-      { text: "Relatórios", included: false },
+      { text: "Relatórios e equipe", included: false },
     ],
   },
   {
     name: "Pro",
-    price: "R$ ––,––",
+    price: "R$ 97",
     period: "/ mês",
     highlight: true,
     badge: "Mais popular",
-    cta: "Começar agora →",
+    cta: "Começar no Pro →",
     ctaVariant: "primary",
-    ctaHref: "/cadastro",
+    ctaHref: "/cadastro?plano=solo",
     features: [
       { text: "OS ilimitadas", included: true },
       { text: "Até 3 usuários", included: true },
-      { text: "Clientes e veículos", included: true },
-      { text: "WhatsApp completo", included: true },
-      { text: "Catálogo de serviços", included: true },
       { text: "Agenda inteligente", included: true },
       { text: "Financeiro e estoque", included: true },
       { text: "Relatórios mensais", included: true },
+      { text: "WhatsApp com templates", included: true },
+      { text: "Playbook digital", included: true },
+      { text: "Suporte por e-mail", included: true },
     ],
   },
   {
     name: "Oficina Plus",
-    price: "R$ ––,––",
+    price: "R$ 197",
     period: "/ mês",
     highlight: false,
-    cta: "Falar com a equipe",
+    cta: "Começar no Plus →",
     ctaVariant: "outline",
-    ctaHref: "/cadastro",
+    ctaHref: "/cadastro?plano=oficina",
     features: [
-      { text: "OS ilimitadas", included: true },
-      { text: "Usuários ilimitados", included: true },
       { text: "Tudo do plano Pro", included: true },
+      { text: "Usuários ilimitados", included: true },
+      { text: "Logo e marca na OS/PDF", included: true },
       { text: "Suporte prioritário", included: true },
-      { text: "Personalização da marca", included: true },
-      { text: "API + Integrações", included: true },
-      { text: "Treinamento da equipe", included: true },
-      { text: "Gerente de conta dedicado", included: true },
+      { text: "Onboarding assistido", included: true },
+      { text: "Exportação de relatórios", included: true },
     ],
   },
 ];
@@ -512,7 +510,14 @@ function Pricing() {
               </ul>
 
               <Link
-                to={plan.ctaHref as "/cadastro"}
+                to="/cadastro"
+                search={
+                  plan.ctaHref.includes("solo")
+                    ? { plano: "solo" }
+                    : plan.ctaHref.includes("oficina")
+                      ? { plano: "oficina" }
+                      : undefined
+                }
                 className={cn(
                   "w-full text-center py-3 rounded-lg font-semibold text-sm transition-colors",
                   plan.ctaVariant === "primary"
@@ -527,8 +532,7 @@ function Pricing() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Preços marcados como "R$ ––,––" serão divulgados em breve. · Sem fidelidade, cancele
-          quando quiser.
+          Sem fidelidade — cancele quando quiser. Upgrade a qualquer momento em Ajustes.
         </p>
       </div>
     </section>
@@ -552,7 +556,7 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      "O WhatsApp integrado é ouro. Mando o orçamento na hora e o cliente aprova pelo celular. Profissionaliza muito o atendimento.",
+      "Mando o orçamento pelo WhatsApp com um toque e o cliente responde na hora. Profissionaliza o atendimento sem complicar.",
     name: "João P.",
     role: "Eletricista automotivo",
   },
@@ -614,7 +618,7 @@ const FAQS = [
   },
   {
     q: "Tem período de teste gratuito?",
-    a: "Sim. O plano Gratuito não tem prazo de expiração — use para conhecer o sistema. Quando precisar de mais recursos, é só fazer o upgrade.",
+    a: "Sim. O plano Gratuito não tem prazo de expiração — use para conhecer o sistema. Quando precisar de agenda, financeiro e estoque, faça upgrade para o Pro.",
   },
 ];
 

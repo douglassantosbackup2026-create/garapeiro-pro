@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { BookMarked, Download, Lock } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { playbookAssets } from "@/lib/playbookAssets";
+import { getPlaybookSignedUrl } from "@/lib/workshop.functions";
 
 export const Route = createFileRoute("/playbook")({
   component: PlaybookPage,
@@ -13,6 +16,24 @@ export const Route = createFileRoute("/playbook")({
 function PlaybookPage() {
   const { data: workshop, isLoading } = useWorkshop();
   const unlocked = Boolean(workshop?.playbook_unlocked_at);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  async function downloadAsset(assetId: (typeof playbookAssets)[number]["id"]) {
+    setLoadingId(assetId);
+    try {
+      const { url, fileName } = await getPlaybookSignedUrl({ data: { assetId } });
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.rel = "noopener noreferrer";
+      a.target = "_blank";
+      a.click();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setLoadingId(null);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -30,7 +51,7 @@ function PlaybookPage() {
           <h1 className="font-display text-xl font-bold">Playbook bloqueado</h1>
           <p className="text-sm text-muted-foreground">
             Os materiais do Playbook liberam após a compra no diagnóstico. Faça
-            o quiz ou, se já comprou, libere em Ajustes.
+            o quiz ou, se já comprou, libere em Ajustes com o pedido aprovado.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button asChild>
@@ -64,17 +85,18 @@ function PlaybookPage() {
       <ul className="space-y-2">
         {playbookAssets.map((asset) => (
           <li key={asset.id}>
-            <a
-              href={asset.pdfPath}
-              download={asset.pdfFileName}
-              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 transition hover:border-primary/40 hover:bg-muted/40"
+            <button
+              type="button"
+              disabled={loadingId === asset.id}
+              onClick={() => void downloadAsset(asset.id)}
+              className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left transition hover:border-primary/40 hover:bg-muted/40 disabled:opacity-60"
             >
               <div>
                 <p className="text-sm font-semibold">{asset.title}</p>
                 <p className="text-xs text-muted-foreground">{asset.subtitle}</p>
               </div>
               <Download className="size-4 shrink-0 text-primary" />
-            </a>
+            </button>
           </li>
         ))}
       </ul>

@@ -61,7 +61,6 @@ export const listMembers = () =>
       id: string;
       email: string;
       role: AppRole;
-      token: string;
       expires_at: string;
       used_at: string | null;
       criada_em: string;
@@ -73,3 +72,12 @@ export const removeMember = ({ data }: { data: { userId: string } }) =>
 
 export const revokeInvite = ({ data }: { data: { inviteId: string } }) =>
   invoke<{ ok: boolean }>("revokeInvite", data);
+
+export const unlockPlaybook = ({ data }: { data: { orderId: string } }) =>
+  invoke<{ ok: boolean; unlocked: boolean }>("unlockPlaybook", data);
+
+export const getPlaybookSignedUrl = ({
+  data,
+}: {
+  data: { assetId: "playbook" | "recuperador" | "kit-templates" | "metodo-3km" };
+}) => invoke<{ url: string; fileName: string }>("getPlaybookSignedUrl", data);

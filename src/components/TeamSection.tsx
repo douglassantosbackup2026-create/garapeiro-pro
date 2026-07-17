@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy, Trash2, UserMinus } from "lucide-react";
+import { Trash2, UserMinus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,8 +59,12 @@ export function TeamSection() {
       setInviting(true);
       const inv = await createInvite({ data: { email: normalized, role: inviteRole } });
       const link = `${window.location.origin}/convite/${inv.token}`;
-      await navigator.clipboard.writeText(link);
-      toast.success("Convite criado! Link copiado para a área de transferência.");
+      try {
+        await navigator.clipboard.writeText(link);
+        toast.success("Convite criado! Link copiado para a área de transferência.");
+      } catch {
+        toast.success(`Convite criado. Link: ${link}`);
+      }
       setEmail("");
       await refetch();
       qc.invalidateQueries({ queryKey: ["team_members"] });
@@ -69,12 +73,6 @@ export function TeamSection() {
     } finally {
       setInviting(false);
     }
-  }
-
-  async function copyLink(token: string) {
-    const link = `${window.location.origin}/convite/${token}`;
-    await navigator.clipboard.writeText(link);
-    toast.success("Link copiado!");
   }
 
   async function handleRevoke(inviteId: string) {
@@ -173,15 +171,6 @@ export function TeamSection() {
                   <span className="text-muted-foreground ml-2">{inv.role}</span>
                 </div>
                 <div className="flex gap-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Copiar link"
-                    onClick={() => copyLink(inv.token)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
                   <Button
                     type="button"
                     variant="ghost"

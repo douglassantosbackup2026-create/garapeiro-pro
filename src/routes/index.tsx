@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LandingPage } from "@/components/LandingPage";
+import { ActivationChecklist } from "@/components/ActivationChecklist";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Bell,
@@ -26,6 +27,7 @@ import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { formatBRL, formatLongDate, formatOSNumber, getGreeting } from "@/lib/format";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -102,6 +104,8 @@ function Dashboard() {
           )}
         </Link>
       </header>
+
+      <ActivationChecklist />
 
       {/* Cards 2x2 */}
       <div className="grid grid-cols-2 gap-3 mb-6">
@@ -245,7 +249,15 @@ function Dashboard() {
                       phone={a.telefone}
                       message={`Olá ${a.nome}! 👋 Aqui é da ${workshop?.nome ?? "oficina"}.`}
                     />
-                    <Button size="sm" variant="ghost" onClick={() => dismiss.mutate(a.clientId)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        dismiss.mutate(a.clientId, {
+                          onError: () => toast.error("Não foi possível dispensar o alerta"),
+                        })
+                      }
+                    >
                       Dispensar
                     </Button>
                   </div>

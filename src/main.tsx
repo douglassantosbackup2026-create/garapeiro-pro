@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { createAppQueryClient, createAppRouter } from "./router";
 import "./styles.css";
 
@@ -15,6 +16,8 @@ declare module "@tanstack/react-router" {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} context={{ queryClient }} />
+    <AppErrorBoundary>
+      <RouterProvider router={router} context={{ queryClient }} />
+    </AppErrorBoundary>
   </StrictMode>,
 );

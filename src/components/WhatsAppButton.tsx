@@ -23,7 +23,7 @@ export function WhatsAppButton({
   const onClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    window.open(buildWhatsappUrl(phone, message ?? ""), "_blank");
+    window.open(buildWhatsappUrl(phone, message ?? ""), "_blank", "noopener,noreferrer");
   };
   return (
     <Button

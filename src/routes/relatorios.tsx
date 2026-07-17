@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useFinancialReport } from "@/hooks/useFinancialReport";
 import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { QueryErrorState } from "@/components/QueryErrorState";
 
 export const Route = createFileRoute("/relatorios")({ component: RelatoriosPage });
 
@@ -23,11 +24,19 @@ const MESES = [
 ];
 
 function RelatoriosPage() {
-  const { data, isLoading } = useFinancialReport();
+  const { data, isLoading, isError, refetch } = useFinancialReport();
   const mes = MESES[new Date().getMonth()];
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
+  }
+  if (isError || !data) {
+    return (
+      <QueryErrorState
+        message="Não foi possível carregar os relatórios."
+        onRetry={() => void refetch()}
+      />
+    );
   }
 
   const max = Math.max(1, ...data.dias.map((d) => d.valor));

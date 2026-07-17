@@ -48,6 +48,7 @@ import { buildWhatsappUrl, renderAtualizacao, renderOrcamento, STATUS_LABEL } fr
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { baixarOrcamentoPDF } from "@/lib/pdf";
+import { QueryErrorState } from "@/components/QueryErrorState";
 
 export const Route = createFileRoute("/os/$osId")({ component: OSDetail });
 
@@ -63,7 +64,7 @@ const STATUSES: OSStatus[] = [
 function OSDetail() {
   const { osId } = Route.useParams();
   const navigate = useNavigate();
-  const { data: os, isLoading } = useServiceOrder(osId);
+  const { data: os, isLoading, isError, refetch } = useServiceOrder(osId);
   const { data: workshop } = useWorkshop();
   const { data: payments } = usePaymentsByOS(osId);
   const addPayment = useAddPayment();
@@ -75,8 +76,16 @@ function OSDetail() {
   const [payForma, setPayForma] = useState<FormaPagamento | "">("");
   const [payObs, setPayObs] = useState("");
 
-  if (isLoading || !os) {
+  if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
+  }
+  if (isError || !os) {
+    return (
+      <QueryErrorState
+        message="Não foi possível carregar esta ordem de serviço."
+        onRetry={() => void refetch()}
+      />
+    );
   }
 
   const total = Number(os.total_geral || 0);
@@ -118,7 +127,7 @@ function OSDetail() {
 
   const enviarOrcamento = () => {
     if (!os.clients?.telefone) return;
-    window.open(buildWhatsappUrl(os.clients.telefone, buildMessage()), "_blank");
+    window.open(buildWhatsappUrl(os.clients.telefone, buildMessage()), "_blank", "noopener,noreferrer");
   };
 
   const baixarPDF = () => {
@@ -186,9 +195,16 @@ function OSDetail() {
                 workshop,
               ),
             );
-            window.open(url, "_blank");
+            toast("Avisar o cliente no WhatsApp?", {
+              action: {
+                label: "Abrir WhatsApp",
+                onClick: () => window.open(url, "_blank", "noopener,noreferrer"),
+              },
+              duration: 8000,
+            });
           }
         },
+        onError: () => toast.error("Não foi possível atualizar o status"),
       },
     );
   };
@@ -355,7 +371,13 @@ function OSDetail() {
                   className="h-7 w-7 text-muted-foreground"
                   onClick={() => {
                     if (confirm("Excluir este pagamento?")) {
-                      deletePayment.mutate({ id: p.id, service_order_id: os.id });
+                      deletePayment.mutate(
+                        { id: p.id, service_order_id: os.id },
+                        {
+                          onSuccess: () => toast.success("Pagamento excluído"),
+                          onError: () => toast.error("Não foi possível excluir o pagamento"),
+                        },
+                      );
                     }
                   }}
                 >

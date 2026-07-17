@@ -16,10 +16,16 @@ function corsHeadersFor(req: Request): Record<string, string> {
     "Access-Control-Allow-Headers":
       "authorization, x-client-info, apikey, content-type, x-idempotency-key",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
     Vary: "Origin",
   };
   if (!ALLOWED_ORIGINS) {
-    headers["Access-Control-Allow-Origin"] = origin ?? "*";
+    if (origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      headers["Access-Control-Allow-Origin"] = origin;
+    } else if (!origin) {
+      headers["Access-Control-Allow-Origin"] = "*";
+    }
   } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
   }
@@ -27,8 +33,11 @@ function corsHeadersFor(req: Request): Record<string, string> {
 }
 
 function isOriginAllowed(req: Request): boolean {
-  if (!ALLOWED_ORIGINS) return true;
   const origin = req.headers.get("Origin");
+  if (!ALLOWED_ORIGINS) {
+    if (!origin) return true;
+    return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  }
   if (!origin) return true;
   return ALLOWED_ORIGINS.includes(origin);
 }
@@ -40,6 +49,25 @@ function json(req: Request, body: unknown, status = 200) {
   });
 }
 
+const MpFormDataSchema = z.object({
+  transaction_amount: z.number().positive(),
+  token: z.string().min(1).optional(),
+  payment_method_id: z.string().min(1),
+  installments: z.number().int().positive().optional(),
+  issuer_id: z.union([z.string(), z.number()]).optional(),
+  payer: z
+    .object({
+      email: z.string().email().optional(),
+      identification: z
+        .object({
+          type: z.string().optional(),
+          number: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+});
+
 const ProcessPaymentSchema = z.object({
   offerIds: z.array(z.string()).min(1),
   lead: z.object({
@@ -47,7 +75,7 @@ const ProcessPaymentSchema = z.object({
     email: z.string().email(),
     whatsapp: z.string().min(8).max(30),
   }),
-  formData: z.record(z.unknown()),
+  formData: MpFormDataSchema,
   meta: z.record(z.unknown()).optional(),
 });
 
@@ -167,15 +195,13 @@ async function fetchMpPayment(id: string) {
 }
 
 function buildPaymentBody(
-  formData: Record<string, unknown>,
+  formData: z.infer<typeof MpFormDataSchema>,
   amountReais: number,
   orderId: string,
   leadEmail: string,
 ) {
-  const payerIn = (formData.payer ?? {}) as Record<string, unknown>;
-  const identification = payerIn.identification as
-    | { type?: string; number?: string }
-    | undefined;
+  const payerIn = formData.payer ?? {};
+  const identification = payerIn.identification;
 
   const body: Record<string, unknown> = {
     transaction_amount: amountReais,
@@ -183,7 +209,7 @@ function buildPaymentBody(
     installments: Number(formData.installments ?? 1),
     payment_method_id: formData.payment_method_id,
     payer: {
-      email: (payerIn.email as string) || leadEmail,
+      email: payerIn.email || leadEmail,
       ...(identification?.type && identification?.number
         ? {
             identification: {
@@ -241,20 +267,18 @@ Deno.serve(async (req: Request) => {
         null;
 
       const webhookSecret = Deno.env.get("MP_WEBHOOK_SECRET")?.trim();
-      if (webhookSecret) {
-        const ok = await validateMpWebhookSignature({
-          xSignature: req.headers.get("x-signature"),
-          xRequestId: req.headers.get("x-request-id"),
-          dataId: paymentId,
-          secret: webhookSecret,
-        });
-        if (!ok) {
-          return json(req, { error: "Invalid signature" }, 401);
-        }
-      } else {
-        console.warn(
-          "MP_WEBHOOK_SECRET não configurado — webhook aceito sem validação",
-        );
+      if (!webhookSecret) {
+        console.error("MP_WEBHOOK_SECRET não configurado — webhook rejeitado");
+        return json(req, { error: "Webhook secret not configured" }, 401);
+      }
+      const ok = await validateMpWebhookSignature({
+        xSignature: req.headers.get("x-signature"),
+        xRequestId: req.headers.get("x-request-id"),
+        dataId: paymentId,
+        secret: webhookSecret,
+      });
+      if (!ok) {
+        return json(req, { error: "Invalid signature" }, 401);
       }
 
       if (!paymentId) {
@@ -338,9 +362,7 @@ Deno.serve(async (req: Request) => {
       const amountCents = computeOrderAmountCents(ids);
       const amountReais = Math.round(amountCents) / 100;
 
-      const clientAmount = Number(
-        (formData as { transaction_amount?: number }).transaction_amount ?? 0,
-      );
+      const clientAmount = Number(formData.transaction_amount ?? 0);
       if (Math.abs(clientAmount - amountReais) > 0.01) {
         return json(
           req,
@@ -502,6 +524,177 @@ Deno.serve(async (req: Request) => {
 
       const approved = status === "approved" || status === "authorized";
       return json(req, { ok: true, approved, orderId: order.id, status });
+    }
+
+    if (action === "getOrderAssetUrl") {
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const AssetSchema = z.object({
+        orderId: z.string().regex(uuidRegex),
+        assetId: z.enum([
+          "playbook",
+          "recuperador",
+          "kit-templates",
+          "metodo-3km",
+        ]),
+      });
+      const parsed = AssetSchema.safeParse(body);
+      if (!parsed.success) {
+        return json(req, { error: "Payload inválido" }, 400);
+      }
+      const files: Record<string, string> = {
+        playbook: "playbook-oficinapro.pdf",
+        recuperador: "recuperador-orcamentos.pdf",
+        "kit-templates": "kit-templates.pdf",
+        "metodo-3km": "metodo-3km.pdf",
+      };
+      const admin = adminClient();
+      const { data: order } = await admin
+        .from("funil_orders")
+        .select("id, mp_status, offer_ids")
+        .eq("id", parsed.data.orderId)
+        .maybeSingle();
+      if (!order) return json(req, { error: "Pedido não encontrado" }, 404);
+      const st = order.mp_status as string | null;
+      if (st !== "approved" && st !== "authorized") {
+        return json(req, { error: "Pagamento não aprovado" }, 403);
+      }
+      const offers = (order.offer_ids as string[] | null) ?? [];
+      if (
+        parsed.data.assetId !== "playbook" &&
+        !offers.includes(parsed.data.assetId)
+      ) {
+        return json(req, { error: "Oferta não incluída no pedido" }, 403);
+      }
+      const file = files[parsed.data.assetId];
+      const { data: signed, error } = await admin.storage
+        .from("playbook")
+        .createSignedUrl(file, 120);
+      if (error || !signed?.signedUrl) {
+        return json(
+          req,
+          { error: error?.message ?? "Arquivo indisponível" },
+          500,
+        );
+      }
+      return json(req, { url: signed.signedUrl, fileName: file });
+    }
+
+    if (action === "processPlanUpgrade") {
+      const PlanUpgradeSchema = z.object({
+        plano: z.enum(["solo", "oficina"]),
+        payerEmail: z.string().email(),
+        formData: MpFormDataSchema,
+      });
+      const parsed = PlanUpgradeSchema.safeParse(body);
+      if (!parsed.success) {
+        return json(
+          req,
+          { error: parsed.error.issues[0]?.message ?? "Payload inválido" },
+          400,
+        );
+      }
+
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) return json(req, { error: "Não autenticado" }, 401);
+      const anon = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const {
+        data: { user },
+        error: userErr,
+      } = await anon.auth.getUser();
+      if (userErr || !user) return json(req, { error: "Sessão inválida" }, 401);
+
+      const admin = adminClient();
+      const { data: prof } = await admin
+        .from("profiles")
+        .select("workshop_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!prof?.workshop_id) return json(req, { error: "Sem oficina" }, 400);
+
+      const { data: role } = await admin
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("workshop_id", prof.workshop_id)
+        .eq("role", "dono")
+        .maybeSingle();
+      if (!role) return json(req, { error: "Apenas o dono pode fazer upgrade" }, 403);
+
+      const PLAN_CENTS: Record<string, number> = { solo: 9700, oficina: 19700 };
+      const amountCents = PLAN_CENTS[parsed.data.plano];
+      const amountReais = amountCents / 100;
+      const clientAmount = Number(
+        Number(parsed.data.formData.transaction_amount ?? 0),
+      );
+      if (Math.abs(clientAmount - amountReais) > 0.01) {
+        return json(req, { error: "Valor inconsistente" }, 400);
+      }
+
+      const { data: order, error: orderErr } = await admin
+        .from("funil_orders")
+        .insert({
+          email: parsed.data.payerEmail.toLowerCase(),
+          name: user.email ?? "OficinaPRO",
+          whatsapp: "00000000000",
+          offer_ids: [`saas-${parsed.data.plano}`],
+          amount_cents: amountCents,
+          payer_email: parsed.data.payerEmail.toLowerCase(),
+          meta: {
+            type: "saas_plan",
+            plano: parsed.data.plano,
+            workshop_id: prof.workshop_id,
+            user_id: user.id,
+          },
+          mp_status: "pending",
+        })
+        .select("id")
+        .single();
+      if (orderErr || !order) {
+        console.error(orderErr);
+        return json(req, { error: "Falha ao criar pedido de plano" }, 500);
+      }
+
+      const idempotency =
+        req.headers.get("x-idempotency-key") ?? crypto.randomUUID();
+      const mpBody = buildPaymentBody(
+        parsed.data.formData,
+        amountReais,
+        order.id,
+        parsed.data.payerEmail,
+      );
+      const payment = await createMpPayment(
+        { ...mpBody, transaction_amount: amountReais },
+        idempotency,
+      );
+
+      await admin
+        .from("funil_orders")
+        .update({
+          mp_payment_id: String(payment.id),
+          mp_status: payment.status,
+          mp_status_detail: payment.status_detail,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.id);
+
+      if (payment.status === "approved" || payment.status === "authorized") {
+        await admin
+          .from("workshops")
+          .update({ plano: parsed.data.plano })
+          .eq("id", prof.workshop_id);
+      }
+
+      return json(req, {
+        orderId: order.id,
+        paymentId: payment.id,
+        status: payment.status,
+        statusDetail: payment.status_detail,
+      });
     }
 
     return json(req, { error: "Ação desconhecida" }, 400);

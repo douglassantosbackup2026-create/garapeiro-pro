@@ -157,7 +157,15 @@ function Alertas() {
                       <Star className="h-4 w-4 mr-1" /> Registrar nota
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" onClick={() => dismiss.mutate(a.clientId)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      dismiss.mutate(a.clientId, {
+                        onError: () => toast.error("Não foi possível dispensar o alerta"),
+                      })
+                    }
+                  >
                     Dispensar
                   </Button>
                 </div>
@@ -200,9 +208,13 @@ function Alertas() {
             <Button
               onClick={async () => {
                 if (!satOs) return;
-                await updateSat.mutateAsync({ id: satOs.id, nota: satNota });
-                toast.success("Nota registrada");
-                setSatOs(null);
+                try {
+                  await updateSat.mutateAsync({ id: satOs.id, nota: satNota });
+                  toast.success("Nota registrada");
+                  setSatOs(null);
+                } catch {
+                  // MutationCache já notifica
+                }
               }}
               disabled={updateSat.isPending}
             >

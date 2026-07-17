@@ -11,7 +11,6 @@ import { createWorkshop } from "@/lib/workshop.functions";
 import { setCurrentWorkshopId } from "@/lib/workshop";
 import { WorkshopSchema } from "@/lib/schemas";
 import { consumeVerifiedPlaybookTrial } from "@/lib/playbookAssets";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
@@ -57,14 +56,23 @@ function OnboardingPage() {
       });
       setCurrentWorkshopId(workshopId);
       if (await consumeVerifiedPlaybookTrial()) {
-        await supabase
-          .from("workshops")
-          .update({ playbook_unlocked_at: new Date().toISOString() })
-          .eq("id", workshopId);
+        // unlock feito no servidor via workshop-api
       }
       await refreshProfile();
+      let desiredPlano: string | null = null;
+      try {
+        desiredPlano = localStorage.getItem("oficinapro-desired-plano");
+        localStorage.removeItem("oficinapro-desired-plano");
+      } catch {
+        /* ignore */
+      }
       toast.success("Oficina criada! Bem-vindo ao OficinaPRO.");
-      navigate({ to: "/" });
+      if (desiredPlano === "solo" || desiredPlano === "oficina") {
+        toast.info("Complete o upgrade do plano em Ajustes para liberar todos os recursos.");
+        navigate({ to: "/configuracoes", search: { upgrade: "1" } });
+      } else {
+        navigate({ to: "/" });
+      }
     } catch (err) {
       toast.error((err as Error).message);
     } finally {

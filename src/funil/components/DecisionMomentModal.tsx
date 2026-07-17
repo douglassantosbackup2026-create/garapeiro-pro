@@ -18,30 +18,25 @@ export function DecisionMomentModal({ open, onClose }: Props) {
         className="animate-pop w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-center shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-2xl" aria-hidden>
-          🔓
-        </p>
         <h2
           id="decision-moment-title"
-          className="font-display mt-2 text-xl font-bold tracking-tight text-foreground"
+          className="font-display text-xl font-bold tracking-tight text-foreground"
         >
           Agora não é curiosidade.
           <br />
-          É decisão. 💥
+          É decisão.
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Decisão que pode mudar a sua vida da água pro vinho 🍷 em alguns
-          meses.
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          E eu quero ser a pessoa que vai te permitir fazer isso. 🔥
+          Você já viu o padrão: indicação some, orçamento esfria, cliente não
+          volta. O próximo passo é descobrir o que travar o seu faturamento —
+          e o que fazer a respeito.
         </p>
         <button
           type="button"
           onClick={onClose}
           className="mt-6 w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold uppercase tracking-wide text-primary-foreground shadow-md transition hover:brightness-105"
         >
-          💥 VOU ATÉ O FINAL 🚀
+          Continuar o diagnóstico
         </button>
       </div>
     </div>

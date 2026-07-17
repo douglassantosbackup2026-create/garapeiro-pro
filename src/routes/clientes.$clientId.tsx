@@ -18,13 +18,14 @@ import { PlacaBadge } from "@/components/PlacaBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { formatBRL, formatDate, formatOSNumber, formatPhone } from "@/lib/format";
+import { QueryErrorState } from "@/components/QueryErrorState";
 
 export const Route = createFileRoute("/clientes/$clientId")({ component: ClientDetail });
 
 function ClientDetail() {
   const { clientId } = Route.useParams();
   const navigate = useNavigate();
-  const { data: c, isLoading } = useClient(clientId);
+  const { data: c, isLoading, isError, refetch } = useClient(clientId);
   const updateClient = useUpdateClient();
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
@@ -55,12 +56,20 @@ function ClientDetail() {
       });
       toast.success("Cliente atualizado");
       setOpen(false);
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch {
+      // MutationCache já notifica o usuário
     }
   }
 
-  if (isLoading || !c) return <div className="p-8 text-center">Carregando...</div>;
+  if (isLoading) return <div className="p-8 text-center">Carregando...</div>;
+  if (isError || !c) {
+    return (
+      <QueryErrorState
+        message="Não foi possível carregar este cliente."
+        onRetry={() => void refetch()}
+      />
+    );
+  }
 
   return (
     <div className="px-4 md:px-8 py-5 max-w-2xl mx-auto">

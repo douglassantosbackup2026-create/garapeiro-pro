@@ -61,12 +61,14 @@ function LoginPage() {
     const workshopId = userId ? await fetchWorkshopId(userId) : null;
     setLoading(false);
     toast.success("Bem-vindo de volta!");
-    if (redirect) {
-      navigate({ to: redirect });
-      return;
-    }
+    const safeRedirect =
+      redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : null;
     if (!workshopId) {
       navigate({ to: "/onboarding" });
+      return;
+    }
+    if (safeRedirect && safeRedirect !== "/onboarding") {
+      navigate({ to: safeRedirect });
       return;
     }
     navigate({ to: "/" });
