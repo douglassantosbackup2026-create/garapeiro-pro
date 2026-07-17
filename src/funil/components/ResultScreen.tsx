@@ -19,11 +19,11 @@ function maskWhatsapp(digits: string) {
 
 const GAP_LABELS: Record<string, string> = {
   clientes: "Falta de aquisição previsível (dependência de indicação)",
-  orcamentos: "Orçamentos que esfriam sem cobrança em sequência",
-  ticket: "Preço pressionado — perde serviço ou baixa o valor",
+  orcamentos: "Nenhum sistema pronto pra atrair cliente todos os dias",
+  ticket: "Faturamento travado — sem ticket e volume pra crescer",
   retorno: "Clientes antigos que somem sem lembrete de retorno",
-  organizacao: "Operação sem sistema claro no dia a dia",
-  tempo: "Dia a dia engolindo o dono — sem estratégia",
+  organizacao: "Não tem noção do quanto poderia estar faturando",
+  tempo: "Dia a dia engolindo o dono — sem estratégia clara",
 };
 
 export function ResultScreen() {
@@ -104,8 +104,9 @@ export function ResultScreen() {
 
           <p className="mb-3 flex items-start gap-2 text-sm font-semibold leading-snug text-foreground">
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-primary" />
-            Pelo que você respondeu… sua oficina está perdendo dinheiro todos os
-            dias — e nem percebe.
+            Seu diagnóstico: pelas suas respostas, sua oficina tem potencial
+            pra faturar entre R$ 5.000 e R$ 20.000 por mês — mas está deixando
+            dinheiro na mesa todos os dias.
           </p>
 
           <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
@@ -174,8 +175,11 @@ export function ResultScreen() {
         <div className="rounded-xl border border-money/30 bg-money/10 p-4 text-sm leading-relaxed text-foreground">
           <p className="font-semibold">A boa notícia?</p>
           <p className="mt-1 text-muted-foreground">
-            Isso não depende de sorte… nem de investimento alto em anúncio. Depende
-            de um método simples pra atrair, cobrar e fazer o cliente voltar.
+            Isso não depende de sorte, nem de investir alto em anúncio. Depende
+            de um método simples pra atrair cliente todo dia, recuperar quem
+            sumiu e fazer o faturamento subir — foi exatamente pra isso que
+            criamos o <span className="font-bold text-foreground">Método
+            Oficina PRO</span>.
           </p>
         </div>
 

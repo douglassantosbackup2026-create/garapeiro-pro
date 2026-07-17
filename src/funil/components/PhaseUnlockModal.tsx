@@ -25,11 +25,11 @@ export function PhaseUnlockModal({ open, onClose }: Props) {
           Diagnóstico iniciado
         </h2>
         <p className="mt-3 text-base font-semibold text-foreground">
-          Responda com sinceridade.
+          Responda com sinceridade — em 60 segundos.
         </p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Cada resposta mostra onde a oficina perde dinheiro — aquisição,
-          orçamento, retorno ou preço.
+          Cada resposta mostra quanto dinheiro sua oficina está deixando na
+          mesa — em aquisição, retorno de cliente e faturamento.
         </p>
         <button
           type="button"
