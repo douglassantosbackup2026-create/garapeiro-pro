@@ -11,6 +11,14 @@ const ALLOWED_ORIGINS = allowedOriginsEnv
   : null;
 
 const LOVABLE_HOST_RE = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovable\.dev|lovableproject\.com)$/i;
+const CUSTOM_ALLOWED_ORIGINS = new Set([
+  "https://oficinapro.life",
+  "https://www.oficinapro.life",
+]);
+
+function isBuiltInAllowedOrigin(origin: string): boolean {
+  return CUSTOM_ALLOWED_ORIGINS.has(origin) || LOVABLE_HOST_RE.test(origin);
+}
 
 function corsHeadersFor(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin");
@@ -22,7 +30,9 @@ function corsHeadersFor(req: Request): Record<string, string> {
     "X-Frame-Options": "DENY",
     Vary: "Origin",
   };
-  if (!ALLOWED_ORIGINS) {
+  if (origin && isBuiltInAllowedOrigin(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  } else if (!ALLOWED_ORIGINS) {
     if (origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       headers["Access-Control-Allow-Origin"] = origin;
     } else if (!origin) {
@@ -30,20 +40,19 @@ function corsHeadersFor(req: Request): Record<string, string> {
     }
   } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
-  } else if (origin && LOVABLE_HOST_RE.test(origin)) {
-    headers["Access-Control-Allow-Origin"] = origin;
   }
   return headers;
 }
 
 function isOriginAllowed(req: Request): boolean {
   const origin = req.headers.get("Origin");
+  if (!origin) return true;
+  if (isBuiltInAllowedOrigin(origin)) return true;
+  if (ALLOWED_ORIGINS?.includes(origin)) return true;
   if (!ALLOWED_ORIGINS) {
-    if (!origin) return true;
     return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
   }
-  if (!origin) return true;
-  return ALLOWED_ORIGINS.includes(origin) || LOVABLE_HOST_RE.test(origin);
+  return false;
 }
 
 function json(req: Request, body: unknown, status = 200) {
