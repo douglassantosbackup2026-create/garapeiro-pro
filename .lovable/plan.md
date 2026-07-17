@@ -1,32 +1,37 @@
-## Problema
+## Diagnóstico
 
-O checkout mostra "Failed to send a request to the Edge Function" e o console repete `FunctionsFetchError: Failed to fetch` em `funil-api` (touchLeadStep / upsertLead). Isso é bloqueio de CORS — o navegador nem consegue ler a resposta, por isso vira "Failed to fetch".
+O erro continua no domínio publicado porque as Edge Functions estão rejeitando a origem `https://oficinapro.life`.
 
-A função `supabase/functions/funil-api/index.ts` só permite:
-- localhost/127.0.0.1 quando `ALLOWED_ORIGINS` não está setado, ou
-- origens listadas exatamente na env `ALLOWED_ORIGINS`.
+Teste direto nas funções retornou:
 
-O segredo `ALLOWED_ORIGINS` **está setado** no projeto, então a lógica cai no ramo estrito. A URL de preview (`https://id-preview--d83852d3-be63-4a10-a582-778b5f6b599e.lovable.app`) provavelmente não está na lista, então o preflight OPTIONS volta sem `Access-Control-Allow-Origin` e o fetch falha.
+```text
+403 {"error":"Origin not allowed"}
+```
 
-## Correção
+Isso confirma que o problema atual não é mais o preview, nem o Mercado Pago em si: é a allowlist de CORS/origem para o domínio oficial.
 
-Ajustar `funil-api/index.ts` para, além da allowlist exata, aceitar automaticamente qualquer subdomínio `*.lovable.app` e `*.lovable.dev` (que é onde ficam preview/published/branches do Lovable), sem mexer no comportamento para o domínio final (`oficinapro.life`).
+## Plano
 
-Mudanças:
+1. Atualizar o CORS das funções usadas no checkout:
+   - `funil-api`
+   - `mercado-pago`
 
-1. `corsHeadersFor(req)`: se `origin` casar com `^https:\/\/[a-z0-9-]+\.lovable\.(app|dev)$`, também setar `Access-Control-Allow-Origin: <origin>`.
-2. `isOriginAllowed(req)`: mesma regra — retornar `true` para subdomínios `lovable.app`/`lovable.dev`.
-3. Manter `ALLOWED_ORIGINS` como allowlist adicional para o domínio custom (`oficinapro.life`, `www.oficinapro.life`).
-4. Redeploy da função `funil-api`.
+2. Garantir que estes domínios sejam sempre aceitos, mesmo se o segredo `ALLOWED_ORIGINS` estiver incompleto:
+   - `https://oficinapro.life`
+   - `https://www.oficinapro.life`
+   - previews Lovable já liberados: `*.lovableproject.com`, `*.lovable.app`, `*.lovable.dev`
 
-Nenhuma mudança de frontend, schema ou outras funções.
+3. Manter o `ALLOWED_ORIGINS` como allowlist adicional, sem depender exclusivamente dele.
 
-## Verificação
+4. Redeploy das Edge Functions alteradas.
 
-- Após redeploy, recarregar `/quiz?step=checkout` no preview: `touchLeadStep`/`upsertLead` devem responder 200 e o banner "Failed to send…" some.
-- Testar também o "Continuar para o pagamento" para confirmar que `upsertLead` + criação do pedido MP fluem.
+5. Validar com chamada real usando `Origin: https://oficinapro.life` para confirmar resposta `200` antes de você testar novamente no checkout.
 
-## Fora de escopo
+## Arquivos envolvidos
 
-- Não mexer em `mercado-pago` nem `workshop-api` (não aparecem no erro atual).
-- Não alterar copy do funil.
+- `supabase/functions/funil-api/index.ts`
+- `supabase/functions/mercado-pago/index.ts`
+
+## Resultado esperado
+
+O checkout em `https://oficinapro.life/quiz?step=checkout` deve parar de exibir “Failed to send a request to the Edge Function” nas chamadas de lead/checkout.
