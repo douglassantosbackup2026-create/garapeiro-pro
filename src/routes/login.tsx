@@ -28,12 +28,24 @@ async function fetchWorkshopId(userId: string): Promise<string | null> {
   return data?.workshop_id ?? null;
 }
 
+function translateAuthError(message: string): string {
+  const map: Record<string, string> = {
+    "Invalid login credentials": "E-mail ou senha incorretos",
+    "Email not confirmed": "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.",
+    "User not found": "Usuário não encontrado",
+    "Too many requests": "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+  };
+  return map[message] ?? message;
+}
+
 function LoginPage() {
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [resending, setResending] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,18 +55,12 @@ function LoginPage() {
       return;
     }
     setLoading(true);
+    setNeedsConfirmation(false);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-      if (error.message === "Email not confirmed") {
-        toast.error("Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.");
-        return;
-      }
-      toast.error(
-        error.message === "Invalid login credentials"
-          ? "E-mail ou senha incorretos"
-          : error.message,
-      );
+      if (error.message === "Email not confirmed") setNeedsConfirmation(true);
+      toast.error(translateAuthError(error.message));
       return;
     }
     const userId = data.user?.id;
@@ -72,6 +78,25 @@ function LoginPage() {
       return;
     }
     navigate({ to: "/" });
+  }
+
+  async function handleResendConfirmation() {
+    if (!email) {
+      toast.error("Informe seu e-mail para reenviar a confirmação.");
+      return;
+    }
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/onboarding` },
+    });
+    setResending(false);
+    if (error) {
+      toast.error(translateAuthError(error.message));
+      return;
+    }
+    toast.success("E-mail de confirmação reenviado.");
   }
 
   return (
@@ -110,6 +135,17 @@ function LoginPage() {
             {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
+        {needsConfirmation && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full mt-3"
+            onClick={handleResendConfirmation}
+            disabled={resending}
+          >
+            {resending ? "Reenviando..." : "Reenviar e-mail de confirmação"}
+          </Button>
+        )}
         <div className="flex justify-between mt-4 text-sm">
           <Link to="/recuperar-senha" className="text-primary hover:underline">
             Esqueci a senha

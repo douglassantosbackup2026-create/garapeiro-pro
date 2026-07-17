@@ -27,6 +27,19 @@ function asOptionalString(v: unknown): string | undefined {
   return typeof v === "string" && v.length > 0 ? v : undefined;
 }
 
+function translateSignupError(message: string): string {
+  const msg = message.toLowerCase();
+  if (msg.includes("already registered") || msg.includes("user already"))
+    return "Este e-mail já tem uma conta. Faça login.";
+  if (msg.includes("password") && msg.includes("6"))
+    return "A senha deve ter pelo menos 6 caracteres.";
+  if (msg.includes("weak password")) return "Senha muito fraca. Use pelo menos 8 caracteres.";
+  if (msg.includes("rate limit") || msg.includes("too many"))
+    return "Muitas tentativas. Aguarde alguns minutos.";
+  if (msg.includes("invalid email")) return "E-mail inválido.";
+  return message;
+}
+
 export const Route = createFileRoute("/cadastro")({
   component: SignupPage,
   validateSearch: (search: Record<string, unknown>): CadastroSearch => ({
@@ -53,6 +66,7 @@ function SignupPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [awaitingEmail, setAwaitingEmail] = useState(false);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     rememberPlaybookTrialFromSearch({ trial, order });
@@ -84,7 +98,7 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(translateSignupError(error.message));
       return;
     }
     if (!data.session) {
@@ -99,6 +113,22 @@ function SignupPage() {
     navigate({ to: safeRedirect === "/onboarding" || !safeRedirect ? "/onboarding" : safeRedirect });
   }
 
+  async function handleResend() {
+    if (!email) return;
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/onboarding` },
+    });
+    setResending(false);
+    if (error) {
+      toast.error(translateSignupError(error.message));
+      return;
+    }
+    toast.success("E-mail de confirmação reenviado.");
+  }
+
   if (awaitingEmail) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
@@ -108,6 +138,15 @@ function SignupPage() {
             Enviamos um link de confirmação para <strong>{email}</strong>. Após confirmar, faça
             login para continuar.
           </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full mb-2"
+            onClick={handleResend}
+            disabled={resending}
+          >
+            {resending ? "Reenviando..." : "Reenviar e-mail"}
+          </Button>
           <Button asChild className="w-full">
             <Link to="/login" search={{ redirect: "/onboarding" }}>
               Ir para login
