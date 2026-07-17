@@ -68,7 +68,7 @@ export function loadPersisted(): FunnelPersisted | null {
         earningsCents: 0,
       };
     }
-    return data;
+    return { ...data, version: 3 };
   } catch {
     return null;
   }
