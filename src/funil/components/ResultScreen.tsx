@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { ArrowRight, AlertTriangle, CheckCircle2, Target } from "lucide-react";
 import { useFunnel } from "@/funil/funnel/FunnelContext";
 import { formatBRL } from "@/funil/lib/sessionMoney";
