@@ -551,19 +551,7 @@ export function MercadoPagoCheckout() {
               Olá, {state.lead.name.split(" ")[0]} — sua oferta ainda está aqui
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Complete o pagamento para liberar o Método. Se preferir,{" "}
-              <a
-                href={buildWhatsappRecoveryLink(
-                  state.lead,
-                  `Oi! Sou ${state.lead.name.split(" ")[0]}, fiz o diagnóstico OficinaPRO e quero finalizar a compra.`,
-                )}
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-money underline underline-offset-2"
-              >
-                falar no WhatsApp
-              </a>
-              .
+              Complete o pagamento para liberar o Método.
             </p>
           </div>
         )}
