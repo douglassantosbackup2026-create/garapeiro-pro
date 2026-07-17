@@ -54,22 +54,6 @@ export function Landing() {
           anúncios caros.
         </p>
 
-        <div className="mt-5 max-w-md space-y-3 text-left text-sm leading-relaxed text-foreground">
-          <p>
-            Se você tem uma oficina — ou quer montar uma — deixa eu te fazer uma
-            pergunta rápida: por que alguns mecânicos vivem cheios de clientes
-            enquanto outros ficam olhando o portão vazio o dia inteiro?
-          </p>
-          <p className="font-semibold text-foreground">
-            Não é sorte. Não é localização. E não é “ter o melhor serviço”.
-          </p>
-          <p className="rounded-xl border border-primary/30 bg-accent px-3 py-3 text-foreground">
-            Existe um <span className="font-bold text-primary">sistema previsível</span>{" "}
-            que transforma qualquer oficina comum em uma máquina de atrair
-            clientes — novos e antigos — todos os dias.
-          </p>
-        </div>
-
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           {NICHES.map((niche) => (
             <span
@@ -113,33 +97,6 @@ export function Landing() {
                 ))}
               </ul>
             </div>
-          </div>
-        </div>
-
-        <div className="mt-8 w-full max-w-md space-y-4 text-left">
-          <div className="rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-destructive">
-              A maioria das oficinas hoje…
-            </p>
-            <ul className="mt-2 space-y-1.5 text-sm text-foreground">
-              <li>✕ Depende de indicação (e sofre quando ela para)</li>
-              <li>✕ Perde clientes antigos sem nem perceber</li>
-              <li>✕ Não sabe atrair cliente novo de forma constante</li>
-              <li className="font-semibold">
-                E o pior: acha que isso é normal.
-              </li>
-            </ul>
-          </div>
-
-          <div className="rounded-2xl border border-money/30 bg-money/10 p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-money">
-              Com o Método Oficina PRO você aprende a:
-            </p>
-            <ul className="mt-2 space-y-1.5 text-sm text-foreground">
-              <li>✓ Atrair clientes novos todos os dias</li>
-              <li>✓ Trazer de volta clientes que já sumiram</li>
-              <li>✓ Criar um fluxo constante de faturamento</li>
-            </ul>
           </div>
         </div>
 
