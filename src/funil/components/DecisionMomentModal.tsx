@@ -27,9 +27,9 @@ export function DecisionMomentModal({ open, onClose }: Props) {
           É decisão.
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Você já viu o padrão: indicação some, orçamento esfria, cliente não
-          volta. O próximo passo é descobrir o que travar o seu faturamento —
-          e o que fazer a respeito.
+          Você já viu o padrão: cliente novo não entra, cliente antigo some e
+          o faturamento vive travado. As próximas perguntas vão mostrar quanto
+          dinheiro está passando batido — e o que fazer a respeito.
         </p>
         <button
           type="button"
