@@ -42,17 +42,33 @@ export function Landing() {
         </div>
 
         <h1 className="font-display text-[1.65rem] font-bold leading-[1.25] tracking-tight text-foreground sm:text-3xl">
-          Por que algumas oficinas vivem{" "}
+          Descubra por que algumas oficinas fazem{" "}
           <span className="inline rounded-md bg-primary px-1.5 py-0.5 text-primary-foreground">
-            cheias
-          </span>
-          … e outras ficam olhando o portão vazio?
+            R$ 20.000/mês
+          </span>{" "}
+          — enquanto outras mal conseguem clientes. E como mudar isso em até 30 dias.
         </h1>
 
         <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
           Mesmo que você esteja começando do zero, sem equipe e sem gastar com
-          anúncios caros — descubra o que está travando o faturamento.
+          anúncios caros.
         </p>
+
+        <div className="mt-5 max-w-md space-y-3 text-left text-sm leading-relaxed text-foreground">
+          <p>
+            Se você tem uma oficina — ou quer montar uma — deixa eu te fazer uma
+            pergunta rápida: por que alguns mecânicos vivem cheios de clientes
+            enquanto outros ficam olhando o portão vazio o dia inteiro?
+          </p>
+          <p className="font-semibold text-foreground">
+            Não é sorte. Não é localização. E não é “ter o melhor serviço”.
+          </p>
+          <p className="rounded-xl border border-primary/30 bg-accent px-3 py-3 text-foreground">
+            Existe um <span className="font-bold text-primary">sistema previsível</span>{" "}
+            que transforma qualquer oficina comum em uma máquina de atrair
+            clientes — novos e antigos — todos os dias.
+          </p>
+        </div>
 
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           {NICHES.map((niche) => (
@@ -100,11 +116,32 @@ export function Landing() {
           </div>
         </div>
 
-        <p className="mt-6 max-w-md text-sm font-medium leading-relaxed text-foreground">
-          O problema não é “falta de cliente no Brasil”. É oficina{" "}
-          <span className="text-primary">sem sistema</span> pra atrair, cobrar e
-          fazer voltar.
-        </p>
+        <div className="mt-8 w-full max-w-md space-y-4 text-left">
+          <div className="rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-destructive">
+              A maioria das oficinas hoje…
+            </p>
+            <ul className="mt-2 space-y-1.5 text-sm text-foreground">
+              <li>✕ Depende de indicação (e sofre quando ela para)</li>
+              <li>✕ Perde clientes antigos sem nem perceber</li>
+              <li>✕ Não sabe atrair cliente novo de forma constante</li>
+              <li className="font-semibold">
+                E o pior: acha que isso é normal.
+              </li>
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-money/30 bg-money/10 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-money">
+              Com o Método Oficina PRO você aprende a:
+            </p>
+            <ul className="mt-2 space-y-1.5 text-sm text-foreground">
+              <li>✓ Atrair clientes novos todos os dias</li>
+              <li>✓ Trazer de volta clientes que já sumiram</li>
+              <li>✓ Criar um fluxo constante de faturamento</li>
+            </ul>
+          </div>
+        </div>
 
         <button
           type="button"
@@ -115,10 +152,10 @@ export function Landing() {
         >
           <span className="flex items-center gap-2 text-base font-bold uppercase tracking-wide">
             <Rocket className="size-5" />
-            Fazer o diagnóstico gratuito
+            Descobrir quanto minha oficina pode faturar
           </span>
           <span className="text-xs font-medium text-primary-foreground/80">
-            Cerca de 1 minuto · sem cartão
+            Teste gratuito · cerca de 60 segundos
           </span>
         </button>
 
