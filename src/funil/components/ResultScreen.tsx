@@ -19,11 +19,11 @@ function maskWhatsapp(digits: string) {
 
 const GAP_LABELS: Record<string, string> = {
   clientes: "Falta de aquisição previsível (dependência de indicação)",
-  orcamentos: "Orçamentos que esfriam sem cobrança em sequência",
-  ticket: "Preço pressionado — perde serviço ou baixa o valor",
+  orcamentos: "Nenhum sistema pronto pra atrair cliente todos os dias",
+  ticket: "Faturamento travado — sem ticket e volume pra crescer",
   retorno: "Clientes antigos que somem sem lembrete de retorno",
-  organizacao: "Operação sem sistema claro no dia a dia",
-  tempo: "Dia a dia engolindo o dono — sem estratégia",
+  organizacao: "Não tem noção do quanto poderia estar faturando",
+  tempo: "Dia a dia engolindo o dono — sem estratégia clara",
 };
 
 export function ResultScreen() {
