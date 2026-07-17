@@ -56,7 +56,7 @@ export function loadPersisted(): FunnelPersisted | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const data = JSON.parse(raw) as FunnelPersisted;
+    const data = JSON.parse(raw) as FunnelPersisted & { version: number };
     if (!data || (data.version !== 2 && data.version !== 3)) return null;
     if (data.version === 2) {
       return {
