@@ -1,21 +1,10 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { ArrowRight, AlertTriangle, CheckCircle2, Target } from "lucide-react";
 import { useFunnel } from "@/funil/funnel/FunnelContext";
 import { formatBRL } from "@/funil/lib/sessionMoney";
 import { BonusUnlockModal } from "./BonusUnlockModal";
 import { BrandHeader, Shell } from "./BrandHeader";
 import { cn } from "@/lib/utils";
-
-function onlyDigits(v: string) {
-  return v.replace(/\D/g, "");
-}
-
-function maskWhatsapp(digits: string) {
-  const d = onlyDigits(digits).slice(0, 11);
-  if (d.length <= 2) return d;
-  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
-  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-}
 
 const GAP_LABELS: Record<string, string> = {
   clientes: "Falta de aquisição previsível (dependência de indicação)",
@@ -27,53 +16,15 @@ const GAP_LABELS: Record<string, string> = {
 };
 
 export function ResultScreen() {
-  const { state, diagnosis, dispatch, submitLead } = useFunnel();
+  const { state, diagnosis, dispatch } = useFunnel();
   const { profile, strategies, totalScore, maxScore, weakCategories } = diagnosis;
   const pct = Math.round((totalScore / maxScore) * 100);
   const [showBonusModal, setShowBonusModal] = useState(true);
-  const [showLead, setShowLead] = useState(!state.lead);
-  const [name, setName] = useState(state.lead?.name ?? "");
-  const [whatsapp, setWhatsapp] = useState(
-    state.lead?.whatsapp ? maskWhatsapp(state.lead.whatsapp) : "",
-  );
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const gaps = weakCategories.slice(0, 3).map((id) => GAP_LABELS[id] ?? id);
 
-  async function continueToOffer() {
-    if (state.lead) {
-      dispatch({ type: "TO_OFFER" });
-      return;
-    }
-    setShowLead(true);
-    const digits = onlyDigits(whatsapp);
-    if (!name.trim()) {
-      setError("Informe seu nome.");
-      return;
-    }
-    if (digits.length < 10) {
-      setError("Informe um WhatsApp válido com DDD.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      await submitLead(
-        {
-          name: name.trim(),
-          whatsapp: digits,
-          email: "",
-          createdAt: new Date().toISOString(),
-        },
-        "result",
-      );
-      dispatch({ type: "TO_OFFER" });
-    } catch {
-      setError("Não foi possível salvar. Tente de novo.");
-    } finally {
-      setBusy(false);
-    }
+  function continueToOffer() {
+    dispatch({ type: "TO_OFFER" });
   }
 
   return (
@@ -211,47 +162,14 @@ export function ResultScreen() {
         </div>
 
         <div className="space-y-3">
-          {showLead && !state.lead && (
-            <div className="space-y-3 rounded-xl border border-border bg-card p-4">
-              <p className="text-sm font-medium text-foreground">
-                Pra ver o método do seu diagnóstico, deixe seu WhatsApp
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Assim conseguimos te avisar se a oferta expirar ou se você sair
-                no meio.
-              </p>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Seu nome"
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
-                autoComplete="name"
-              />
-              <input
-                type="tel"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(maskWhatsapp(e.target.value))}
-                placeholder="(11) 99999-0000"
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
-                autoComplete="tel"
-                inputMode="numeric"
-              />
-              {error && <p className="text-xs text-destructive">{error}</p>}
-            </div>
-          )}
-
           <button
             type="button"
-            onClick={() => void continueToOffer()}
-            disabled={busy}
-            className="group flex w-full flex-col items-center justify-center gap-0.5 rounded-xl bg-primary px-6 py-4 text-primary-foreground shadow-md transition hover:brightness-105 disabled:opacity-60"
+            onClick={continueToOffer}
+            className="group flex w-full flex-col items-center justify-center gap-0.5 rounded-xl bg-primary px-6 py-4 text-primary-foreground shadow-md transition hover:brightness-105"
           >
             <span className="flex items-center gap-2 text-base font-semibold">
-              {busy ? "Salvando..." : "Ver o método do meu diagnóstico"}
-              {!busy && (
-                <ArrowRight className="size-5 transition group-hover:translate-x-0.5" />
-              )}
+              Ver o método do meu diagnóstico
+              <ArrowRight className="size-5 transition group-hover:translate-x-0.5" />
             </span>
             <span className="text-xs font-medium text-primary-foreground/80">
               Próximo: oferta com base nas suas respostas
