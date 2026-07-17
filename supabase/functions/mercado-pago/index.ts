@@ -10,6 +10,8 @@ const ALLOWED_ORIGINS = allowedOriginsEnv
       .filter(Boolean)
   : null;
 
+const LOVABLE_HOST_RE = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovable\.dev|lovableproject\.com)$/i;
+
 function corsHeadersFor(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin");
   const headers: Record<string, string> = {
@@ -28,6 +30,8 @@ function corsHeadersFor(req: Request): Record<string, string> {
     }
   } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
+  } else if (origin && LOVABLE_HOST_RE.test(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
   }
   return headers;
 }
@@ -39,7 +43,7 @@ function isOriginAllowed(req: Request): boolean {
     return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
   }
   if (!origin) return true;
-  return ALLOWED_ORIGINS.includes(origin);
+  return ALLOWED_ORIGINS.includes(origin) || LOVABLE_HOST_RE.test(origin);
 }
 
 function json(req: Request, body: unknown, status = 200) {
