@@ -10,6 +10,7 @@ import { useFunnel } from "@/funil/funnel/FunnelContext";
 import { BrandHeader, Shell } from "./BrandHeader";
 import { LossCalculator } from "./LossCalculator";
 import { OfferCountdown } from "./OfferCountdown";
+import { WhatsAppTestimonials } from "./WhatsAppTestimonials";
 import { cn } from "@/lib/utils";
 
 const MAIN_BULLETS = [
@@ -94,6 +95,11 @@ export function OfferScreen() {
         </div>
 
         <LossCalculator />
+
+        <WhatsAppTestimonials
+          title="Quem já está faturando com o Método"
+          subtitle="Prints reais que os alunos mandam pra gente"
+        />
 
         <article className="rounded-2xl border-2 border-primary bg-card p-5 shadow-md">
           <div className="mb-1">
