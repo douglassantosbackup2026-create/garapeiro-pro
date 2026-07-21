@@ -4,6 +4,7 @@ import { useFunnel } from "@/funil/funnel/FunnelContext";
 import { formatBRL } from "@/funil/lib/sessionMoney";
 import { BonusUnlockModal } from "./BonusUnlockModal";
 import { BrandHeader, Shell } from "./BrandHeader";
+import { WhatsAppTestimonials } from "./WhatsAppTestimonials";
 import { cn } from "@/lib/utils";
 
 const GAP_LABELS: Record<string, string> = {
@@ -162,6 +163,10 @@ export function ResultScreen() {
         </div>
 
         <div className="space-y-3">
+          <WhatsAppTestimonials
+            title="Mecânicos que já aplicaram"
+            subtitle="Veja o que quem seguiu o Método está mandando no nosso Zap"
+          />
           <button
             type="button"
             onClick={continueToOffer}
