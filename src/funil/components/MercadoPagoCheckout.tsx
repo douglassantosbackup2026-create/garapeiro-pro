@@ -12,6 +12,7 @@ import { trackMetaEvent } from "@/funil/lib/metaPixel";
 import { buildWhatsappRecoveryLink, touchLeadStep } from "@/funil/lib/storage";
 import { reportError } from "@/lib/reportError";
 import { BrandHeader, Shell } from "./BrandHeader";
+import { WhatsAppTestimonials } from "./WhatsAppTestimonials";
 import { supabase } from "@/integrations/supabase/client";
 
 type BrickFormData = {
@@ -599,6 +600,14 @@ export function MercadoPagoCheckout() {
               </span>
             </div>
           </>
+        )}
+
+        {!pendingPayment && (
+          <WhatsAppTestimonials
+            variant="compact"
+            title="Mecânicos comprando agora"
+            subtitle="Últimas conversas de quem entrou no Método"
+          />
         )}
 
         {error && (
