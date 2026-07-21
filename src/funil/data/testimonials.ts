@@ -149,4 +149,211 @@ export const testimonials: Testimonial[] = [
       },
     ],
   },
+  {
+    id: "sergio",
+    name: "Sérgio · Ar Condicionado Automotivo",
+    role: "Ar Frio Auto",
+    city: "Salvador/BA",
+    avatarColor: "bg-cyan-600",
+    messages: [
+      {
+        kind: "in",
+        text: "Mano, o carro da semana foi a agenda de higienização de ar",
+        time: "11:04",
+      },
+      { kind: "out", text: "Tá com demanda boa?", time: "11:06" },
+      {
+        kind: "in",
+        text: "Boa? Tô com 3 dias seguidos lotado. O cliente chega p/ trocar o óleo e sai com higienização",
+        time: "11:07",
+      },
+      {
+        kind: "money",
+        text: "R$ 4.850 em 9 dias ❄️",
+        time: "11:08",
+      },
+      {
+        kind: "in",
+        text: "Antes eu só fazia a carga de gás e deixava o resto na mesa",
+        time: "11:08",
+      },
+    ],
+  },
+  {
+    id: "carla",
+    name: "Carla · Troca de Óleo Preventiva",
+    role: "Lubrificar BH",
+    city: "Belo Horizonte/MG",
+    avatarColor: "bg-orange-500",
+    messages: [
+      { kind: "in", text: "Bom dia! Preciso te falar a novidade", time: "08:15" },
+      {
+        kind: "in",
+        text: "Parei de vender só troca de óleo e comecei a oferecer o pacote de revisão",
+        time: "08:15",
+      },
+      { kind: "out", text: "E aí, aumentou o ticket?", time: "08:17" },
+      {
+        kind: "in",
+        text: "Muito! A clientela leiga não sabia que precisava trocar o filtro de cabine",
+        time: "08:18",
+      },
+      {
+        kind: "money",
+        text: "R$ 6.210 na primeira semana de pacote 🛠️",
+        time: "08:19",
+      },
+      { kind: "in", text: "Agora todo cliente leva 3 serviços no mínimo", time: "08:20" },
+    ],
+  },
+  {
+    id: "ricardo",
+    name: "Ricardo · Suspensão e Freios",
+    role: "Freio Forte",
+    city: "Fortaleza/CE",
+    avatarColor: "bg-red-700",
+    messages: [
+      {
+        kind: "in",
+        text: "Chefe, aquele lance de inspecionar o freio junto com a suspensão deu certo",
+        time: "15:42",
+      },
+      { kind: "out", text: "Show! Conta os números", time: "15:44" },
+      {
+        kind: "in",
+        text: "Antes fazia só o amortecedor. Agora o cliente sai com disco + pastilha + bucha",
+        time: "15:45",
+      },
+      {
+        kind: "money",
+        text: "R$ 9.680 no mês passado 🚗",
+        time: "15:45",
+      },
+      {
+        kind: "in",
+        text: "E ainda sobra estoque de peça que eu vendia errado",
+        time: "15:46",
+      },
+    ],
+  },
+  {
+    id: "tatiana",
+    name: "Tatiana · Injeção Eletrônica",
+    role: "Scanner RS",
+    city: "Porto Alegre/RS",
+    avatarColor: "bg-purple-600",
+    messages: [
+      {
+        kind: "in",
+        text: "To aqui passada 😂",
+        time: "19:30",
+      },
+      {
+        kind: "in",
+        text: "Comecei a cobrar o diagnóstico com scanner e a galera tá pagando sem reclamar",
+        time: "19:30",
+      },
+      { kind: "out", text: "Valor do diagnóstico tá no preço certo?", time: "19:32" },
+      {
+        kind: "in",
+        text: "150 conto. Quem recusa não é meu público. Quem aceita fecha a manutenção",
+        time: "19:33",
+      },
+      {
+        kind: "money",
+        text: "R$ 7.330 em 15 dias 💻",
+        time: "19:34",
+      },
+      { kind: "in", text: "Meu scanner se pagou em 2 semanas", time: "19:35" },
+    ],
+  },
+  {
+    id: "leandro",
+    name: "Leandro · Martelinho de Ouro",
+    role: "LD Martelinho",
+    city: "Brasília/DF",
+    avatarColor: "bg-yellow-600",
+    messages: [
+      { kind: "in", text: "Mestre, o fechamento do mês saiu", time: "21:05" },
+      {
+        kind: "in",
+        text: "Botei um atendente pra responder o zap e só eu fazer o serviço",
+        time: "21:05",
+      },
+      { kind: "out", text: "Fluxo de agendamento funcionou?", time: "21:07" },
+      {
+        kind: "in",
+        text: "Funcionou demais. Agora o cliente manda a foto do amassado e eu já orçamento no ato",
+        time: "21:08",
+      },
+      {
+        kind: "money",
+        text: "R$ 11.200 no mês de martelinho 🏅",
+        time: "21:09",
+      },
+      { kind: "in", text: "Nem preciso sair da oficina pra fazer venda", time: "21:10" },
+    ],
+  },
+  {
+    id: "jessica",
+    name: "Jéssica · Higienização de Ar e Estofados",
+    role: "Limpa Carro",
+    city: "Manaus/AM",
+    avatarColor: "bg-teal-500",
+    messages: [
+      {
+        kind: "in",
+        text: "Olha o que aconteceu depois do post de higienização de ar",
+        time: "10:10",
+      },
+      {
+        kind: "in",
+        text: "Expliquei que cheiro de mofo é bactéria. As mães enlouqueceram",
+        time: "10:11",
+      },
+      { kind: "out", text: "Agenda lotou?", time: "10:12" },
+      {
+        kind: "in",
+        text: "Lotou. Sábado e domingo agora tão com hora marcada",
+        time: "10:13",
+      },
+      {
+        kind: "money",
+        text: "R$ 3.420 em 1 fds 🫧",
+        time: "10:13",
+      },
+      {
+        kind: "in",
+        text: "Minha cliente de um mês atrás voltou com 3 amigas",
+        time: "10:14",
+      },
+    ],
+  },
+  {
+    id: "bruno",
+    name: "Bruno · Auto Center Multimarcas",
+    role: "Bruno Auto Center",
+    city: "São Paulo/SP",
+    avatarColor: "bg-slate-600",
+    messages: [
+      { kind: "in", text: "Chefe, tô com um mês que deu gosto de ver", time: "17:50" },
+      {
+        kind: "in",
+        text: "Centralizei tudo no zap: agendamento, orçamento e aprovação. Ninguém mais liga",
+        time: "17:50",
+      },
+      { kind: "out", text: "Conseguiu organizar o fluxo?", time: "17:52" },
+      {
+        kind: "in",
+        text: "Consegui. E o ticket médio subiu porque parei de cobrar só mão de obra",
+        time: "17:53",
+      },
+      {
+        kind: "money",
+        text: "R$ 18.900 no mês — recorde da oficina 🔥",
+        time: "17:53",
+      },
+      { kind: "in", text: "Do ano passado pra cá nunca tinha passado dos 9k", time: "17:54" },
+    ],
+  },
 ];
