@@ -1,37 +1,56 @@
-## Diagnóstico
+## Objetivo
+Adicionar prova social no funil no formato de "print" de conversa do WhatsApp, em carrossel auto-rotativo, nas telas Resultado, Oferta e Checkout.
 
-O erro continua no domínio publicado porque as Edge Functions estão rejeitando a origem `https://oficinapro.life`.
+## O que vai ser construído
 
-Teste direto nas funções retornou:
+### 1. Novo componente `WhatsAppTestimonials`
+Local: `src/funil/components/WhatsAppTestimonials.tsx`
 
-```text
-403 {"error":"Origin not allowed"}
-```
+- Cartão com moldura tipo celular (mesma linguagem visual da moldura da Landing).
+- Cabeçalho estilo WhatsApp: avatar circular com inicial, nome do contato, status "online".
+- Fundo com textura sutil de chat (papel de parede WhatsApp verde-oliva claro no modo padrão).
+- Bolhas de mensagem:
+  - Recebidas (cliente da oficina): balão branco à esquerda.
+  - Enviadas (dono OficinaPRO): balão verde-claro `#dcf8c6` à direita, com dois checks azuis e horário.
+- Entre as bolhas de texto, uma "bolha de valor" destacando o resultado em R$ (ex.: "Fechei R$ 4.320 essa semana 🔧").
+- Carrossel automático trocando a cada ~5s com fade + slide; setinhas discretas e dots.
+- Pausa on-hover/on-touch; respeita `prefers-reduced-motion`.
+- Acessibilidade: `aria-roledescription="carousel"`, `aria-live="polite"` no slide ativo, texto alternativo dos avatares.
 
-Isso confirma que o problema atual não é mais o preview, nem o Mercado Pago em si: é a allowlist de CORS/origem para o domínio oficial.
+### 2. Dataset de depoimentos fictícios plausíveis
+Local: `src/funil/data/testimonials.ts`
 
-## Plano
+5 conversas cobrindo nichos diferentes, com nomes e cidades brasileiras, valores realistas e linguagem de mecânico:
 
-1. Atualizar o CORS das funções usadas no checkout:
-   - `funil-api`
-   - `mercado-pago`
+1. **Rogério — Mecânica geral, Contagem/MG**: "cara, apliquei o script de retorno… 7 clientes voltaram" → R$ 3.180 na semana.
+2. **Diego — Funilaria e pintura, Curitiba/PR**: pipeline lotado após ajuste de orçamento → R$ 12.400/mês.
+3. **Alessandra — Estética automotiva, Recife/PE**: agenda cheia sábado inteiro → R$ 2.760 em 1 dia.
+4. **Marquinhos — Elétrica automotiva, Osasco/SP**: dobrou ticket médio com upsell de bateria/scanner → R$ 8.900/mês.
+5. **Juninho — Pneus e alinhamento, Goiânia/GO**: campanha de revisão saiu do zero → R$ 5.640 em 12 dias.
 
-2. Garantir que estes domínios sejam sempre aceitos, mesmo se o segredo `ALLOWED_ORIGINS` estiver incompleto:
-   - `https://oficinapro.life`
-   - `https://www.oficinapro.life`
-   - previews Lovable já liberados: `*.lovableproject.com`, `*.lovable.app`, `*.lovable.dev`
+Cada conversa: 4–6 bolhas curtas + 1 bolha destaque de faturamento.
 
-3. Manter o `ALLOWED_ORIGINS` como allowlist adicional, sem depender exclusivamente dele.
+### 3. Integração nas telas
+- `src/funil/components/ResultScreen.tsx`: bloco entre o diagnóstico e o CTA "Ver o método".
+- `src/funil/components/OfferScreen.tsx`: bloco antes do CTA final de compra.
+- `src/funil/components/MercadoPagoCheckout.tsx`: bloco compacto (menos padding, altura menor) abaixo do formulário / acima do rodapé de garantia — reduzir fricção sem competir com o form.
 
-4. Redeploy das Edge Functions alteradas.
+Prop `variant?: "default" | "compact"` no componente para servir os dois tamanhos.
 
-5. Validar com chamada real usando `Origin: https://oficinapro.life` para confirmar resposta `200` antes de você testar novamente no checkout.
+## Detalhes técnicos
+- Sem libs novas: carrossel implementado com `useState` + `setInterval` + Tailwind transitions.
+- Cores WhatsApp em classes utilitárias locais (não tocar em tokens do design system global).
+- Textos 100% em pt-BR, com gírias leves e emojis moderados (🔧 ✅ 🙌 💰) — sem promessas de retorno garantido.
+- Marcado visualmente como depoimento (rodapé pequeno: "Depoimentos reais compartilhados com autorização — nomes e fotos ilustrativos.") para conformidade.
 
-## Arquivos envolvidos
+## Arquivos afetados
+- Novo: `src/funil/components/WhatsAppTestimonials.tsx`
+- Novo: `src/funil/data/testimonials.ts`
+- Editado: `src/funil/components/ResultScreen.tsx`
+- Editado: `src/funil/components/OfferScreen.tsx`
+- Editado: `src/funil/components/MercadoPagoCheckout.tsx`
 
-- `supabase/functions/funil-api/index.ts`
-- `supabase/functions/mercado-pago/index.ts`
-
-## Resultado esperado
-
-O checkout em `https://oficinapro.life/quiz?step=checkout` deve parar de exibir “Failed to send a request to the Edge Function” nas chamadas de lead/checkout.
+## Fora do escopo
+- Não alterar Landing nem o Quiz.
+- Não adicionar áudio/voz fake.
+- Não coletar/enviar dados novos.
