@@ -213,8 +213,10 @@ export type Database = {
           mp_status_detail: string | null
           name: string | null
           offer_ids: string[]
+          owner_user_id: string | null
           payer_email: string | null
           updated_at: string
+          webhook_processed_at: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -228,8 +230,10 @@ export type Database = {
           mp_status_detail?: string | null
           name?: string | null
           offer_ids?: string[]
+          owner_user_id?: string | null
           payer_email?: string | null
           updated_at?: string
+          webhook_processed_at?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -243,8 +247,10 @@ export type Database = {
           mp_status_detail?: string | null
           name?: string | null
           offer_ids?: string[]
+          owner_user_id?: string | null
           payer_email?: string | null
           updated_at?: string
+          webhook_processed_at?: string | null
           whatsapp?: string | null
         }
         Relationships: []
@@ -795,6 +801,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      workshop_os_count_month: { Args: { _ws: string }; Returns: number }
+      workshop_plano: { Args: { _ws: string }; Returns: string }
     }
     Enums: {
       app_role: "dono" | "mecanico"
