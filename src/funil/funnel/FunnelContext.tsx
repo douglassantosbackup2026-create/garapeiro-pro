@@ -28,7 +28,7 @@ import {
   type StoredLead,
 } from "@/funil/lib/storage";
 import { backgroundMusic } from "@/funil/lib/backgroundMusic";
-import { trackMetaEvent } from "@/funil/lib/metaPixel";
+import { trackMetaEventDual } from "@/funil/lib/metaPixel";
 import {
   buildMoneyByAnswer,
   createSessionSeed,
@@ -394,10 +394,18 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
 
   async function submitLead(lead: StoredLead, lastStep: string = "checkout") {
     dispatch({ type: "SET_LEAD", lead });
-    trackMetaEvent("Lead", {
-      content_name: "funil-quiz",
-      content_category: diagnosis.profile.id,
-    });
+    trackMetaEventDual(
+      "Lead",
+      {
+        content_name: "funil-quiz",
+        content_category: diagnosis.profile.id,
+      },
+      {
+        email: lead.email ?? null,
+        phone: lead.whatsapp,
+        external_id: lead.whatsapp,
+      },
+    );
     await maybeInsertLead(
       lead,
       {
@@ -421,12 +429,22 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
       };
       return sum + (map[id] ?? 0);
     }, 0);
-    trackMetaEvent("InitiateCheckout", {
-      currency: "BRL",
-      value: (mainOffer.priceCents + bumpCents) / 100,
-      content_ids: selectedOfferIds,
-      num_items: selectedOfferIds.length,
-    });
+    trackMetaEventDual(
+      "InitiateCheckout",
+      {
+        currency: "BRL",
+        value: (mainOffer.priceCents + bumpCents) / 100,
+        content_ids: selectedOfferIds,
+        num_items: selectedOfferIds.length,
+      },
+      state.lead
+        ? {
+            email: state.lead.email ?? null,
+            phone: state.lead.whatsapp,
+            external_id: state.lead.whatsapp,
+          }
+        : undefined,
+    );
     dispatch({ type: "TO_CHECKOUT" });
   }
 

@@ -8,7 +8,7 @@ import {
   saasTrialBonus,
 } from "@/funil/data/offers";
 import { useFunnel } from "@/funil/funnel/FunnelContext";
-import { trackMetaEvent } from "@/funil/lib/metaPixel";
+import { trackMetaEventDual } from "@/funil/lib/metaPixel";
 import { buildWhatsappRecoveryLink, touchLeadStep } from "@/funil/lib/storage";
 import { reportError } from "@/lib/reportError";
 import { BrandHeader, Shell } from "./BrandHeader";
@@ -61,13 +61,27 @@ function storePayment(payload: {
   }
 }
 
-function trackPurchase(valueReais: number, orderId?: string) {
-  trackMetaEvent("Purchase", {
-    currency: "BRL",
-    value: valueReais,
-    content_name: "playbook-oficinapro",
-    ...(orderId ? { order_id: orderId } : {}),
-  });
+function trackPurchase(
+  valueReais: number,
+  orderId?: string,
+  lead?: { email?: string | null; whatsapp?: string | null } | null,
+) {
+  trackMetaEventDual(
+    "Purchase",
+    {
+      currency: "BRL",
+      value: valueReais,
+      content_name: "playbook-oficinapro",
+      ...(orderId ? { order_id: orderId } : {}),
+    },
+    lead
+      ? {
+          email: lead.email ?? null,
+          phone: lead.whatsapp ?? null,
+          external_id: lead.whatsapp ?? null,
+        }
+      : undefined,
+  );
 }
 
 function brickErrorMessage(err: unknown): string {
@@ -348,7 +362,7 @@ export function MercadoPagoCheckout() {
       if (status !== "approved" && status !== "authorized") return;
       completingRef.current = true;
       storePayment({ paymentId, orderId, status });
-      trackPurchase(amountReais, orderId);
+      trackPurchase(amountReais, orderId, state.lead);
       await persistRef.current();
     }
 
@@ -451,7 +465,7 @@ export function MercadoPagoCheckout() {
       });
 
       if (result.status === "approved" || result.status === "authorized") {
-        trackPurchase(amountReais, result.orderId);
+        trackPurchase(amountReais, result.orderId, state.lead);
         await persistAndComplete();
       } else {
         const pending: PendingPayment = {
