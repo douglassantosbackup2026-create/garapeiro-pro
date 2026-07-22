@@ -62,7 +62,20 @@ export type CapiUserData = {
   external_id?: string | null;
   fbc?: string | null;
   fbp?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
 };
+
+export function splitFullName(full?: string | null): {
+  first: string | null;
+  last: string | null;
+} {
+  if (!full) return { first: null, last: null };
+  const parts = full.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: null, last: null };
+  if (parts.length === 1) return { first: parts[0], last: null };
+  return { first: parts[0], last: parts.slice(1).join(" ") };
+}
 
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
