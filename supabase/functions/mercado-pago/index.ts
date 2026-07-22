@@ -422,6 +422,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const admin = adminClient();
+      const owner = await resolveOptionalUser(req);
       const { data: order, error: orderErr } = await admin
         .from("funil_orders")
         .insert({
@@ -433,6 +434,7 @@ Deno.serve(async (req: Request) => {
           payer_email: lead.email.toLowerCase(),
           meta: meta ?? {},
           mp_status: "pending",
+          owner_user_id: owner?.id ?? null,
         })
         .select("id")
         .single();
@@ -599,10 +601,25 @@ Deno.serve(async (req: Request) => {
       const admin = adminClient();
       const { data: order } = await admin
         .from("funil_orders")
-        .select("id, mp_status, offer_ids")
+        .select("id, mp_status, offer_ids, owner_user_id, payer_email, email")
         .eq("id", parsed.data.orderId)
         .maybeSingle();
       if (!order) return json(req, { error: "Pedido não encontrado" }, 404);
+
+      // Só o dono do pedido pode gerar URL do asset.
+      const owner = await resolveOptionalUser(req);
+      const orderEmail = ((order.payer_email ?? order.email) ?? "").trim().toLowerCase();
+      const isOwner =
+        (order.owner_user_id && owner?.id === order.owner_user_id) ||
+        (!order.owner_user_id && !!owner?.email && owner.email.toLowerCase() === orderEmail) ||
+        // Compat: comprador anônimo na tela de agradecimento — precisa provar posse via e-mail
+        (!owner &&
+          typeof (body as { payerEmail?: string }).payerEmail === "string" &&
+          (body as { payerEmail: string }).payerEmail.trim().toLowerCase() === orderEmail);
+      if (!isOwner) {
+        return json(req, { error: "Pedido não pertence à sua conta" }, 403);
+      }
+
       const st = order.mp_status as string | null;
       if (st !== "approved" && st !== "authorized") {
         return json(req, { error: "Pagamento não aprovado" }, 403);
