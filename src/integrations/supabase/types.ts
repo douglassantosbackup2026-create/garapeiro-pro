@@ -843,6 +843,7 @@ export type Database = {
         Returns: boolean
       }
       is_dono: { Args: never; Returns: boolean }
+      recalc_os_totals: { Args: { _os: string }; Returns: undefined }
       workshop_os_count_month: { Args: { _ws: string }; Returns: number }
       workshop_plano: { Args: { _ws: string }; Returns: string }
     }
