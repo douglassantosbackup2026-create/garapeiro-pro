@@ -156,7 +156,7 @@ Deno.serve(async (req: Request) => {
       case "unlockPlaybook": {
         const p = UnlockPlaybookSchema.safeParse(data);
         if (!p.success) return respond(req, { error: p.error.issues[0].message }, 400);
-        return respond(req, await unlockPlaybook(user.id, p.data, admin));
+        return respond(req, await unlockPlaybook(user.id, p.data, admin, user.email ?? null));
       }
       case "getPlaybookSignedUrl": {
         const p = PlaybookSignedUrlSchema.safeParse(data);
@@ -357,6 +357,7 @@ async function unlockPlaybook(
   userId: string,
   data: { orderId: string },
   admin: Admin,
+  userEmail: string | null,
 ) {
   const { data: prof } = await admin
     .from("profiles")
@@ -368,10 +369,21 @@ async function unlockPlaybook(
 
   const { data: order } = await admin
     .from("funil_orders")
-    .select("id, mp_status, mp_payment_id")
+    .select("id, mp_status, mp_payment_id, owner_user_id, payer_email, email")
     .eq("id", data.orderId)
     .maybeSingle();
   if (!order) throw new Error("Pedido não encontrado");
+
+  // Fecha escalada: só o dono do pedido pode desbloquear.
+  // owner_user_id é preferido; para pedidos antigos aceitamos correspondência de e-mail.
+  const emailLower = (userEmail ?? "").trim().toLowerCase();
+  const payerEmail = ((order.payer_email ?? order.email) ?? "").trim().toLowerCase();
+  const isOwner =
+    (order.owner_user_id && order.owner_user_id === userId) ||
+    (!order.owner_user_id && emailLower.length > 0 && emailLower === payerEmail);
+  if (!isOwner) {
+    throw new Error("Este pedido não pertence à sua conta");
+  }
 
   let status = order.mp_status as string | null;
   if (order.mp_payment_id) {
