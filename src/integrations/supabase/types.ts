@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_notifications: {
+        Row: {
+          alert_key: string
+          enviado_em: string
+          id: string
+          workshop_id: string
+        }
+        Insert: {
+          alert_key: string
+          enviado_em?: string
+          id?: string
+          workshop_id: string
+        }
+        Update: {
+          alert_key?: string
+          enviado_em?: string
+          id?: string
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_notifications_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           categoria: string | null
@@ -359,6 +388,7 @@ export type Database = {
           criada_em: string
           id: string
           nome: string | null
+          tour_completed_at: string | null
           workshop_id: string | null
         }
         Insert: {
@@ -367,6 +397,7 @@ export type Database = {
           criada_em?: string
           id: string
           nome?: string | null
+          tour_completed_at?: string | null
           workshop_id?: string | null
         }
         Update: {
@@ -375,6 +406,7 @@ export type Database = {
           criada_em?: string
           id?: string
           nome?: string | null
+          tour_completed_at?: string | null
           workshop_id?: string | null
         }
         Relationships: [
@@ -473,6 +505,7 @@ export type Database = {
           forma_pagamento: Database["public"]["Enums"]["forma_pagamento"] | null
           id: string
           km_entrada: number | null
+          mecanico_id: string | null
           nota_satisfacao: number | null
           numero: number
           observacoes: string | null
@@ -496,6 +529,7 @@ export type Database = {
             | null
           id?: string
           km_entrada?: number | null
+          mecanico_id?: string | null
           nota_satisfacao?: number | null
           numero: number
           observacoes?: string | null
@@ -519,6 +553,7 @@ export type Database = {
             | null
           id?: string
           km_entrada?: number | null
+          mecanico_id?: string | null
           nota_satisfacao?: number | null
           numero?: number
           observacoes?: string | null
@@ -749,6 +784,8 @@ export type Database = {
           mensagem_orcamento: string | null
           mensagem_retorno: string | null
           nome: string
+          notif_email_enabled: boolean
+          notif_email_horario: number
           plano: Database["public"]["Enums"]["plano"]
           playbook_unlocked_at: string | null
           proxima_os_numero: number
@@ -764,6 +801,8 @@ export type Database = {
           mensagem_orcamento?: string | null
           mensagem_retorno?: string | null
           nome: string
+          notif_email_enabled?: boolean
+          notif_email_horario?: number
           plano?: Database["public"]["Enums"]["plano"]
           playbook_unlocked_at?: string | null
           proxima_os_numero?: number
@@ -779,6 +818,8 @@ export type Database = {
           mensagem_orcamento?: string | null
           mensagem_retorno?: string | null
           nome?: string
+          notif_email_enabled?: boolean
+          notif_email_horario?: number
           plano?: Database["public"]["Enums"]["plano"]
           playbook_unlocked_at?: string | null
           proxima_os_numero?: number
@@ -801,6 +842,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_dono: { Args: never; Returns: boolean }
       workshop_os_count_month: { Args: { _ws: string }; Returns: number }
       workshop_plano: { Args: { _ws: string }; Returns: string }
     }
