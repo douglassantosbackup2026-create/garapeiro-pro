@@ -6,8 +6,10 @@ function getFbq(): Fbq | null {
   return (window as Window & { fbq?: Fbq }).fbq ?? null;
 }
 
+const DEFAULT_META_PIXEL_ID = "4269485799969770";
+
 export function initMetaPixel() {
-  const id = import.meta.env.VITE_META_PIXEL_ID?.trim();
+  const id = import.meta.env.VITE_META_PIXEL_ID?.trim() || DEFAULT_META_PIXEL_ID;
   if (!id || typeof window === "undefined") return;
 
   const w = window as Window & { fbq?: Fbq };
