@@ -68,6 +68,15 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null;
   }
 
+  // SECURITY: `color`/`theme` values are injected into a raw <style> tag via
+  // dangerouslySetInnerHTML. NEVER pass user-controlled strings here — the
+  // regex below acts as a hard guard, dropping anything that isn't a plain
+  // CSS color token (hex, rgb/hsl/oklch fn, named color or CSS variable).
+  const isSafeCssColor = (v: string) =>
+    /^(#[0-9a-fA-F]{3,8}|(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\([^;{}<>"']*\)|[a-zA-Z-]+|var\(--[a-zA-Z0-9-_]+\))$/.test(
+      v.trim(),
+    );
+
   return (
     <style
       dangerouslySetInnerHTML={{
@@ -78,7 +87,8 @@ ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
+    if (!color || typeof color !== "string" || !isSafeCssColor(color)) return null;
+    return `  --color-${key}: ${color};`;
   })
   .join("\n")}
 }

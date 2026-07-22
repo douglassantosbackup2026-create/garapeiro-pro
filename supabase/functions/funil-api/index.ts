@@ -44,7 +44,9 @@ function corsHeadersFor(req: Request): Record<string, string> {
 
 function isOriginAllowed(req: Request): boolean {
   const origin = req.headers.get("Origin");
-  if (!origin) return true;
+  // Endpoints públicos: exigir Origin em produção para dificultar requests forjados server-to-server.
+  // Só toleramos ausência de Origin quando ALLOWED_ORIGINS não está configurado (ambiente dev/local).
+  if (!origin) return !ALLOWED_ORIGINS;
   if (isBuiltInAllowedOrigin(origin)) return true;
   if (ALLOWED_ORIGINS?.includes(origin)) return true;
   if (!ALLOWED_ORIGINS) {
@@ -65,6 +67,34 @@ function adminClient() {
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !key) throw new Error("Supabase admin env missing");
   return createClient(url, key, { auth: { persistSession: false } });
+}
+
+// ---- Rate limit em memória (janela deslizante por IP) ---------------------
+// Instância única do isolate Deno. Suficiente para mitigar spam trivial de leads;
+// não é distribuído entre réplicas.
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX_HITS = 20;
+const rateBuckets = new Map<string, number[]>();
+
+function clientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0]!.trim();
+  return req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip") ?? "unknown";
+}
+
+function rateLimit(req: Request, action: string): boolean {
+  const key = `${action}:${clientIp(req)}`;
+  const now = Date.now();
+  const hits = (rateBuckets.get(key) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  hits.push(now);
+  rateBuckets.set(key, hits);
+  // GC leve
+  if (rateBuckets.size > 5000) {
+    for (const [k, v] of rateBuckets) {
+      if (!v.length || now - v[v.length - 1]! >= RATE_WINDOW_MS) rateBuckets.delete(k);
+    }
+  }
+  return hits.length <= RATE_MAX_HITS;
 }
 
 const UpsertLeadSchema = z.object({
@@ -103,6 +133,9 @@ Deno.serve(async (req: Request) => {
     const action = (body as { action?: string }).action;
 
     if (action === "upsertLead") {
+      if (!rateLimit(req, "upsertLead")) {
+        return json(req, { error: "Muitas requisições. Tente novamente em instantes." }, 429);
+      }
       const parsed = UpsertLeadSchema.safeParse(body);
       if (!parsed.success) {
         return json(req, { error: parsed.error.issues[0]?.message ?? "Payload inválido" }, 400);
@@ -129,6 +162,9 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "touchLeadStep") {
+      if (!rateLimit(req, "touchLeadStep")) {
+        return json(req, { error: "Muitas requisições. Tente novamente em instantes." }, 429);
+      }
       const parsed = TouchLeadSchema.safeParse(body);
       if (!parsed.success) {
         return json(req, { error: parsed.error.issues[0]?.message ?? "Payload inválido" }, 400);
