@@ -8,7 +8,7 @@ import {
   saasTrialBonus,
 } from "@/funil/data/offers";
 import { useFunnel } from "@/funil/funnel/FunnelContext";
-import { trackMetaEvent, trackMetaEventDual } from "@/funil/lib/metaPixel";
+import { trackMetaEventDual } from "@/funil/lib/metaPixel";
 import { buildWhatsappRecoveryLink, touchLeadStep } from "@/funil/lib/storage";
 import { reportError } from "@/lib/reportError";
 import { BrandHeader, Shell } from "./BrandHeader";

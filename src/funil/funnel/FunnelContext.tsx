@@ -28,7 +28,7 @@ import {
   type StoredLead,
 } from "@/funil/lib/storage";
 import { backgroundMusic } from "@/funil/lib/backgroundMusic";
-import { trackMetaEvent, trackMetaEventDual } from "@/funil/lib/metaPixel";
+import { trackMetaEventDual } from "@/funil/lib/metaPixel";
 import {
   buildMoneyByAnswer,
   createSessionSeed,
