@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LandingPage } from "@/components/LandingPage";
 import { ActivationChecklist } from "@/components/ActivationChecklist";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Bell,
@@ -105,6 +106,7 @@ function Dashboard() {
         </Link>
       </header>
 
+      <OnboardingTour />
       <ActivationChecklist />
 
       {/* Cards 2x2 */}

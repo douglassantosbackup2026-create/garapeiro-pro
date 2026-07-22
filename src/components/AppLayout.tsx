@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useWorkshop } from "@/hooks/useWorkshop";
 import { useSmartAlerts } from "@/hooks/useSmartAlerts";
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 import { featureForPath, normalizePlano, planHasFeature, PLANS } from "@/lib/plans";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -33,13 +34,14 @@ const NAV: {
   icon: typeof Home;
   exact?: boolean;
   playbookOnly?: boolean;
+  donoOnly?: boolean;
 }[] = [
   { to: "/", label: "Início", icon: Home, exact: true },
   { to: "/os", label: "Ordens", icon: Wrench, exact: true },
   { to: "/os/kanban", label: "Painel", icon: KanbanSquare },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
-  { to: "/financeiro", label: "Financeiro", icon: DollarSign },
-  { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
+  { to: "/financeiro", label: "Financeiro", icon: DollarSign, donoOnly: true },
+  { to: "/relatorios", label: "Relatórios", icon: BarChart3, donoOnly: true },
   { to: "/estoque", label: "Estoque", icon: Package },
   { to: "/servicos", label: "Catálogo", icon: BookOpen },
   { to: "/playbook", label: "Playbook", icon: BookMarked, playbookOnly: true },
@@ -147,10 +149,15 @@ type AuthedShellProps = {
 function AuthedShell({ pathname, signOut }: AuthedShellProps) {
   const { data: workshop } = useWorkshop();
   const { data: alerts } = useSmartAlerts();
+  const { isDono, isLoading: roleLoading } = useRole();
   const alertCount = alerts?.length ?? 0;
   const playbookUnlocked = Boolean(workshop?.playbook_unlocked_at);
   const plano = normalizePlano(workshop?.plano);
-  const navItems = NAV.filter((item) => !item.playbookOnly || playbookUnlocked);
+  const navItems = NAV.filter((item) => {
+    if (item.playbookOnly && !playbookUnlocked) return false;
+    if (item.donoOnly && !roleLoading && !isDono) return false;
+    return true;
+  });
   const [moreOpen, setMoreOpen] = useState(false);
 
   const gatedFeature = featureForPath(pathname);

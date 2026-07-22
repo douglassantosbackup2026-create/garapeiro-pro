@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { TeamSection } from "@/components/TeamSection";
 import { PlanBillingSection } from "@/components/PlanBillingSection";
+import { DemoDataSection } from "@/components/DemoDataSection";
+import { useRole } from "@/hooks/useRole";
 import {
   clearPlaybookTrialIntent,
   peekPlaybookOrderId,
@@ -30,6 +32,7 @@ export const Route = createFileRoute("/configuracoes")({
 function Configuracoes() {
   const { upgrade } = Route.useSearch();
   const { data: workshop, refetch } = useWorkshop();
+  const { isDono } = useRole();
   const update = useUpdateWorkshop();
   const uploadLogo = useUploadLogo();
   const removeLogo = useRemoveLogo();
@@ -109,7 +112,8 @@ function Configuracoes() {
     <div className="px-4 md:px-8 py-5 max-w-2xl mx-auto space-y-5">
       <h1 className="text-2xl font-bold">Configurações</h1>
 
-      <PlanBillingSection highlightUpgrade={upgrade === "1"} />
+      {isDono && <PlanBillingSection highlightUpgrade={upgrade === "1"} />}
+      {isDono && <DemoDataSection />}
 
       <Card className="p-4 space-y-3">
         <h2 className="font-bold">Logo da oficina</h2>
@@ -248,7 +252,7 @@ function Configuracoes() {
         </Button>
       </Card>
 
-      <TeamSection />
+      {isDono && <TeamSection />}
 
       <Card className="space-y-3 p-4">
         <h2 className="font-bold">Playbook OficinaPRO</h2>
