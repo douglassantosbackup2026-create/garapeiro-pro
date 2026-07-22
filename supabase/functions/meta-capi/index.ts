@@ -58,6 +58,8 @@ type Payload = {
     email?: string | null;
     phone?: string | null;
     external_id?: string | null;
+    fbc?: string | null;
+    fbp?: string | null;
   };
   custom_data?: Record<string, unknown>;
 };
@@ -113,6 +115,8 @@ Deno.serve(async (req: Request) => {
   if (body.user_data?.phone) user_data.ph = await sha256Hex(normalizePhone(body.user_data.phone));
   if (body.user_data?.external_id)
     user_data.external_id = await sha256Hex(body.user_data.external_id.trim().toLowerCase());
+  if (body.user_data?.fbc) user_data.fbc = body.user_data.fbc;
+  if (body.user_data?.fbp) user_data.fbp = body.user_data.fbp;
   if (clientIp) user_data.client_ip_address = clientIp;
   if (userAgent) user_data.client_user_agent = userAgent;
 
