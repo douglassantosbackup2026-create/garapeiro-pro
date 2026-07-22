@@ -99,6 +99,26 @@ function adminClient() {
   return createClient(url, key);
 }
 
+/** Resolve o usuário logado se houver Authorization; retorna null quando anônimo. */
+async function resolveOptionalUser(
+  req: Request,
+): Promise<{ id: string; email: string | null } | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  try {
+    const anon = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data, error } = await anon.auth.getUser();
+    if (error || !data.user) return null;
+    return { id: data.user.id, email: data.user.email ?? null };
+  } catch {
+    return null;
+  }
+}
+
 function mpToken() {
   const token = Deno.env.get("MP_ACCESS_TOKEN");
   if (!token) throw new Error("MP_ACCESS_TOKEN não configurado");
@@ -302,24 +322,39 @@ Deno.serve(async (req: Request) => {
       const admin = adminClient();
       const orderId = payment.external_reference;
 
+      // Idempotência: evita reprocessar um pagamento em estado final.
+      const filter = admin
+        .from("funil_orders")
+        .select("id, mp_status, webhook_processed_at")
+        .limit(1);
+      const { data: existing } = orderId
+        ? await filter.eq("id", orderId).maybeSingle()
+        : await filter.eq("mp_payment_id", String(payment.id)).maybeSingle();
+
+      const terminal = ["approved", "authorized", "rejected", "cancelled", "refunded", "charged_back"];
+      if (
+        existing?.webhook_processed_at &&
+        terminal.includes(String(existing.mp_status))
+      ) {
+        return json(req, { ok: true, skipped: "already_processed" });
+      }
+
+      const patch = {
+        mp_payment_id: String(payment.id),
+        mp_status: payment.status,
+        mp_status_detail: payment.status_detail,
+        updated_at: new Date().toISOString(),
+        webhook_processed_at: terminal.includes(payment.status)
+          ? new Date().toISOString()
+          : null,
+      };
+
       if (orderId) {
-        await admin
-          .from("funil_orders")
-          .update({
-            mp_payment_id: String(payment.id),
-            mp_status: payment.status,
-            mp_status_detail: payment.status_detail,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", orderId);
+        await admin.from("funil_orders").update(patch).eq("id", orderId);
       } else {
         await admin
           .from("funil_orders")
-          .update({
-            mp_status: payment.status,
-            mp_status_detail: payment.status_detail,
-            updated_at: new Date().toISOString(),
-          })
+          .update(patch)
           .eq("mp_payment_id", String(payment.id));
       }
 
@@ -387,6 +422,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const admin = adminClient();
+      const owner = await resolveOptionalUser(req);
       const { data: order, error: orderErr } = await admin
         .from("funil_orders")
         .insert({
@@ -398,6 +434,7 @@ Deno.serve(async (req: Request) => {
           payer_email: lead.email.toLowerCase(),
           meta: meta ?? {},
           mp_status: "pending",
+          owner_user_id: owner?.id ?? null,
         })
         .select("id")
         .single();
@@ -564,10 +601,25 @@ Deno.serve(async (req: Request) => {
       const admin = adminClient();
       const { data: order } = await admin
         .from("funil_orders")
-        .select("id, mp_status, offer_ids")
+        .select("id, mp_status, offer_ids, owner_user_id, payer_email, email")
         .eq("id", parsed.data.orderId)
         .maybeSingle();
       if (!order) return json(req, { error: "Pedido não encontrado" }, 404);
+
+      // Só o dono do pedido pode gerar URL do asset.
+      const owner = await resolveOptionalUser(req);
+      const orderEmail = ((order.payer_email ?? order.email) ?? "").trim().toLowerCase();
+      const isOwner =
+        (order.owner_user_id && owner?.id === order.owner_user_id) ||
+        (!order.owner_user_id && !!owner?.email && owner.email.toLowerCase() === orderEmail) ||
+        // Compat: comprador anônimo na tela de agradecimento — precisa provar posse via e-mail
+        (!owner &&
+          typeof (body as { payerEmail?: string }).payerEmail === "string" &&
+          (body as { payerEmail: string }).payerEmail.trim().toLowerCase() === orderEmail);
+      if (!isOwner) {
+        return json(req, { error: "Pedido não pertence à sua conta" }, 403);
+      }
+
       const st = order.mp_status as string | null;
       if (st !== "approved" && st !== "authorized") {
         return json(req, { error: "Pagamento não aprovado" }, 403);
