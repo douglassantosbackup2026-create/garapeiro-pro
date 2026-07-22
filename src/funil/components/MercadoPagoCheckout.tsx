@@ -8,7 +8,7 @@ import {
   saasTrialBonus,
 } from "@/funil/data/offers";
 import { useFunnel } from "@/funil/funnel/FunnelContext";
-import { trackMetaEventDual } from "@/funil/lib/metaPixel";
+import { splitFullName, trackMetaEventDual } from "@/funil/lib/metaPixel";
 import { buildWhatsappRecoveryLink, touchLeadStep } from "@/funil/lib/storage";
 import { reportError } from "@/lib/reportError";
 import { BrandHeader, Shell } from "./BrandHeader";
@@ -64,8 +64,9 @@ function storePayment(payload: {
 function trackPurchase(
   valueReais: number,
   orderId?: string,
-  lead?: { email?: string | null; whatsapp?: string | null } | null,
+  lead?: { email?: string | null; whatsapp?: string | null; name?: string | null } | null,
 ) {
+  const { first, last } = splitFullName(lead?.name);
   trackMetaEventDual(
     "Purchase",
     {
@@ -79,6 +80,8 @@ function trackPurchase(
           email: lead.email ?? null,
           phone: lead.whatsapp ?? null,
           external_id: lead.whatsapp ?? null,
+          first_name: first,
+          last_name: last,
         }
       : undefined,
   );

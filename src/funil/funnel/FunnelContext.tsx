@@ -28,7 +28,7 @@ import {
   type StoredLead,
 } from "@/funil/lib/storage";
 import { backgroundMusic } from "@/funil/lib/backgroundMusic";
-import { trackMetaEventDual } from "@/funil/lib/metaPixel";
+import { splitFullName, trackMetaEventDual } from "@/funil/lib/metaPixel";
 import {
   buildMoneyByAnswer,
   createSessionSeed,
@@ -394,6 +394,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
 
   async function submitLead(lead: StoredLead, lastStep: string = "checkout") {
     dispatch({ type: "SET_LEAD", lead });
+    const { first, last } = splitFullName(lead.name);
     trackMetaEventDual(
       "Lead",
       {
@@ -404,6 +405,8 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
         email: lead.email ?? null,
         phone: lead.whatsapp,
         external_id: lead.whatsapp,
+        first_name: first,
+        last_name: last,
       },
     );
     await maybeInsertLead(
@@ -429,6 +432,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
       };
       return sum + (map[id] ?? 0);
     }, 0);
+    const { first, last } = splitFullName(state.lead?.name);
     trackMetaEventDual(
       "InitiateCheckout",
       {
@@ -442,6 +446,8 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
             email: state.lead.email ?? null,
             phone: state.lead.whatsapp,
             external_id: state.lead.whatsapp,
+            first_name: first,
+            last_name: last,
           }
         : undefined,
     );
