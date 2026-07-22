@@ -99,6 +99,26 @@ function adminClient() {
   return createClient(url, key);
 }
 
+/** Resolve o usuário logado se houver Authorization; retorna null quando anônimo. */
+async function resolveOptionalUser(
+  req: Request,
+): Promise<{ id: string; email: string | null } | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  try {
+    const anon = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data, error } = await anon.auth.getUser();
+    if (error || !data.user) return null;
+    return { id: data.user.id, email: data.user.email ?? null };
+  } catch {
+    return null;
+  }
+}
+
 function mpToken() {
   const token = Deno.env.get("MP_ACCESS_TOKEN");
   if (!token) throw new Error("MP_ACCESS_TOKEN não configurado");
@@ -302,24 +322,39 @@ Deno.serve(async (req: Request) => {
       const admin = adminClient();
       const orderId = payment.external_reference;
 
+      // Idempotência: evita reprocessar um pagamento em estado final.
+      const filter = admin
+        .from("funil_orders")
+        .select("id, mp_status, webhook_processed_at")
+        .limit(1);
+      const { data: existing } = orderId
+        ? await filter.eq("id", orderId).maybeSingle()
+        : await filter.eq("mp_payment_id", String(payment.id)).maybeSingle();
+
+      const terminal = ["approved", "authorized", "rejected", "cancelled", "refunded", "charged_back"];
+      if (
+        existing?.webhook_processed_at &&
+        terminal.includes(String(existing.mp_status))
+      ) {
+        return json(req, { ok: true, skipped: "already_processed" });
+      }
+
+      const patch = {
+        mp_payment_id: String(payment.id),
+        mp_status: payment.status,
+        mp_status_detail: payment.status_detail,
+        updated_at: new Date().toISOString(),
+        webhook_processed_at: terminal.includes(payment.status)
+          ? new Date().toISOString()
+          : null,
+      };
+
       if (orderId) {
-        await admin
-          .from("funil_orders")
-          .update({
-            mp_payment_id: String(payment.id),
-            mp_status: payment.status,
-            mp_status_detail: payment.status_detail,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", orderId);
+        await admin.from("funil_orders").update(patch).eq("id", orderId);
       } else {
         await admin
           .from("funil_orders")
-          .update({
-            mp_status: payment.status,
-            mp_status_detail: payment.status_detail,
-            updated_at: new Date().toISOString(),
-          })
+          .update(patch)
           .eq("mp_payment_id", String(payment.id));
       }
 
