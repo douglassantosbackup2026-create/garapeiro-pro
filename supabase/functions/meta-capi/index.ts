@@ -124,6 +124,10 @@ Deno.serve(async (req: Request) => {
   if (body.user_data?.phone) user_data.ph = await sha256Hex(normalizePhone(body.user_data.phone));
   if (body.user_data?.external_id)
     user_data.external_id = await sha256Hex(body.user_data.external_id.trim().toLowerCase());
+  if (body.user_data?.first_name)
+    user_data.fn = await sha256Hex(normalizeName(body.user_data.first_name));
+  if (body.user_data?.last_name)
+    user_data.ln = await sha256Hex(normalizeName(body.user_data.last_name));
   if (body.user_data?.fbc) user_data.fbc = body.user_data.fbc;
   if (body.user_data?.fbp) user_data.fbp = body.user_data.fbp;
   if (clientIp) user_data.client_ip_address = clientIp;
