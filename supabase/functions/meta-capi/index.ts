@@ -42,6 +42,13 @@ async function sha256Hex(input: string): Promise<string> {
 function normalizeEmail(v: string) {
   return v.trim().toLowerCase();
 }
+function normalizeName(v: string) {
+  return v
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
 function normalizePhone(v: string) {
   const d = v.replace(/\D/g, "");
   // Se veio sem DDI (BR 11 dígitos ou menos com DDD), força 55
@@ -60,6 +67,8 @@ type Payload = {
     external_id?: string | null;
     fbc?: string | null;
     fbp?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
   };
   custom_data?: Record<string, unknown>;
 };
