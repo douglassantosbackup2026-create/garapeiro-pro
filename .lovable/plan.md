@@ -1,27 +1,26 @@
-## Adaptação do Meta Pixel
+## Objetivo
+Adicionar o parâmetro `fbc` (Facebook click ID) — e o companheiro `fbp` (browser ID) — aos eventos enviados via Meta CAPI, para melhorar a qualidade da correspondência recomendada pela Meta (potencial +100% de conversões adicionais reportadas para InitiateCheckout, segundo a mensagem).
 
-O script JS já está implementado em `src/funil/lib/metaPixel.ts` com o mesmo ID `4269485799969770` e é inicializado globalmente no `src/main.tsx` (dispara `init` + `PageView`). Ou seja, a parte `<script>` do snippet já está coberta.
+Email, telefone e external_id já são enviados hoje (com hash SHA-256 na edge function `meta-capi`). Faltam apenas `fbc` e `fbp`, que **não devem ser hasheados**.
 
-O que falta do snippet oficial é apenas o fallback `<noscript>` com a imagem de tracking, para usuários com JavaScript desabilitado.
+## O que muda
 
-### Mudança
+### 1. `src/funil/lib/metaPixel.ts`
+- Nova função utilitária `readFbCookies()` que lê `_fbc` e `_fbp` do `document.cookie`.
+- Se `_fbc` não existir mas a URL atual tiver `?fbclid=...`, construir manualmente no formato oficial: `fb.1.<timestampMs>.<fbclid>` (o Pixel normalmente já grava, mas garantimos fallback para o primeiro pageview).
+- `trackMetaEventDual` passa `fbc` e `fbp` dentro de `user_data` no payload enviado à edge function `meta-capi`.
 
-**`index.html`** — adicionar o fallback `<noscript>` dentro do `<body>` (não no `<head>`, conforme regra do HTML5 do projeto), logo após a abertura do `<body>`:
+### 2. `src/funil/lib/metaPixel.ts` — tipo `CapiUserData`
+- Estender com `fbc?: string | null` e `fbp?: string | null`.
 
-```html
-<noscript>
-  <img
-    height="1"
-    width="1"
-    style="display:none"
-    src="https://www.facebook.com/tr?id=4269485799969770&ev=PageView&noscript=1"
-    alt=""
-  />
-</noscript>
-```
+### 3. `supabase/functions/meta-capi/index.ts`
+- Estender o tipo `Payload.user_data` com `fbc` e `fbp`.
+- Ao montar `user_data` enviado à Graph API, incluir `fbc` e `fbp` **sem hashing** (a Meta exige texto puro nesses dois campos).
 
-### Notas técnicas
+## O que NÃO muda
+- Nenhuma UI, copy, ou fluxo de checkout.
+- Hashing continua idêntico para email/phone/external_id.
+- CORS, rate limiting, e assinatura de webhook permanecem.
 
-- Não é preciso duplicar o `<script>` inline — o `initMetaPixel()` em `src/main.tsx` já roda em todas as rotas e faz exatamente o que o snippet oficial faz.
-- A CSP em `public/_headers` e `vercel.json` já permite `img-src https://www.facebook.com`, então o pixel `<img>` do noscript carrega sem ajuste adicional.
-- Nenhuma outra alteração necessária (CAPI, eventos Lead/Purchase e demais integrações permanecem como estão).
+## Como validar depois
+- Abrir o funil com um link contendo `?fbclid=teste123`, avançar até InitiateCheckout, e no Gerenciador de Eventos da Meta > Test Events / Diagnóstico ver que agora aparecem `fbc` e `fbp` na lista de parâmetros recebidos, elevando o Event Match Quality.
