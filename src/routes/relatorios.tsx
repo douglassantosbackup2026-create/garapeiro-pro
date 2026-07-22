@@ -6,7 +6,15 @@ import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { QueryErrorState } from "@/components/QueryErrorState";
 
-export const Route = createFileRoute("/relatorios")({ component: RelatoriosPage });
+import { DonoOnlyGate } from "@/components/DonoOnlyGate";
+
+export const Route = createFileRoute("/relatorios")({
+  component: () => (
+    <DonoOnlyGate area="Relatórios">
+      <RelatoriosPage />
+    </DonoOnlyGate>
+  ),
+});
 
 const MESES = [
   "Janeiro",

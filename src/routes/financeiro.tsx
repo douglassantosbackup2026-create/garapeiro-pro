@@ -31,7 +31,15 @@ import { formatBRL, formatOSNumber, formatDate } from "@/lib/format";
 import { buildWhatsappUrl } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/financeiro")({ component: FinanceiroPage });
+import { DonoOnlyGate } from "@/components/DonoOnlyGate";
+
+export const Route = createFileRoute("/financeiro")({
+  component: () => (
+    <DonoOnlyGate area="o Financeiro">
+      <FinanceiroPage />
+    </DonoOnlyGate>
+  ),
+});
 
 const FILTERS = [
   { value: "todas", label: "Todas" },
